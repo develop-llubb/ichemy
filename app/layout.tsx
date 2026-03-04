@@ -31,6 +31,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
+  themeColor: "#FEFCF9",
 };
 
 export default function RootLayout({
@@ -39,9 +40,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="light" style={{ colorScheme: "light" }}>
+    <html lang="ko" className="light" style={{ colorScheme: "light", background: "#FEFCF9" }}>
       <body
         className={`${notoSansKR.variable} ${jua.variable} ${mogra.variable} font-sans antialiased`}
+        style={{ background: "#FEFCF9" }}
       >
         {children}
       </body>

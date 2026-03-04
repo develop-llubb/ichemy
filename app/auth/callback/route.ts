@@ -4,13 +4,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
-  const state = request.nextUrl.searchParams.get("state") || "/home";
 
   if (!code) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // 1. code → token 교환 (JS key = authorize 시 사용한 client_id)
+  // 1. code → token 교환
   const tokenRes = await fetch("https://kauth.kakao.com/oauth/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -18,8 +17,7 @@ export async function GET(request: NextRequest) {
       grant_type: "authorization_code",
       client_id: process.env.KAKAO_REST_API_KEY!,
       redirect_uri: `${request.nextUrl.origin}/auth/callback`,
-      client_secret: process.env.KAKAO_CLIENT_SECRET!, // ← 추가
-
+      client_secret: process.env.KAKAO_CLIENT_SECRET!,
       code,
     }),
   });
@@ -31,7 +29,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/?error=token_failed", request.url));
   }
 
-  // 2. signInWithIdToken → 쿠키에 세션 자동 저장
+  // 2. signInWithIdToken → 쿠키에 세션 저장
   const cookieStore = await cookies();
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -58,5 +56,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(new URL("/?error=auth_failed", request.url));
   }
 
-  return NextResponse.redirect(new URL(state, request.url));
+  // proxy middleware가 프로필/테스트 상태에 따라 리다이렉트 처리
+  return NextResponse.redirect(new URL("/home", request.url));
 }
