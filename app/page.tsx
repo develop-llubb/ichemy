@@ -168,12 +168,10 @@ export default function LandingPage() {
           className="animate-fade-up mt-11 text-center"
           style={{ animationDelay: "400ms" }}
         >
-          <p className="text-[15px] font-normal leading-[1.7] text-muted">
-            심리학 기반{" "}
-            <strong className="font-bold text-foreground">3분 성격 검사</strong>
-            로
+          <p className="text-[13px] font-normal leading-relaxed tracking-tight text-muted-light">
+            심리학 기반 3분 검사로
             <br />
-            부부의 육아 강점과 팀워크를 분석해요
+            부부의 육아 강점과 위험 신호를 한눈에
           </p>
         </div>
 
