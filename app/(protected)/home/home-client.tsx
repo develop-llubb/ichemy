@@ -213,8 +213,8 @@ export function HomeClient({ nickname, role, hasCouple }: HomeClientProps) {
             className="mt-2.5 text-center text-sm text-muted"
             style={ease(0.2)}
           >
-            응답이 저장되었습니다.
-            <br />
+            {/* 응답이 저장되었습니다.
+            <br /> */}
             지금 바로 결과를 확인해 보세요.
           </p>
 

@@ -242,16 +242,16 @@ export const befeCouples = pgTable(
     }).defaultNow(),
 
     // PNCAM 4대 지표
-    esb_score: real("esb_score").notNull(),
-    csp_score: real("csp_score").notNull(),
-    pci_score: real("pci_score").notNull(),
-    stb_score: real("stb_score").notNull(),
+    esb_score: real("esb_score"),
+    csp_score: real("csp_score"),
+    pci_score: real("pci_score"),
+    stb_score: real("stb_score"),
 
     // 등급
-    esb_grade: gradeEnum("esb_grade").notNull(),
-    csp_grade: gradeEnum("csp_grade").notNull(),
-    pci_grade: gradeEnum("pci_grade").notNull(),
-    stb_grade: gradeEnum("stb_grade").notNull(),
+    esb_grade: gradeEnum("esb_grade"),
+    csp_grade: gradeEnum("csp_grade"),
+    pci_grade: gradeEnum("pci_grade"),
+    stb_grade: gradeEnum("stb_grade"),
 
     // 중간값
     e_llubb: real("e_llubb"),

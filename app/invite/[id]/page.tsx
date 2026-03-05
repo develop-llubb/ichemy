@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { db } from "@/db";
-import { befeProfiles } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { befeProfiles, befeCouples } from "@/db/schema";
+import { eq, or } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { KakaoLoginButton } from "@/components/kakao-login-button";
+import { InviteLoggedIn } from "./invite-logged-in";
 
 export async function generateMetadata({
   params,
@@ -30,8 +31,8 @@ export async function generateMetadata({
       images: [
         {
           url: `/og/invite?name=${encodeURIComponent(name)}`,
-          width: 600,
-          height: 314,
+          width: 800,
+          height: 400,
         },
       ],
     },
@@ -47,7 +48,11 @@ export default async function InvitePage({
 
   // 초대한 사람 프로필 확인
   const [inviter] = await db
-    .select({ id: befeProfiles.id, nickname: befeProfiles.nickname })
+    .select({
+      id: befeProfiles.id,
+      nickname: befeProfiles.nickname,
+      test_completed: befeProfiles.test_completed,
+    })
     .from(befeProfiles)
     .where(eq(befeProfiles.id, id))
     .limit(1);
@@ -66,29 +71,50 @@ export default async function InvitePage({
     const [profile] = await db
       .select({
         id: befeProfiles.id,
+        nickname: befeProfiles.nickname,
         test_completed: befeProfiles.test_completed,
+        invited_by: befeProfiles.invited_by,
       })
       .from(befeProfiles)
       .where(eq(befeProfiles.user_id, user.id))
       .limit(1);
 
-    if (profile) {
-      // invited_by 업데이트 (아직 설정 안 된 경우)
-      await db
-        .update(befeProfiles)
-        .set({ invited_by: inviter.id })
-        .where(eq(befeProfiles.id, profile.id));
-
-      if (profile.test_completed) {
-        redirect("/home");
-      } else {
-        redirect("/test/intro");
-      }
-    } else {
+    if (!profile) {
       redirect("/profile/create");
     }
+
+    // 자기 자신 초대 방지
+    if (profile.id === inviter.id) {
+      redirect("/home");
+    }
+
+    // 이미 연결된 상태 (invited_by 설정됨 또는 couple 존재) → 홈으로
+    const [existingCouple] = await db
+      .select({ id: befeCouples.id })
+      .from(befeCouples)
+      .where(
+        or(
+          eq(befeCouples.inviter_profile_id, profile.id),
+          eq(befeCouples.invitee_profile_id, profile.id),
+        ),
+      )
+      .limit(1);
+
+    if (existingCouple) {
+      redirect("/home");
+    }
+
+    // 로그인 상태 → 수락 UI
+    return (
+      <InviteLoggedIn
+        inviterProfileId={inviter.id}
+        inviterNickname={inviter.nickname ?? "배우자"}
+        myNickname={profile.nickname ?? "회원"}
+      />
+    );
   }
 
+  // 비로그인 상태
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
       <main className="flex flex-1 flex-col items-center justify-center px-6 text-center">

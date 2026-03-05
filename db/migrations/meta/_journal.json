@@ -15,6 +15,13 @@
       "when": 1772637466389,
       "tag": "0001_dazzling_marrow",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1772698103089,
+      "tag": "0002_round_crystal",
+      "breakpoints": true
     }
   ]
 }
