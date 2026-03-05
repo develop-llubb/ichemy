@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
+import { logout } from "../actions";
 
 const stats = [
   { value: "약 10분", label: "소요 시간", icon: "⏱" },
@@ -81,7 +82,7 @@ export default function TestIntroPage() {
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
       {/* Header */}
       <header className="sticky top-0 z-10 flex h-12 items-center bg-background/80 px-4 backdrop-blur-sm">
-        <button onClick={() => router.back()} className="text-muted">
+        <button onClick={() => logout()} className="text-muted">
           <ChevronLeft size={24} />
         </button>
       </header>

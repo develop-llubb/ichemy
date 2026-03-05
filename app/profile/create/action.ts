@@ -2,8 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
-import { befeProfiles } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { befeProfiles, befeCouples } from "@/db/schema";
+import { eq, or } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
@@ -61,13 +61,27 @@ export async function createProfile(
     invitedBy = inviter ? inviter.id : null;
   }
 
-  await db.insert(befeProfiles).values({
-    user_id: user.id,
-    nickname,
-    role,
-    third_party_agreed: thirdPartyAgreed,
-    invited_by: invitedBy,
-  });
+  const [newProfile] = await db
+    .insert(befeProfiles)
+    .values({
+      user_id: user.id,
+      nickname,
+      role,
+      third_party_agreed: thirdPartyAgreed,
+      invited_by: invitedBy,
+    })
+    .returning({ id: befeProfiles.id });
+
+  // couple 생성 (invited_by가 있으면)
+  if (invitedBy && newProfile) {
+    await db
+      .insert(befeCouples)
+      .values({
+        inviter_profile_id: invitedBy,
+        invitee_profile_id: newProfile.id,
+      })
+      .onConflictDoNothing();
+  }
 
   // 쿠키 제거
   if (invitedBy) {

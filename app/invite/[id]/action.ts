@@ -22,7 +22,11 @@ export async function acceptInvite(inviterProfileId: string) {
     .where(eq(befeProfiles.user_id, user.id))
     .limit(1);
 
-  if (!profile || profile.id === inviterProfileId) {
+  if (!profile) {
+    redirect("/profile/create");
+  }
+
+  if (profile.id === inviterProfileId) {
     redirect("/home");
   }
 
