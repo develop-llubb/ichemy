@@ -1,0 +1,2 @@
+ALTER TABLE "befe_profiles" ADD COLUMN "coupon_id" uuid;--> statement-breakpoint
+ALTER TABLE "befe_profiles" ADD CONSTRAINT "befe_profiles_coupon_id_befe_coupons_id_fk" FOREIGN KEY ("coupon_id") REFERENCES "public"."befe_coupons"("id") ON DELETE no action ON UPDATE no action;

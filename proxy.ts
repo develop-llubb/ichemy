@@ -43,6 +43,7 @@ export async function proxy(request: NextRequest) {
   const isPublic =
     PUBLIC_PATHS.includes(pathname) ||
     pathname.startsWith("/invite/") ||
+    pathname.startsWith("/coupon/") ||
     pathname.startsWith("/og/");
 
   // /invite/[id] → invited_by 쿠키 설정
@@ -50,6 +51,19 @@ export async function proxy(request: NextRequest) {
     const inviterId = pathname.split("/invite/")[1];
     if (inviterId) {
       response.cookies.set("invited_by", inviterId, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+        httpOnly: true,
+        sameSite: "lax",
+      });
+    }
+  }
+
+  // /coupon/[code] → coupon_code 쿠키 설정
+  if (pathname.startsWith("/coupon/")) {
+    const couponCode = pathname.split("/coupon/")[1];
+    if (couponCode) {
+      response.cookies.set("coupon_code", couponCode, {
         path: "/",
         maxAge: 60 * 60 * 24 * 7,
         httpOnly: true,

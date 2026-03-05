@@ -1,6 +1,6 @@
 export const JOURNEY_STEPS = [
   { num: "1", title: "내 검사 완료", desc: null },
-  { num: "2", title: "배우자 검사 완료", desc: null },
+  { num: "2", title: "배우자 초대 및 검사 완료", desc: null },
   {
     num: "3",
     title: "리포트 유형 선택",

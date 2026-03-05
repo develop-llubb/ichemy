@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { saveHasChildren } from "./actions";
 import { JOURNEY_STEPS } from "@/lib/steps";
+import { CouponTicket } from "@/components/coupon-ticket";
 
 interface ReportIntroClientProps {
   nickname: string;
@@ -11,6 +13,7 @@ interface ReportIntroClientProps {
   coupleId: string;
   hasChildren: boolean | null;
   pcqScore: number;
+  hasCoupon: boolean;
 }
 
 export function ReportIntroClient({
@@ -19,6 +22,7 @@ export function ReportIntroClient({
   coupleId,
   hasChildren: initialHasChildren,
   pcqScore,
+  hasCoupon,
 }: ReportIntroClientProps) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -166,8 +170,7 @@ export function ReportIntroClient({
                 disabled={saving}
                 className="flex flex-1 cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
                 style={{
-                  borderColor:
-                    hasChildren === true ? "#D4735C" : "#ECE8E3",
+                  borderColor: hasChildren === true ? "#D4735C" : "#ECE8E3",
                   background:
                     hasChildren === true
                       ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
@@ -190,8 +193,7 @@ export function ReportIntroClient({
                 disabled={saving}
                 className="flex flex-1 cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
                 style={{
-                  borderColor:
-                    hasChildren === false ? "#D4735C" : "#ECE8E3",
+                  borderColor: hasChildren === false ? "#D4735C" : "#ECE8E3",
                   background:
                     hasChildren === false
                       ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
@@ -291,31 +293,46 @@ export function ReportIntroClient({
             })}
           </div>
 
-          {/* Baby fair promo */}
-          <div
-            className="relative mt-7 mb-6 w-full overflow-hidden rounded-[18px] p-[22px_20px] text-white"
-            style={{
-              background: "linear-gradient(160deg, #D4735C, #C0614A)",
-              ...ease(0.38),
-            }}
-          >
-            <div className="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full bg-white/[0.08]" />
-            <div className="pointer-events-none absolute -bottom-4 -left-4 h-14 w-14 rounded-full bg-white/[0.06]" />
-            <div className="relative z-10">
-              <div className="mb-3 inline-block rounded-lg bg-white/20 px-2.5 py-1 text-[11px] font-bold">
-                🎪 베이비페어 특별 혜택
-              </div>
-              <div className="mb-2.5 text-base font-extrabold leading-[1.5] tracking-[-0.3px]">
-                현장 QR 스캔하면
-                <br />
-                리포트 무료!
-              </div>
-              <p className="text-xs leading-[1.7] opacity-85">
-                육아 케어 리포트는 유료 서비스이지만, 베이비페어 케미스트리
-                부스에서 QR을 스캔하시면 무료로 확인하실 수 있어요.
-              </p>
+          {hasCoupon ? (
+            <div className="mt-7 mb-6 w-full" style={ease(0.38)}>
+              <CouponTicket
+                title="무료 쿠폰 적용 완료!"
+                description="결제 없이 바로 리포트를 받을 수 있어요"
+              />
             </div>
-          </div>
+          ) : (
+            /* Baby fair promo */
+            <div
+              className="relative mt-7 mb-6 w-full overflow-hidden rounded-[18px] p-[22px_20px] text-white"
+              style={{
+                background: "linear-gradient(160deg, #D4735C, #C0614A)",
+                ...ease(0.38),
+              }}
+            >
+              <div className="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full bg-white/[0.08]" />
+              <div className="pointer-events-none absolute -bottom-4 -left-4 h-14 w-14 rounded-full bg-white/[0.06]" />
+              <div className="relative z-10">
+                <div className="inline-block rounded-lg bg-white px-2.5 py-1.5">
+                  <Image
+                    src="/befe-logo.png"
+                    alt="BeFe"
+                    width={56}
+                    height={24}
+                    className="h-5 w-auto"
+                  />
+                </div>
+                <div className="mt-3 mb-2.5 text-base font-extrabold leading-[1.5] tracking-[-0.3px]">
+                  BeFe 베이비페어에서
+                  <br />
+                  QR 스캔하면 무료!
+                </div>
+                <p className="text-xs leading-[1.7] opacity-85">
+                  BeFe 베이비페어 케미스트리 부스에서 QR을 스캔하시면 육아 케어
+                  리포트를 무료로 받으실 수 있어요.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Bottom CTA */}
@@ -341,7 +358,7 @@ export function ReportIntroClient({
               cursor: hasChildren !== null ? "pointer" : "not-allowed",
             }}
           >
-            결제하고 리포트 받기
+            {hasCoupon ? "리포트 받기" : "2,900원 결제하고 리포트 받기"}
           </button>
           <p className="mt-2.5 text-center text-[11px] text-[#B8A898]">
             AI가 두 분의 데이터를 분석하여 맞춤 리포트를 생성합니다

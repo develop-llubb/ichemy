@@ -69,5 +69,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/invite/${invitedBy}`);
   }
 
+  // coupon_code 쿠키가 있으면 쿠폰 페이지로
+  const couponCode = cookieStore.get("coupon_code")?.value;
+  if (couponCode) {
+    return NextResponse.redirect(`${origin}/coupon/${couponCode}`);
+  }
+
   return NextResponse.redirect(`${origin}/home`);
 }

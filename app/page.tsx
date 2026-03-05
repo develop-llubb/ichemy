@@ -1,7 +1,7 @@
-import Image from "next/image";
 import Link from "next/link";
 import { KakaoLoginButton } from "@/components/kakao-login-button";
 import { Footer } from "@/components/footer";
+import { CollabLogo } from "@/components/collab-logo";
 
 const pills = [
   {
@@ -79,28 +79,10 @@ export default function LandingPage() {
       <main className="relative z-10 flex flex-1 flex-col items-center px-6">
         {/* Collab label */}
         <div
-          className="animate-fade-up mt-14 flex items-center gap-2"
+          className="animate-fade-up mt-14"
           style={{ animationDelay: "0ms" }}
         >
-          <Image
-            src="/befe-logo.png"
-            alt="BeFe"
-            width={56}
-            height={24}
-            priority
-            className="h-5 w-auto mb-1"
-          />
-          <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
-            <path
-              d="M4 4L12 12M12 4L4 12"
-              stroke="#B8A898"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
-          <span className="font-[family-name:var(--font-mogra)] text-[14px] text-accent mt-0.5">
-            Chemistry
-          </span>
+          <CollabLogo />
         </div>
 
         {/* Brand name */}

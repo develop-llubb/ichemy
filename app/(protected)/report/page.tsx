@@ -60,10 +60,12 @@ export default async function ReportPage() {
       : couple.inviter_profile_id;
 
   const [partner] = await db
-    .select({ nickname: befeProfiles.nickname })
+    .select({ nickname: befeProfiles.nickname, coupon_id: befeProfiles.coupon_id })
     .from(befeProfiles)
     .where(eq(befeProfiles.id, partnerId))
     .limit(1);
+
+  const hasCoupon = !!(profile.coupon_id || partner?.coupon_id);
 
   return (
     <ReportIntroClient
@@ -72,6 +74,7 @@ export default async function ReportPage() {
       coupleId={couple.id}
       hasChildren={couple.has_children}
       pcqScore={couple.pcq_score}
+      hasCoupon={hasCoupon}
     />
   );
 }

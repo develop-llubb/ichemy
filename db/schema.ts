@@ -193,6 +193,9 @@ export const befeProfiles = pgTable("befe_profiles", {
   aas_intensity: smallint("aas_intensity"),
   flexibility_level: smallint("flexibility_level"),
   flexibility_percentage: real("flexibility_percentage"),
+
+  // 쿠폰
+  coupon_id: uuid("coupon_id").references(() => befeCoupons.id),
 });
 
 // ─── befe_answers ───
@@ -340,7 +343,7 @@ export const befeCoupons = pgTable("befe_coupons", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
   code: text("code").notNull().unique(),
   event_name: text("event_name").notNull(),
-  max_uses: integer("max_uses").notNull(),
+  max_uses: integer("max_uses"),
   current_uses: integer("current_uses").default(0).notNull(),
   used_by: uuid("used_by")
     .array()
@@ -349,7 +352,7 @@ export const befeCoupons = pgTable("befe_coupons", {
   expires_at: timestamp("expires_at", {
     withTimezone: true,
     mode: "string",
-  }).notNull(),
+  }),
   created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),
