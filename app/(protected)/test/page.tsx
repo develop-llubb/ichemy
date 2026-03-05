@@ -26,10 +26,6 @@ export default async function TestPage() {
     redirect("/profile/create");
   }
 
-  if (profile.test_completed) {
-    redirect("/home");
-  }
-
   // 질문 전체 로드
   const allQuestions = await db
     .select()

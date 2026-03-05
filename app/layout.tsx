@@ -1,12 +1,6 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans_KR, Jua, Mogra } from "next/font/google";
+import { Jua, Mogra } from "next/font/google";
 import "./globals.css";
-
-const notoSansKR = Noto_Sans_KR({
-  variable: "--font-noto-sans-kr",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-});
 
 const jua = Jua({
   variable: "--font-jua",
@@ -41,8 +35,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" className="light" style={{ colorScheme: "light", background: "#FEFCF9" }}>
+      <head>
+        <link
+          rel="stylesheet"
+          as="style"
+          crossOrigin="anonymous"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css"
+        />
+      </head>
       <body
-        className={`${notoSansKR.variable} ${jua.variable} ${mogra.variable} font-sans antialiased`}
+        className={`${jua.variable} ${mogra.variable} font-sans antialiased`}
         style={{ background: "#FEFCF9" }}
       >
         {children}

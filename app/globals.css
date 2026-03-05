@@ -25,13 +25,14 @@
   --color-border: var(--border);
   --color-muted: var(--muted);
   --color-muted-light: var(--muted-light);
-  --font-sans: var(--font-noto-sans-kr);
+  --font-sans: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
   --font-display: var(--font-jua);
 }
 
 html, body {
   background: var(--background) !important;
   color: var(--foreground) !important;
+  font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 
 /* Animations */

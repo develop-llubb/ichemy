@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { BefeProfile, BefeAnswer, Question } from "@/db/schema";
 import { calculateProfileScores } from "@/lib/scorer";
 import { saveAnswer, completeTest } from "./actions";
+import { Loader2 } from "lucide-react";
 
 // ── Scale map ──
 
@@ -223,7 +224,13 @@ export function TestClient({
       const q = questions[idx];
       const opts = scaleMap[q.test_id === "big-5" ? 5 : 7];
       const keyMap: Record<string, number> = {
-        a: 0, b: 1, c: 2, d: 3, e: 4, f: 5, g: 6,
+        a: 0,
+        b: 1,
+        c: 2,
+        d: 3,
+        e: 4,
+        f: 5,
+        g: 6,
       };
       const ki = keyMap[e.key.toLowerCase()];
       if (ki !== undefined && ki < opts.length) {
@@ -247,7 +254,7 @@ export function TestClient({
         answers: answersArray,
       });
       await completeTest(profile.id, patch);
-      router.push("/test/complete");
+      router.replace("/home");
     } catch (error) {
       console.error("Error completing test:", error);
       setCompleting(false);
@@ -284,7 +291,7 @@ export function TestClient({
         <button
           onClick={handleCompleteTest}
           disabled={completing}
-          className="animate-fade-up mt-9 h-[52px] w-full max-w-[320px] rounded-2xl border-none text-[15px] font-bold text-white disabled:cursor-default"
+          className="animate-fade-up mt-9 flex h-[52px] w-full max-w-[320px] items-center justify-center rounded-2xl border-none text-[15px] font-bold text-white disabled:cursor-default"
           style={{
             background: completing
               ? "#E8C4BA"
@@ -293,7 +300,7 @@ export function TestClient({
             animationDelay: "400ms",
           }}
         >
-          {completing ? "저장 중..." : "결과 확인하기"}
+          {completing ? <Loader2 className="animate-spin" /> : "결과 확인하기"}
         </button>
       </div>
     );
@@ -311,7 +318,9 @@ export function TestClient({
           <button
             onClick={handlePrev}
             className={`border-none bg-transparent pr-2.5 py-1.5 text-xl ${
-              !locked ? "cursor-pointer text-foreground" : "cursor-default text-[#D4CFC8]"
+              !locked
+                ? "cursor-pointer text-foreground"
+                : "cursor-default text-[#D4CFC8]"
             }`}
           >
             ←

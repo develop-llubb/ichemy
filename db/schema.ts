@@ -64,6 +64,71 @@ export const questions = pgTable("questions", {
   index: bigint("index", { mode: "number" }).default(0).notNull(),
 });
 
+// ─── 공유 report 테이블 (읽기 전용, chemistry-rn과 동일) ───
+
+export type DetailEvaluation = { title: string; content: string };
+
+export const reportBig5 = pgTable(
+  "report_big_5",
+  {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    big_5_type: bigint("big_5_type", { mode: "number" }).notNull(),
+    sequence: integer("sequence").notNull(),
+    nickname: text("nickname").notNull(),
+    title: text("title").notNull(),
+    overall_evaluation: text("overall_evaluation").notNull(),
+    detail_evaluations: text("detail_evaluations").notNull(),
+    counseling_text: text("counseling_text").notNull(),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updated_at: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).defaultNow(),
+  },
+  (table) => [unique("report_big_5_big_5_type_key").on(table.big_5_type)],
+);
+
+export const reportAas = pgTable("report_aas", {
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
+  type: text("type").notNull(),
+  type_text: text("type_text").notNull(),
+  aas_intensity: smallint("aas_intensity").notNull(),
+  overall_evaluation: text("overall_evaluation").notNull(),
+  detail_evaluations: jsonb("detail_evaluations")
+    .$type<DetailEvaluation[]>()
+    .notNull(),
+  counseling_evaluations: jsonb("counseling_evaluations")
+    .$type<DetailEvaluation[]>()
+    .notNull(),
+  created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
+  updated_at: timestamp("updated_at", {
+    withTimezone: true,
+    mode: "string",
+  }).defaultNow(),
+  title: text("title").notNull(),
+  sequence: smallint("sequence").notNull(),
+});
+
+export const reportFlexibility = pgTable("report_flexibility", {
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
+  flexibility_level: smallint("flexibility_level").notNull(),
+  title: text("title").notNull(),
+  overall_evaluation: text("overall_evaluation").notNull(),
+  detail_evaluation: text("detail_evaluation").notNull(),
+  counseling_text: text("counseling_text").notNull(),
+  created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
+  updated_at: timestamp("updated_at", {
+    withTimezone: true,
+    mode: "string",
+  }).defaultNow(),
+});
+
 // ─── befe_profiles ───
 
 export const befeProfiles = pgTable("befe_profiles", {
@@ -274,3 +339,7 @@ export type NewBefeCoupon = typeof befeCoupons.$inferInsert;
 
 export type Question = typeof questions.$inferSelect;
 export type Test = typeof tests.$inferSelect;
+
+export type ReportBig5 = typeof reportBig5.$inferSelect;
+export type ReportAAS = typeof reportAas.$inferSelect;
+export type ReportFlexibility = typeof reportFlexibility.$inferSelect;

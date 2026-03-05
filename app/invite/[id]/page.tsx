@@ -1,9 +1,42 @@
+import type { Metadata } from "next";
 import { db } from "@/db";
 import { befeProfiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { KakaoLoginButton } from "@/components/kakao-login-button";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+
+  const [inviter] = await db
+    .select({ nickname: befeProfiles.nickname })
+    .from(befeProfiles)
+    .where(eq(befeProfiles.id, id))
+    .limit(1);
+
+  const name = inviter?.nickname || "배우자";
+
+  return {
+    title: `${name}님이 육아 케미 검사에 초대했어요 - 아이케미`,
+    description: "우리 부부 육아 점수, 몇 점일까? 3분이면 끝!",
+    openGraph: {
+      title: "우리 부부 육아 점수, 몇 점일까?",
+      description: `${name}님이 함께 육아 케어 리포트를 확인하자고 초대했어요.`,
+      images: [
+        {
+          url: `/og/invite?name=${encodeURIComponent(name)}`,
+          width: 600,
+          height: 314,
+        },
+      ],
+    },
+  };
+}
 
 export default async function InvitePage({
   params,
