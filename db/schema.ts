@@ -34,6 +34,11 @@ export const attachmentTypeEnum = pgEnum("befe_attachment_type", [
   "disorganized",
 ]);
 export const gradeEnum = pgEnum("befe_grade", ["A", "B", "C", "D"]);
+export const invitationStatusEnum = pgEnum("befe_invitation_status", [
+  "pending",
+  "accepted",
+  "declined",
+]);
 
 // ─── 공유 테이블 (읽기 전용, chemistry-rn과 동일) ───
 
@@ -268,6 +273,36 @@ export const befeCouples = pgTable(
   ],
 );
 
+// ─── befe_invitations ───
+
+export const befeInvitations = pgTable(
+  "befe_invitations",
+  {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    inviter_profile_id: uuid("inviter_profile_id")
+      .notNull()
+      .references(() => befeProfiles.id, { onDelete: "cascade" }),
+    invitee_profile_id: uuid("invitee_profile_id")
+      .notNull()
+      .references(() => befeProfiles.id, { onDelete: "cascade" }),
+    status: invitationStatusEnum("status").default("pending").notNull(),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updated_at: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).defaultNow(),
+  },
+  (table) => [
+    unique("befe_invitations_pair_key").on(
+      table.inviter_profile_id,
+      table.invitee_profile_id,
+    ),
+    index("idx_befe_invitations_invitee").on(table.invitee_profile_id),
+  ],
+);
+
 // ─── befe_reports (AI 리포트 캐시) ───
 
 export const befeReports = pgTable(
@@ -330,6 +365,9 @@ export type NewBefeAnswer = typeof befeAnswers.$inferInsert;
 
 export type BefeCouple = typeof befeCouples.$inferSelect;
 export type NewBefeCouple = typeof befeCouples.$inferInsert;
+
+export type BefeInvitation = typeof befeInvitations.$inferSelect;
+export type NewBefeInvitation = typeof befeInvitations.$inferInsert;
 
 export type BefeReport = typeof befeReports.$inferSelect;
 export type NewBefeReport = typeof befeReports.$inferInsert;

@@ -63,20 +63,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/?error=auth_failed`);
   }
 
-  // invited_by 쿠키가 있고 아직 프로필이 없는 신규 유저 → 초대 페이지로
+  // invited_by 쿠키가 있으면 초대 페이지로 (invite page가 상태별 분기 처리)
   const invitedBy = cookieStore.get("invited_by")?.value;
   if (invitedBy) {
-    const { data: profile } = await supabase
-      .from("befe_profiles")
-      .select("id")
-      .eq("user_id", (await supabase.auth.getUser()).data.user!.id)
-      .single();
-
-    if (!profile) {
-      return NextResponse.redirect(`${origin}/invite/${invitedBy}`);
-    }
-    // 기존 유저면 쿠키 정리
-    cookieStore.delete("invited_by");
+    return NextResponse.redirect(`${origin}/invite/${invitedBy}`);
   }
 
   return NextResponse.redirect(`${origin}/home`);

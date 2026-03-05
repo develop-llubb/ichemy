@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { db } from "@/db";
-import { befeProfiles, befeCouples } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { befeProfiles, befeCouples, befeInvitations } from "@/db/schema";
+import { eq, or, and } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { KakaoLoginButton } from "@/components/kakao-login-button";
@@ -102,6 +102,15 @@ export default async function InvitePage({
     if (existingCouple) {
       redirect("/home");
     }
+
+    // invitation 레코드 생성 (없으면)
+    await db
+      .insert(befeInvitations)
+      .values({
+        inviter_profile_id: inviter.id,
+        invitee_profile_id: profile.id,
+      })
+      .onConflictDoNothing();
 
     // 로그인 상태 → 수락 UI
     return (

@@ -36,6 +36,13 @@
       "when": 1772722466680,
       "tag": "0004_majestic_meltdown",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1772724017358,
+      "tag": "0005_harsh_zuras",
+      "breakpoints": true
     }
   ]
 }

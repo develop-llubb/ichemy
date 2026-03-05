@@ -4,6 +4,7 @@ import { db } from "@/db";
 import {
   befeProfiles,
   befeCouples,
+  befeInvitations,
   reportBig5,
   reportAas,
   reportFlexibility,
@@ -114,7 +115,40 @@ export default async function HomePage() {
     }
   }
 
-  // 6. status 결정
+  // 6. 대기 중인 초대 조회 (couple이 없을 때만)
+  let pendingInvitation: { id: string; inviterProfileId: string; inviterNickname: string } | null = null;
+
+  if (!couple) {
+    const [invitation] = await db
+      .select({
+        id: befeInvitations.id,
+        inviter_profile_id: befeInvitations.inviter_profile_id,
+      })
+      .from(befeInvitations)
+      .where(
+        and(
+          eq(befeInvitations.invitee_profile_id, profile.id),
+          eq(befeInvitations.status, "pending"),
+        ),
+      )
+      .limit(1);
+
+    if (invitation) {
+      const [inviter] = await db
+        .select({ nickname: befeProfiles.nickname })
+        .from(befeProfiles)
+        .where(eq(befeProfiles.id, invitation.inviter_profile_id))
+        .limit(1);
+
+      pendingInvitation = {
+        id: invitation.id,
+        inviterProfileId: invitation.inviter_profile_id,
+        inviterNickname: inviter?.nickname ?? "배우자",
+      };
+    }
+  }
+
+  // 7. status 결정
   let status: "pre_test" | "done_no_partner" | "waiting_partner" | "both_complete";
 
   if (!profile.test_completed) {
@@ -136,6 +170,7 @@ export default async function HomePage() {
       profileId={profile.id}
       tags={tags}
       hasCouple={!!couple}
+      pendingInvitation={pendingInvitation}
     />
   );
 }

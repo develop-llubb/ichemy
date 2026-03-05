@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { populateCoupleScores } from "@/lib/populate-couple-scores";
 
-export async function acceptInvite(inviterProfileId: string) {
+export async function acceptInvitationFromHome(inviterProfileId: string) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -44,7 +44,6 @@ export async function acceptInvite(inviterProfileId: string) {
     .limit(1);
 
   if (!existingCouple) {
-    // couple 항상 생성 (테스트 완료 여부 무관)
     const [newCouple] = await db
       .insert(befeCouples)
       .values({
@@ -54,7 +53,6 @@ export async function acceptInvite(inviterProfileId: string) {
       .onConflictDoNothing()
       .returning({ id: befeCouples.id });
 
-    // 양쪽 검사 완료 시 점수 populate
     if (newCouple) {
       const [inviter] = await db
         .select({ test_completed: befeProfiles.test_completed })
@@ -78,11 +76,6 @@ export async function acceptInvite(inviterProfileId: string) {
         eq(befeInvitations.invitee_profile_id, profile.id),
       ),
     );
-
-  // 검사 미완료면 테스트로, 완료면 홈으로
-  if (!profile.test_completed) {
-    redirect("/test/intro");
-  }
 
   redirect("/home");
 }
