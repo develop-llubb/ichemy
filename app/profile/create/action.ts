@@ -48,7 +48,18 @@ export async function createProfile(
   }
 
   const cookieStore = await cookies();
-  const invitedBy = cookieStore.get("invited_by")?.value || null;
+  const invitedByCookie = cookieStore.get("invited_by")?.value || null;
+
+  // invited_by 프로필이 실제 존재하는지 확인
+  let invitedBy: string | null = null;
+  if (invitedByCookie) {
+    const [inviter] = await db
+      .select({ id: befeProfiles.id })
+      .from(befeProfiles)
+      .where(eq(befeProfiles.id, invitedByCookie))
+      .limit(1);
+    invitedBy = inviter ? inviter.id : null;
+  }
 
   await db.insert(befeProfiles).values({
     user_id: user.id,
