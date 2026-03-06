@@ -10,7 +10,7 @@ import {
   DrawerContent,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Loader2 } from "lucide-react";
+import { Loader2, X, UserPen } from "lucide-react";
 import { toast } from "sonner";
 
 // ── Types ──
@@ -105,8 +105,8 @@ export function HomeClient({
           <DrawerTitle className="sr-only">메뉴</DrawerTitle>
           {/* Close button */}
           <div className="flex items-center justify-end px-5 pt-4">
-            <DrawerClose className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-none bg-[#F0EDE9] text-base text-foreground">
-              ✕
+            <DrawerClose className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl border-none bg-transparent text-[#9A918A] transition-colors hover:bg-[#F0EDE9] hover:text-foreground">
+              <X size={20} strokeWidth={2} />
             </DrawerClose>
           </div>
 
@@ -139,8 +139,9 @@ export function HomeClient({
                 setDrawerOpen(false);
                 router.push("/profile/edit");
               }}
-              className="flex h-11 w-full cursor-pointer items-center rounded-xl px-3 text-[14px] font-medium text-foreground hover:bg-[#F8F6F3] transition-colors"
+              className="flex h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 text-[14px] font-medium text-foreground hover:bg-[#F8F6F3] transition-colors"
             >
+              <UserPen size={18} className="text-[#9A918A]" />
               내 정보 수정
             </button>
           </div>
