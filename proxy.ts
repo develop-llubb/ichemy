@@ -77,29 +77,8 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // 로그인 상태에서 프로필/테스트 상태 기반 라우팅
-  if (user) {
-    const { data: profile } = await supabase
-      .from("befe_profiles")
-      .select("test_completed")
-      .eq("user_id", user.id)
-      .single();
-
-    // 프로필 있는데 회원가입 페이지 접근 → /home
-    if (profile && pathname === "/profile/create") {
-      return NextResponse.redirect(new URL("/home", request.url));
-    }
-
-    if (!isPublic) {
-      if (!profile) {
-        return NextResponse.redirect(new URL("/profile/create", request.url));
-      }
-
-      if (!profile.test_completed && !pathname.startsWith("/test")) {
-        return NextResponse.redirect(new URL("/test/intro", request.url));
-      }
-    }
-  }
+  // 미로그인 + protected 페이지 → 랜딩으로 (위에서 이미 처리됨)
+  // 프로필/테스트 상태 기반 라우팅은 각 페이지 서버 컴포넌트에서 처리
 
   return response;
 }

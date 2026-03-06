@@ -132,6 +132,19 @@ export function HomeClient({
             </div>
           </div>
 
+          {/* Menu */}
+          <div className="px-5 pt-2">
+            <button
+              onClick={() => {
+                setDrawerOpen(false);
+                router.push("/profile/edit");
+              }}
+              className="flex h-11 w-full cursor-pointer items-center rounded-xl px-3 text-[14px] font-medium text-foreground hover:bg-[#F8F6F3] transition-colors"
+            >
+              내 정보 수정
+            </button>
+          </div>
+
           {/* Spacer */}
           <div className="flex-1" />
 
