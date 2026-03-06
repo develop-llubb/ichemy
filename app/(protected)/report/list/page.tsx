@@ -3,15 +3,9 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { befeProfiles, befeCouples, befeReports } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
-import { ReportIntroClient } from "./report-intro-client";
+import { ReportListClient } from "./report-list-client";
 
-export default async function ReportPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ type?: string }>;
-}) {
-  const { type } = await searchParams;
-  // 1. auth
+export default async function ReportListPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -21,7 +15,6 @@ export default async function ReportPage({
     redirect("/");
   }
 
-  // 2. profile
   const [profile] = await db
     .select()
     .from(befeProfiles)
@@ -32,18 +25,12 @@ export default async function ReportPage({
     redirect("/home");
   }
 
-  // 3. couple (점수 계산 완료된 것만)
   const [couple] = await db
     .select({
       id: befeCouples.id,
       inviter_profile_id: befeCouples.inviter_profile_id,
       invitee_profile_id: befeCouples.invitee_profile_id,
       pcq_score: befeCouples.pcq_score,
-      has_children: befeCouples.has_children,
-      esb_score: befeCouples.esb_score,
-      csp_score: befeCouples.csp_score,
-      pci_score: befeCouples.pci_score,
-      stb_score: befeCouples.stb_score,
     })
     .from(befeCouples)
     .where(
@@ -58,45 +45,39 @@ export default async function ReportPage({
     redirect("/home");
   }
 
-  // 4. partner 닉네임
+  // partner nickname
   const partnerId =
     couple.inviter_profile_id === profile.id
       ? couple.invitee_profile_id
       : couple.inviter_profile_id;
 
   const [partner] = await db
-    .select({ nickname: befeProfiles.nickname, coupon_id: befeProfiles.coupon_id })
+    .select({ nickname: befeProfiles.nickname })
     .from(befeProfiles)
     .where(eq(befeProfiles.id, partnerId))
     .limit(1);
 
-  const hasCoupon = !!(profile.coupon_id || partner?.coupon_id);
-
-  // 이미 존재하는 리포트 타입 조회
-  const existingReports = await db
-    .select({ has_children: befeReports.has_children })
+  // all reports for this couple
+  const reports = await db
+    .select({
+      id: befeReports.id,
+      has_children: befeReports.has_children,
+      status: befeReports.status,
+      created_at: befeReports.created_at,
+    })
     .from(befeReports)
     .where(eq(befeReports.couple_id, couple.id));
 
-  const existingTypes = existingReports.map((r) => r.has_children);
-
-  // type 쿼리 파라미터로 들어온 경우: 해당 타입으로 고정
-  let lockedHasChildren: boolean | null = null;
-  if (type === "with" && !existingTypes.includes(true)) {
-    lockedHasChildren = true;
-  } else if (type === "without" && !existingTypes.includes(false)) {
-    lockedHasChildren = false;
+  if (reports.length === 0) {
+    redirect("/report");
   }
 
   return (
-    <ReportIntroClient
+    <ReportListClient
       nickname={profile.nickname ?? "회원"}
       partnerNickname={partner?.nickname ?? "배우자"}
       coupleId={couple.id}
-      hasChildren={lockedHasChildren ?? couple.has_children}
-      pcqScore={couple.pcq_score}
-      hasCoupon={hasCoupon}
-      lockedHasChildren={lockedHasChildren}
+      reports={reports}
     />
   );
 }

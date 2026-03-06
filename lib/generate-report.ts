@@ -8,6 +8,7 @@ const anthropic = new Anthropic();
 interface GenerateReportInput {
   sequence: number;
   coupleId: string;
+  hasChildren: boolean;
   grades: {
     esb: Grade;
     csp: Grade;
@@ -19,7 +20,11 @@ interface GenerateReportInput {
 export async function generateCareReport(
   input: GenerateReportInput,
 ): Promise<{ content: CareReport; modelVersion: string }> {
-  const { sequence, grades } = input;
+  const { sequence, grades, hasChildren } = input;
+
+  const childrenContext = hasChildren
+    ? "자녀 유무: 자녀 있음 (현재 육아 중인 부부에게 맞는 실전적이고 구체적인 조언 중심)"
+    : "자녀 유무: 자녀 없음 (예비 부모로서 앞으로의 육아를 준비하는 관점의 조언 중심)";
 
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-5-20250929",
@@ -28,7 +33,7 @@ export async function generateCareReport(
     messages: [
       {
         role: "user",
-        content: `아래 부부의 검사 결과를 바탕으로 육아 케어 리포트 JSON을 생성해줘.\n\n순번: ${sequence}\nESB: ${grades.esb}\nCSP: ${grades.csp}\nPCI: ${grades.pci}\nSTB: ${grades.stb}`,
+        content: `아래 부부의 검사 결과를 바탕으로 육아 케어 리포트 JSON을 생성해줘.\n\n순번: ${sequence}\n${childrenContext}\nESB: ${grades.esb}\nCSP: ${grades.csp}\nPCI: ${grades.pci}\nSTB: ${grades.stb}`,
       },
     ],
   });

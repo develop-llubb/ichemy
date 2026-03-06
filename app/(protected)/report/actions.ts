@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { befeCouples, befeReports } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { after } from "next/server";
 import { generateCareReport } from "@/lib/generate-report";
 import { PROMPT_VERSION } from "@/lib/report-prompt";
@@ -19,12 +19,18 @@ export async function saveHasChildren(coupleId: string, hasChildren: boolean) {
 
 export async function requestReport(
   coupleId: string,
+  hasChildren: boolean,
 ): Promise<{ reportId: string } | { error: string }> {
-  // 기존 리포트 확인
+  // 기존 리포트 확인 (couple_id + has_children 조합)
   const [existing] = await db
     .select({ id: befeReports.id })
     .from(befeReports)
-    .where(eq(befeReports.couple_id, coupleId))
+    .where(
+      and(
+        eq(befeReports.couple_id, coupleId),
+        eq(befeReports.has_children, hasChildren),
+      ),
+    )
     .limit(1);
 
   if (existing) {
@@ -58,6 +64,7 @@ export async function requestReport(
     .insert(befeReports)
     .values({
       couple_id: coupleId,
+      has_children: hasChildren,
       status: "generating",
     })
     .returning({ id: befeReports.id });
@@ -68,6 +75,7 @@ export async function requestReport(
       const { content, modelVersion } = await generateCareReport({
         sequence: 1,
         coupleId,
+        hasChildren,
         grades: {
           esb: couple.esb_grade!,
           csp: couple.csp_grade!,
@@ -103,6 +111,7 @@ export async function retryReport(reportId: string): Promise<{ error?: string }>
     .select({
       id: befeReports.id,
       couple_id: befeReports.couple_id,
+      has_children: befeReports.has_children,
       status: befeReports.status,
     })
     .from(befeReports)
@@ -147,6 +156,7 @@ export async function retryReport(reportId: string): Promise<{ error?: string }>
       const { content, modelVersion } = await generateCareReport({
         sequence: 1,
         coupleId: report.couple_id,
+        hasChildren: report.has_children,
         grades: {
           esb: couple.esb_grade!,
           csp: couple.csp_grade!,

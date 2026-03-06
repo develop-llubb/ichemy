@@ -14,6 +14,7 @@ export default async function ReportResultPage({
   const [report] = await db
     .select({
       id: befeReports.id,
+      has_children: befeReports.has_children,
       status: befeReports.status,
       content: befeReports.content,
     })
@@ -28,6 +29,7 @@ export default async function ReportResultPage({
   return (
     <ReportResultClient
       reportId={report.id}
+      hasChildren={report.has_children}
       status={report.status}
       content={report.content}
     />

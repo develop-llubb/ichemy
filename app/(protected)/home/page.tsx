@@ -149,18 +149,15 @@ export default async function HomePage() {
     }
   }
 
-  // 7. 기존 리포트 조회
-  let reportId: string | null = null;
+  // 7. 기존 리포트 조회 (모든 리포트)
+  let reports: Array<{ id: string; has_children: boolean }> = [];
   if (couple) {
-    const [report] = await db
-      .select({ id: befeReports.id })
+    reports = await db
+      .select({ id: befeReports.id, has_children: befeReports.has_children })
       .from(befeReports)
-      .where(eq(befeReports.couple_id, couple.id))
-      .limit(1);
-    if (report) {
-      reportId = report.id;
-    }
+      .where(eq(befeReports.couple_id, couple.id));
   }
+  const reportId = reports.length === 1 ? reports[0].id : null;
 
   // 8. status 결정
   let status: "pre_test" | "done_no_partner" | "waiting_partner" | "both_complete";
@@ -186,6 +183,7 @@ export default async function HomePage() {
       hasCouple={!!couple}
       pendingInvitation={pendingInvitation}
       reportId={reportId}
+      reportCount={reports.length}
     />
   );
 }

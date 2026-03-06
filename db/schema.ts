@@ -321,6 +321,7 @@ export const befeReports = pgTable(
     couple_id: uuid("couple_id")
       .notNull()
       .references(() => befeCouples.id, { onDelete: "cascade" }),
+    has_children: boolean("has_children").notNull(),
     status: reportStatusEnum("status").default("generating").notNull(),
     content: jsonb("content").$type<CareReport>(),
     model_version: text("model_version"),
@@ -329,7 +330,12 @@ export const befeReports = pgTable(
       .defaultNow()
       .notNull(),
   },
-  (table) => [unique("befe_reports_couple_key").on(table.couple_id)],
+  (table) => [
+    unique("befe_reports_couple_type_key").on(
+      table.couple_id,
+      table.has_children,
+    ),
+  ],
 );
 
 // ─── befe_coupons ───

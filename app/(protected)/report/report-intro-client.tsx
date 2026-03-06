@@ -16,6 +16,7 @@ interface ReportIntroClientProps {
   hasChildren: boolean | null;
   pcqScore: number;
   hasCoupon: boolean;
+  lockedHasChildren?: boolean | null;
 }
 
 export function ReportIntroClient({
@@ -25,6 +26,7 @@ export function ReportIntroClient({
   hasChildren: initialHasChildren,
   pcqScore,
   hasCoupon,
+  lockedHasChildren = null,
 }: ReportIntroClientProps) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -170,14 +172,16 @@ export function ReportIntroClient({
             <div className="flex gap-3">
               <button
                 onClick={() => handleSelect(true)}
-                disabled={saving}
-                className="flex flex-1 cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
+                disabled={saving || lockedHasChildren !== null}
+                className="flex flex-1 flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
                 style={{
                   borderColor: hasChildren === true ? "#D4735C" : "#ECE8E3",
                   background:
                     hasChildren === true
                       ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
                       : "#fff",
+                  opacity: lockedHasChildren !== null && lockedHasChildren !== true ? 0.4 : 1,
+                  cursor: lockedHasChildren !== null ? "default" : "pointer",
                 }}
               >
                 <span className="text-3xl">👨‍👩‍👧</span>
@@ -193,14 +197,16 @@ export function ReportIntroClient({
 
               <button
                 onClick={() => handleSelect(false)}
-                disabled={saving}
-                className="flex flex-1 cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
+                disabled={saving || lockedHasChildren !== null}
+                className="flex flex-1 flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
                 style={{
                   borderColor: hasChildren === false ? "#D4735C" : "#ECE8E3",
                   background:
                     hasChildren === false
                       ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
                       : "#fff",
+                  opacity: lockedHasChildren !== null && lockedHasChildren !== false ? 0.4 : 1,
+                  cursor: lockedHasChildren !== null ? "default" : "pointer",
                 }}
               >
                 <span className="text-3xl">🤰</span>
@@ -347,7 +353,7 @@ export function ReportIntroClient({
             disabled={hasChildren === null || requesting}
             onClick={() => {
               startRequesting(async () => {
-                const result = await requestReport(coupleId);
+                const result = await requestReport(coupleId, hasChildren!);
                 if ("error" in result) {
                   toast(result.error);
                   return;

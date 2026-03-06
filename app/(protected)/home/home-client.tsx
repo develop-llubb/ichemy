@@ -31,6 +31,7 @@ interface HomeClientProps {
   hasCouple: boolean;
   pendingInvitation: PendingInvitation | null;
   reportId: string | null;
+  reportCount: number;
 }
 
 // ── Main ──
@@ -42,6 +43,7 @@ export function HomeClient({
   hasCouple,
   pendingInvitation,
   reportId,
+  reportCount,
 }: HomeClientProps) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -61,8 +63,8 @@ export function HomeClient({
   });
 
   const handleViewCareReport = useCallback(() => {
-    if (reportId) {
-      router.push(`/report/${reportId}`);
+    if (reportCount >= 1) {
+      router.push("/report/list");
     } else if (hasCouple && status === "both_complete") {
       router.push("/report");
     } else if (status === "waiting_partner") {
@@ -70,7 +72,7 @@ export function HomeClient({
     } else {
       router.push("/home/invite");
     }
-  }, [reportId, hasCouple, status, router]);
+  }, [reportCount, reportId, hasCouple, status, router]);
 
   return (
     <>

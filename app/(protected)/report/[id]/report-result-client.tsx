@@ -14,6 +14,7 @@ import type {
 
 interface ReportResultClientProps {
   reportId: string;
+  hasChildren: boolean;
   status: "generating" | "completed" | "failed";
   content: CareReport | null;
 }
@@ -226,6 +227,7 @@ function IndicatorSection({
 
 export function ReportResultClient({
   reportId,
+  hasChildren,
   status: initialStatus,
   content: initialContent,
 }: ReportResultClientProps) {
@@ -281,13 +283,13 @@ export function ReportResultClient({
       {/* Header */}
       <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
         <button
-          onClick={() => router.push("/home")}
+          onClick={() => router.push("/report/list")}
           className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
         >
           <ChevronLeft size={24} className="text-foreground" />
         </button>
         <span className="text-center text-[15px] font-semibold text-foreground">
-          육아 케어 리포트
+          {hasChildren ? "자녀 양육 케어 리포트" : "예비 부모 육아 케어 리포트"}
         </span>
         <div />
       </div>
