@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import type { CareReport } from "@/lib/care-report";
+import type { ParentingProfileReport } from "@/lib/parenting-profile-report";
 import {
   bigint,
   boolean,
@@ -335,6 +336,28 @@ export const befeReports = pgTable(
       table.couple_id,
       table.has_children,
     ),
+  ],
+);
+
+// ─── befe_personality_reports (AI 성향 리포트) ───
+
+export const befePersonalityReports = pgTable(
+  "befe_personality_reports",
+  {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    profile_id: uuid("profile_id")
+      .notNull()
+      .references(() => befeProfiles.id, { onDelete: "cascade" }),
+    status: reportStatusEnum("status").default("generating").notNull(),
+    content: jsonb("content").$type<ParentingProfileReport>(),
+    model_version: text("model_version"),
+    prompt_version: text("prompt_version"),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    unique("befe_personality_reports_profile_key").on(table.profile_id),
   ],
 );
 

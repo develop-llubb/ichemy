@@ -32,6 +32,7 @@ interface HomeClientProps {
   pendingInvitation: PendingInvitation | null;
   reportId: string | null;
   reportCount: number;
+  hasPersonalityReport: boolean;
 }
 
 // ── Main ──
@@ -44,6 +45,7 @@ export function HomeClient({
   pendingInvitation,
   reportId,
   reportCount,
+  hasPersonalityReport,
 }: HomeClientProps) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -310,9 +312,15 @@ export function HomeClient({
             className={`${pendingInvitation && !invitationAccepted ? "mt-4" : "mt-9"} flex w-full flex-col gap-3`}
             style={ease(0.3)}
           >
-            {/* Card 1: 나의 성향 리포트 */}
+            {/* Card 1: 나의 육아 성향 리포트 */}
             <button
-              onClick={() => router.push("/report/me")}
+              onClick={() =>
+                router.push(
+                  hasPersonalityReport
+                    ? "/report/me"
+                    : "/report/me/intro",
+                )
+              }
               className="flex w-full items-center gap-4 rounded-[20px] border-[1.5px] border-[#ECE8E3] bg-white p-[22px_20px] text-left transition-all duration-150"
               style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}
             >
@@ -322,14 +330,16 @@ export function HomeClient({
                   background: "linear-gradient(145deg, #F3EFF9, #EDE8F5)",
                 }}
               >
-                🪞
+                🧩
               </div>
               <div className="flex-1">
                 <div className="mb-1 text-base font-bold text-foreground">
-                  나의 성향 리포트
+                  나의 육아 성향 리포트
                 </div>
                 <div className="text-xs leading-[1.5] text-muted">
-                  Big5, 애착 성향, 정서적 유연성 분석
+                  {hasPersonalityReport
+                    ? "AI 맞춤 분석 리포트 보기"
+                    : "무료로 AI 맞춤 분석 받기"}
                 </div>
               </div>
               <span className="text-lg text-[#D4CFC8]">→</span>

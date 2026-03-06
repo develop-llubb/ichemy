@@ -6,6 +6,7 @@ import {
   befeCouples,
   befeInvitations,
   befeReports,
+  befePersonalityReports,
   reportBig5,
   reportAas,
   reportFlexibility,
@@ -159,7 +160,15 @@ export default async function HomePage() {
   }
   const reportId = reports.length === 1 ? reports[0].id : null;
 
-  // 8. status 결정
+  // 8. 성향 리포트 존재 여부 확인
+  const [personalityReport] = await db
+    .select({ id: befePersonalityReports.id })
+    .from(befePersonalityReports)
+    .where(eq(befePersonalityReports.profile_id, profile.id))
+    .limit(1);
+  const hasPersonalityReport = !!personalityReport;
+
+  // 9. status 결정
   let status: "pre_test" | "done_no_partner" | "waiting_partner" | "both_complete";
 
   if (!profile.test_completed) {
@@ -184,6 +193,7 @@ export default async function HomePage() {
       pendingInvitation={pendingInvitation}
       reportId={reportId}
       reportCount={reports.length}
+      hasPersonalityReport={hasPersonalityReport}
     />
   );
 }

@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { befeProfiles, befePersonalityReports } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { ReportClient } from "./report-client";
+import { PersonalityIntroClient } from "./personality-intro-client";
 
-export default async function MyReportPage() {
+export default async function PersonalityIntroPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -16,36 +16,36 @@ export default async function MyReportPage() {
   }
 
   const [profile] = await db
-    .select()
+    .select({
+      id: befeProfiles.id,
+      nickname: befeProfiles.nickname,
+      role: befeProfiles.role,
+      test_completed: befeProfiles.test_completed,
+    })
     .from(befeProfiles)
     .where(eq(befeProfiles.user_id, user.id))
     .limit(1);
 
-  if (!profile) {
-    redirect("/profile/create");
+  if (!profile || !profile.test_completed) {
+    redirect("/home");
   }
 
-  if (!profile.test_completed) {
-    redirect("/test");
-  }
-
-  // 기존 성향 리포트 조회
-  const [report] = await db
-    .select({
-      id: befePersonalityReports.id,
-      status: befePersonalityReports.status,
-      content: befePersonalityReports.content,
-    })
+  // 이미 리포트가 있으면 바로 결과 페이지로
+  const [existing] = await db
+    .select({ id: befePersonalityReports.id })
     .from(befePersonalityReports)
     .where(eq(befePersonalityReports.profile_id, profile.id))
     .limit(1);
 
+  if (existing) {
+    redirect("/report/me");
+  }
+
   return (
-    <ReportClient
+    <PersonalityIntroClient
+      nickname={profile.nickname ?? "회원"}
+      role={profile.role}
       profileId={profile.id}
-      reportId={report?.id ?? null}
-      status={report?.status ?? null}
-      content={report?.content ?? null}
     />
   );
 }
