@@ -26,11 +26,16 @@ export default async function HomePage() {
   }
 
   // 2. profile
-  const [profile] = await db
-    .select()
-    .from(befeProfiles)
-    .where(eq(befeProfiles.user_id, user.id))
-    .limit(1);
+  let profile;
+  try {
+    [profile] = await db
+      .select()
+      .from(befeProfiles)
+      .where(eq(befeProfiles.user_id, user.id))
+      .limit(1);
+  } catch (e) {
+    console.error("[home] profile query FAILED for user:", user.id, e);
+  }
 
   if (!profile) {
     console.error("[home] profile not found for user:", user.id);
