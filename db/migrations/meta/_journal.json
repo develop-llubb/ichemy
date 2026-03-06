@@ -78,6 +78,13 @@
       "when": 1772787316702,
       "tag": "0010_slim_grandmaster",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1772874000000,
+      "tag": "0011_enable_rls",
+      "breakpoints": true
     }
   ]
 }
