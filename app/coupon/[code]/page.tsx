@@ -66,11 +66,9 @@ export default async function CouponPage({
 
   // 로그인 확인
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (authError || !user) {
     return (
       <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
         <main className="flex flex-1 flex-col items-center justify-center px-6 text-center">

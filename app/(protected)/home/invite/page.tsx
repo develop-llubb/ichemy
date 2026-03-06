@@ -7,11 +7,9 @@ import { InviteClient } from "./invite-client";
 
 export default async function InvitePage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (authError || !user) {
     redirect("/");
   }
 

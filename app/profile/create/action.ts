@@ -16,11 +16,9 @@ export async function createProfile(
   formData: FormData,
 ): Promise<CreateProfileState> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (authError || !user) {
     redirect("/");
   }
 

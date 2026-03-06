@@ -7,11 +7,9 @@ import { PersonalityIntroClient } from "./personality-intro-client";
 
 export default async function PersonalityIntroPage() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (authError || !user) {
     redirect("/");
   }
 

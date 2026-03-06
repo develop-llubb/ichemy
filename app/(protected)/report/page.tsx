@@ -13,11 +13,9 @@ export default async function ReportPage({
   const { type } = await searchParams;
   // 1. auth
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (authError || !user) {
     redirect("/");
   }
 

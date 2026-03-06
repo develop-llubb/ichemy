@@ -1,6 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
+import { db } from "@/db";
+import { befeProfiles, befeCouples } from "@/db/schema";
+import { eq, or } from "drizzle-orm";
 
 function getOrigin(request: NextRequest) {
   const host = request.headers.get("host");
@@ -63,10 +66,34 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/?error=auth_failed`);
   }
 
-  // invited_by 쿠키가 있으면 초대 페이지로 (invite page가 상태별 분기 처리)
+  // invited_by 쿠키가 있으면 초대 페이지로 (초대자 프로필이 존재할 때만)
   const invitedBy = cookieStore.get("invited_by")?.value;
   if (invitedBy) {
-    return NextResponse.redirect(`${origin}/invite/${invitedBy}`);
+    const [inviter] = await db
+      .select({ id: befeProfiles.id })
+      .from(befeProfiles)
+      .where(eq(befeProfiles.id, invitedBy))
+      .limit(1);
+
+    if (inviter) {
+      // 초대자가 이미 커플이 있으면 초대 무효
+      const [inviterCouple] = await db
+        .select({ id: befeCouples.id })
+        .from(befeCouples)
+        .where(
+          or(
+            eq(befeCouples.inviter_profile_id, inviter.id),
+            eq(befeCouples.invitee_profile_id, inviter.id),
+          ),
+        )
+        .limit(1);
+
+      if (!inviterCouple) {
+        return NextResponse.redirect(`${origin}/invite/${invitedBy}`);
+      }
+    }
+    // 초대자 없거나 이미 커플 → 쿠키 제거하고 fall through
+    cookieStore.delete("invited_by");
   }
 
   // coupon_code 쿠키가 있으면 쿠폰 페이지로

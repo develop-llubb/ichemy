@@ -17,28 +17,20 @@ import { HomeClient } from "./home-client";
 export default async function HomePage() {
   // 1. auth check
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (authError || !user) {
     redirect("/");
   }
 
   // 2. profile
-  let profile;
-  try {
-    [profile] = await db
-      .select()
-      .from(befeProfiles)
-      .where(eq(befeProfiles.user_id, user.id))
-      .limit(1);
-  } catch (e) {
-    console.error("[home] profile query FAILED for user:", user.id, e);
-  }
+  const [profile] = await db
+    .select()
+    .from(befeProfiles)
+    .where(eq(befeProfiles.user_id, user.id))
+    .limit(1);
 
   if (!profile) {
-    console.error("[home] profile not found for user:", user.id);
     redirect("/profile/create");
   }
 

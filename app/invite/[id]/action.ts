@@ -9,11 +9,9 @@ import { populateCoupleScores } from "@/lib/populate-couple-scores";
 
 export async function acceptInvite(inviterProfileId: string) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (!user) {
+  if (authError || !user) {
     redirect("/");
   }
 

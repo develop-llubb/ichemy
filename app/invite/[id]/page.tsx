@@ -63,11 +63,9 @@ export default async function InvitePage({
 
   // 이미 로그인된 사용자 처리
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-  if (user) {
+  if (!authError && user) {
     const [profile] = await db
       .select({
         id: befeProfiles.id,
