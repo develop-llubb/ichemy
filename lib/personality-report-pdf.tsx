@@ -466,11 +466,20 @@ function PersonalityReportPDF({ data }: { data: ParentingProfileReport }) {
 // ─── Download handler (client-side) ───
 
 export async function handleDownloadPersonalityPdf(data: ParentingProfileReport) {
+  const fileName = `나의육아성향리포트_${data.meta.nickname}.pdf`;
   const blob = await pdf(<PersonalityReportPDF data={data} />).toBlob();
+
+  // 모바일 share API 우선 시도 (카카오 인앱 브라우저 등)
+  if (navigator.share && navigator.canShare) {
+    const file = new File([blob], fileName, { type: "application/pdf" });
+    if (navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file] });
+      return;
+    }
+  }
+
+  // fallback: 새 탭으로 열기 (인앱 브라우저 호환)
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `나의육아성향리포트_${data.meta.nickname}.pdf`;
-  a.click();
-  URL.revokeObjectURL(url);
+  window.open(url, "_blank");
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
