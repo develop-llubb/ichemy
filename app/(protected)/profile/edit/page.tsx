@@ -18,19 +18,9 @@ export default async function ProfileEditPage() {
     .limit(1);
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
-      <div className="sticky top-0 z-40 flex shrink-0 items-center justify-between border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
-        <span className="font-display text-2xl tracking-wider text-primary">
-          내 정보 수정
-        </span>
-      </div>
-
-      <main className="flex flex-1 flex-col px-6 pt-6">
-        <EditProfileForm
-          currentNickname={profile.nickname ?? ""}
-          currentRole={profile.role}
-        />
-      </main>
-    </div>
+    <EditProfileForm
+      currentNickname={profile.nickname ?? ""}
+      currentRole={profile.role}
+    />
   );
 }
