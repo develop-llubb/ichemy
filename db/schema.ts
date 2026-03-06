@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import type { CareReport } from "@/lib/care-report";
 import {
   bigint,
   boolean,
@@ -315,19 +316,7 @@ export const befeReports = pgTable(
     couple_id: uuid("couple_id")
       .notNull()
       .references(() => befeCouples.id, { onDelete: "cascade" }),
-    content: jsonb("content")
-      .$type<{
-        summary: string;
-        esb_analysis: string;
-        csp_analysis: string;
-        pci_analysis: string;
-        stb_analysis: string;
-        esb_advice: string;
-        csp_advice: string;
-        pci_advice: string;
-        stb_advice: string;
-      }>()
-      .notNull(),
+    content: jsonb("content").$type<CareReport>().notNull(),
     model_version: text("model_version").notNull(),
     prompt_version: text("prompt_version").notNull(),
     created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
