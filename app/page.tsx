@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { KakaoLoginButton } from "@/components/kakao-login-button";
 import { Footer } from "@/components/footer";
 import { CollabLogo } from "@/components/collab-logo";
+import { AuthErrorToast } from "./auth-error-toast";
 
 const pills = [
   {
@@ -51,6 +53,9 @@ const trustChips = [
 export default function LandingPage() {
   return (
     <div className="relative mx-auto flex min-h-dvh max-w-[430px] flex-col overflow-hidden bg-background">
+      <Suspense>
+        <AuthErrorToast />
+      </Suspense>
       {/* Ambient orbs */}
       <div
         className="animate-orb-1 pointer-events-none absolute -top-[60px] -right-[80px] h-[280px] w-[280px] rounded-full blur-[40px]"
