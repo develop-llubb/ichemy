@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { ParentingProfileReport, ParentingTrait } from "@/lib/parenting-profile-report";
 import { handleDownloadPersonalityPdf } from "@/lib/personality-report-pdf";
@@ -153,9 +153,7 @@ export function ReportClient({
           onClick={() => router.push("/home")}
           className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#3A3A3A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="15 5 9 12 15 19" />
-          </svg>
+          <ChevronLeft size={24} className="text-foreground" />
         </button>
         <span className="text-center text-[15px] font-semibold text-foreground">
           나의 육아 성향 리포트

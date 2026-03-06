@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Report {
   id: string;
@@ -51,18 +51,7 @@ export function ReportListClient({
           onClick={() => router.push("/home")}
           className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
         >
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="#3A3A3A"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <polyline points="15 5 9 12 15 19" />
-          </svg>
+          <ChevronLeft size={24} className="text-foreground" />
         </button>
         <span className="text-center text-[15px] font-semibold text-foreground">
           육아 케어 리포트

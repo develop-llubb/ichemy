@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import { JOURNEY_STEPS } from "@/lib/steps";
 
 interface WaitingClientProps {
@@ -63,18 +64,7 @@ export function WaitingClient({
             onClick={() => router.back()}
             className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
           >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#3A3A3A"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <polyline points="15 5 9 12 15 19" />
-            </svg>
+            <ChevronLeft size={24} className="text-foreground" />
           </button>
           <span className="text-center text-[15px] font-semibold text-foreground">
             배우자 검사 현황

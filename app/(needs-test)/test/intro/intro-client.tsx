@@ -82,7 +82,7 @@ export function TestIntroClient() {
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
       {/* Header */}
       <header className="sticky top-0 z-10 flex h-12 items-center bg-background/80 px-4 backdrop-blur-sm">
-        <button onClick={() => logout()} className="text-muted">
+        <button onClick={() => logout()} className="text-foreground">
           <ChevronLeft size={24} />
         </button>
       </header>
