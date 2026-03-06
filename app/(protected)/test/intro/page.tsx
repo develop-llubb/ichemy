@@ -6,7 +6,7 @@ import { ChevronLeft } from "lucide-react";
 import { logout } from "../actions";
 
 const stats = [
-  { value: "약 10분", label: "소요 시간", icon: "⏱" },
+  { value: "약 3분", label: "소요 시간", icon: "⏱" },
   { value: "55문항", label: "총 문항 수", icon: "✏️" },
   { value: "4개", label: "분석 지표", icon: "📊" },
 ];
