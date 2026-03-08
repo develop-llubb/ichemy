@@ -120,7 +120,7 @@ export default function LandingPage() {
                 "0 12px 40px rgba(212,115,92,0.1), inset 0 -4px 12px rgba(255,255,255,0.6)",
             }}
           >
-            <span className="text-5xl leading-none">👶</span>
+            <span className="text-5xl leading-none">👼</span>
             <span className="mt-2 text-[11px] font-semibold tracking-wide text-primary">
               우리 부부 육아 점수
             </span>

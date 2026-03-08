@@ -10,7 +10,7 @@ import {
   DrawerContent,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { Loader2, X, Settings, PencilIcon } from "lucide-react";
+import { Loader2, X, PencilIcon } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 
