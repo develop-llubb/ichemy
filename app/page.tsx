@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { KakaoLoginButton } from "@/components/kakao-login-button";
 import { Footer } from "@/components/footer";
 import { CollabLogo } from "@/components/collab-logo";
@@ -92,7 +93,7 @@ export default function LandingPage() {
 
         {/* Brand name */}
         <h1
-          className="animate-scale-reveal mt-2 font-display text-[64px] leading-none tracking-wider text-primary"
+          className="animate-scale-reveal mt-2 font-display text-[46px] leading-none tracking-wider text-primary"
           style={{ animationDelay: "100ms" }}
         >
           아이케미
@@ -120,7 +121,7 @@ export default function LandingPage() {
                 "0 12px 40px rgba(212,115,92,0.1), inset 0 -4px 12px rgba(255,255,255,0.6)",
             }}
           >
-            <span className="text-5xl leading-none">👼</span>
+            <Image src="/baby.png" alt="아기" width={64} height={64} className="h-16 w-16 object-contain" />
             <span className="mt-2 text-[11px] font-semibold tracking-wide text-primary">
               우리 부부 육아 점수
             </span>

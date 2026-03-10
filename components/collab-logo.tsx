@@ -9,7 +9,7 @@ export function CollabLogo() {
         width={56}
         height={24}
         priority
-        className="mb-1 h-5 w-auto"
+        className="mb-1 h-7 w-auto"
       />
       <svg width="10" height="10" viewBox="0 0 16 16" fill="none">
         <path
@@ -19,7 +19,7 @@ export function CollabLogo() {
           strokeLinecap="round"
         />
       </svg>
-      <span className="mt-0.5 font-[family-name:var(--font-mogra)] text-[14px] text-accent">
+      <span className="mt-0.5 font-[family-name:var(--font-mogra)] text-[18px] text-accent">
         Chemistry
       </span>
     </div>

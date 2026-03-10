@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "nextjs-toploader/app";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Report {
@@ -130,7 +131,7 @@ export function ReportListClient({
                       : "linear-gradient(145deg, #E8F0E6, #F0F7EE)",
                   }}
                 >
-                  {report.has_children ? "\uD83D\uDC76" : "\uD83E\uDD30"}
+                  {report.has_children ? <Image src="/baby.png" alt="아기" width={28} height={28} className="h-7 w-7 object-contain" /> : "\uD83E\uDD30"}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-[15px] font-semibold text-foreground">

@@ -11,6 +11,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Loader2, X, PencilIcon } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
 
@@ -356,10 +357,10 @@ export function HomeClient({
               <div
                 className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl text-2xl"
                 style={{
-                  background: "linear-gradient(145deg, #F3EFF9, #EDE8F5)",
+                  background: "linear-gradient(145deg, #FFE8D6, #FFF0E6)",
                 }}
               >
-                🧩
+                🪞
               </div>
               <div className="flex-1">
                 <div className="mb-1 text-base font-bold text-foreground">
@@ -386,10 +387,10 @@ export function HomeClient({
               <div
                 className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl text-2xl"
                 style={{
-                  background: "linear-gradient(145deg, #D4735C, #C0614A)",
+                  background: "linear-gradient(145deg, #FFE8D6, #FFF0E6)",
                 }}
               >
-                👶
+                <Image src="/baby.png" alt="아기" width={32} height={32} className="h-8 w-8 object-contain" />
               </div>
               <div className="flex-1">
                 <div className="mb-1 text-base font-bold text-primary">
