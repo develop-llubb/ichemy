@@ -357,10 +357,10 @@ export function HomeClient({
               <div
                 className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-2xl text-2xl"
                 style={{
-                  background: "linear-gradient(145deg, #FFE8D6, #FFF0E6)",
+                  background: "linear-gradient(145deg, #F3EFF9, #EDE8F5)",
                 }}
               >
-                🪞
+                🧩
               </div>
               <div className="flex-1">
                 <div className="mb-1 text-base font-bold text-foreground">
