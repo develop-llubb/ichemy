@@ -378,7 +378,10 @@ export function ReportIntroClient({
                     });
                   } catch (e: unknown) {
                     const error = e as { code?: string; message?: string };
-                    if (error.code === "USER_CANCEL") return;
+                    if (error.code === "USER_CANCEL") {
+                      toast("결제가 취소되었습니다.");
+                      return;
+                    }
                     toast(error.message || "결제 중 오류가 발생했습니다.");
                   }
                 });
