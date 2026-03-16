@@ -5,7 +5,12 @@ import { befeProfiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { ProfileCreateForm } from "./form";
 
-export default async function ProfileCreatePage() {
+export default async function ProfileCreatePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ coupon?: string }>;
+}) {
+  const { coupon } = await searchParams;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
@@ -39,7 +44,7 @@ export default async function ProfileCreatePage() {
           className="animate-fade-up"
           style={{ animationDelay: "160ms" }}
         >
-          <ProfileCreateForm />
+          <ProfileCreateForm couponCode={coupon} />
         </div>
       </main>
     </div>

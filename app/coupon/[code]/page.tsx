@@ -106,7 +106,7 @@ export default async function CouponPage({
     .limit(1);
 
   if (!profile) {
-    redirect("/profile/create");
+    redirect(`/profile/create?coupon=${encodeURIComponent(code)}`);
   }
 
   // 이미 쿠폰을 받은 경우 (프로필에 쿠폰이 연결되었거나, 이 쿠폰의 used_by에 포함)

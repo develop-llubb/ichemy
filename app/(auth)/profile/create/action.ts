@@ -93,8 +93,8 @@ export async function createProfile(
     }
   }
 
-  // coupon_code 쿠키가 있으면 쿠폰 적용
-  const couponCode = cookieStore.get("coupon_code")?.value;
+  // coupon_code: 쿠키 또는 formData에서 가져옴
+  const couponCode = cookieStore.get("coupon_code")?.value || (formData.get("coupon_code") as string) || null;
   if (couponCode && newProfile) {
     const [coupon] = await db
       .select({

@@ -27,7 +27,7 @@ const drawerConfig = {
   thirdParty: { title: "개인정보 제3자 제공 동의", Content: ThirdPartyContent },
 };
 
-export function ProfileCreateForm() {
+export function ProfileCreateForm({ couponCode }: { couponCode?: string }) {
   const [role, setRole] = useState<"mom" | "dad" | null>(null);
   const [termsAgreed, setTermsAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
@@ -54,6 +54,7 @@ export function ProfileCreateForm() {
   return (
     <>
       <form action={formAction} className="mt-8 space-y-6">
+        {couponCode && <input type="hidden" name="coupon_code" value={couponCode} />}
         {/* 역할 선택 */}
         <div>
           <p className="text-sm font-medium text-foreground">역할</p>
