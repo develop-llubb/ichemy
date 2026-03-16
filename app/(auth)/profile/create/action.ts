@@ -94,7 +94,18 @@ export async function createProfile(
   }
 
   // coupon_code: 쿠키 또는 formData에서 가져옴
-  const couponCode = cookieStore.get("coupon_code")?.value || (formData.get("coupon_code") as string) || null;
+  const couponCookie = cookieStore.get("coupon_code")?.value;
+  const couponFormData = formData.get("coupon_code") as string;
+  const couponCode = couponCookie || couponFormData || null;
+
+  console.log("[createProfile] coupon debug:", {
+    couponCookie,
+    couponFormData,
+    couponCode,
+    newProfileId: newProfile?.id,
+    userId: user.id,
+  });
+
   if (couponCode && newProfile) {
     const [coupon] = await db
       .select({
@@ -107,6 +118,14 @@ export async function createProfile(
       .from(befeCoupons)
       .where(eq(befeCoupons.code, couponCode))
       .limit(1);
+
+    console.log("[createProfile] coupon lookup:", {
+      found: !!coupon,
+      couponId: coupon?.id,
+      expired: coupon?.expires_at ? new Date(coupon.expires_at) < new Date() : false,
+      exhausted: coupon?.max_uses !== null ? coupon?.current_uses >= (coupon?.max_uses ?? 0) : false,
+      alreadyUsed: coupon?.used_by?.includes(user.id),
+    });
 
     if (coupon) {
       const expired = coupon.expires_at
@@ -129,6 +148,10 @@ export async function createProfile(
           .update(befeProfiles)
           .set({ coupon_id: coupon.id })
           .where(eq(befeProfiles.id, newProfile.id));
+
+        console.log("[createProfile] coupon applied successfully");
+      } else {
+        console.log("[createProfile] coupon skipped:", { expired, exhausted, alreadyUsed });
       }
     }
     cookieStore.delete("coupon_code");
