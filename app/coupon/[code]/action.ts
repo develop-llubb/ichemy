@@ -49,7 +49,7 @@ export async function redeemCoupon(
     return { error: "쿠폰 사용 한도를 초과했어요." };
   }
 
-  if (coupon.used_by.includes(user.id)) {
+  if (coupon.used_by_profile_ids.includes(profile.id)) {
     return { error: "이미 쿠폰을 받았어요." };
   }
 
@@ -58,7 +58,7 @@ export async function redeemCoupon(
     .update(befeCoupons)
     .set({
       current_uses: sql`${befeCoupons.current_uses} + 1`,
-      used_by: sql`array_append(${befeCoupons.used_by}, ${user.id}::uuid)`,
+      used_by_profile_ids: sql`array_append(${befeCoupons.used_by_profile_ids}, ${profile.id}::uuid)`,
     })
     .where(eq(befeCoupons.id, coupon.id));
 

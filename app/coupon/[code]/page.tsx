@@ -23,7 +23,7 @@ export default async function CouponPage({
       expires_at: befeCoupons.expires_at,
       max_uses: befeCoupons.max_uses,
       current_uses: befeCoupons.current_uses,
-      used_by: befeCoupons.used_by,
+      used_by_profile_ids: befeCoupons.used_by_profile_ids,
     })
     .from(befeCoupons)
     .where(eq(befeCoupons.code, code))
@@ -109,8 +109,8 @@ export default async function CouponPage({
     redirect(`/profile/create?coupon=${encodeURIComponent(code)}`);
   }
 
-  // 이미 쿠폰을 받은 경우 (프로필에 쿠폰이 연결되었거나, 이 쿠폰의 used_by에 포함)
-  if (profile.coupon_id || coupon.used_by?.includes(user.id)) {
+  // 이미 쿠폰을 받은 경우 (프로필에 쿠폰이 연결되었거나, 이 쿠폰의 used_by_profile_ids에 포함)
+  if (profile.coupon_id || coupon.used_by_profile_ids?.includes(profile.id)) {
     return <CouponClient couponCode={code} eventName={coupon.event_name} alreadyRedeemed />;
   }
 

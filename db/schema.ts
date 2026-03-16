@@ -421,7 +421,7 @@ export const befeCoupons = pgTable("befe_coupons", {
   event_name: text("event_name").notNull(),
   max_uses: integer("max_uses"),
   current_uses: integer("current_uses").default(0).notNull(),
-  used_by: uuid("used_by")
+  used_by_profile_ids: uuid("used_by_profile_ids")
     .array()
     .default(sql`'{}'::uuid[]`)
     .notNull(),

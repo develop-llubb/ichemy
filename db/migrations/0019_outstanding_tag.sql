@@ -1,0 +1,1 @@
+ALTER TABLE "befe_coupons" RENAME COLUMN "used_by" TO "used_by_profile_ids";

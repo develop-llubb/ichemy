@@ -103,7 +103,7 @@ export async function createProfile(
         expires_at: befeCoupons.expires_at,
         max_uses: befeCoupons.max_uses,
         current_uses: befeCoupons.current_uses,
-        used_by: befeCoupons.used_by,
+        used_by_profile_ids: befeCoupons.used_by_profile_ids,
       })
       .from(befeCoupons)
       .where(eq(befeCoupons.code, couponCode))
@@ -116,13 +116,14 @@ export async function createProfile(
       const exhausted =
         coupon.max_uses !== null ? coupon.current_uses >= coupon.max_uses : false;
 
-      // 프로필 생성 시점이므로 alreadyUsed 체크 불필요 (프로필 재생성 케이스)
-      if (!expired && !exhausted) {
+      const alreadyUsed = coupon.used_by_profile_ids?.includes(newProfile.id);
+
+      if (!expired && !exhausted && !alreadyUsed) {
         await db
           .update(befeCoupons)
           .set({
             current_uses: sql`${befeCoupons.current_uses} + 1`,
-            used_by: sql`array_append(${befeCoupons.used_by}, ${user.id}::uuid)`,
+            used_by_profile_ids: sql`array_append(${befeCoupons.used_by_profile_ids}, ${newProfile.id}::uuid)`,
           })
           .where(eq(befeCoupons.id, coupon.id));
 

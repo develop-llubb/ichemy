@@ -134,6 +134,13 @@
       "when": 1773211200000,
       "tag": "0018_enable_rls_orders",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1773645502576,
+      "tag": "0019_outstanding_tag",
+      "breakpoints": true
     }
   ]
 }
