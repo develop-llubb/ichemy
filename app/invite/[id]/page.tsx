@@ -4,7 +4,6 @@ import { befeProfiles, befeCouples, befeInvitations } from "@/db/schema";
 import { eq, or, and } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { cookies } from "next/headers";
 import { KakaoLoginButton } from "@/components/kakao-login-button";
 import { InviteLoggedIn } from "./invite-logged-in";
 
@@ -59,8 +58,6 @@ export default async function InvitePage({
     .limit(1);
 
   if (!inviter) {
-    const cookieStore = await cookies();
-    cookieStore.delete("invited_by");
     redirect("/");
   }
 
@@ -81,13 +78,7 @@ export default async function InvitePage({
 
     if (!profile) {
       // 프로필 미생성 → 초대 UI 보여주고, 시작하기 누르면 프로필 생성으로
-      const cookieStore = await cookies();
-      cookieStore.set("invited_by", inviter.id, {
-        path: "/",
-        maxAge: 60 * 60 * 24,
-        httpOnly: true,
-        sameSite: "lax",
-      });
+      // invited_by 쿠키는 middleware에서 설정됨
       return (
         <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
           <main className="flex flex-1 flex-col items-center justify-center px-6 text-center">
@@ -137,8 +128,6 @@ export default async function InvitePage({
 
     // 자기 자신 초대 방지
     if (profile.id === inviter.id) {
-      const cookieStore = await cookies();
-      cookieStore.delete("invited_by");
       redirect("/home");
     }
 
@@ -157,8 +146,6 @@ export default async function InvitePage({
       .limit(1);
 
     if (existingCouple) {
-      const cookieStore = await cookies();
-      cookieStore.delete("invited_by");
       redirect("/home");
     }
 
@@ -181,15 +168,7 @@ export default async function InvitePage({
     );
   }
 
-  // 비로그인 상태 — invited_by 쿠키 설정 (로그인 후 다시 이 페이지로 돌아오도록)
-  const cookieStore = await cookies();
-  cookieStore.set("invited_by", inviter.id, {
-    path: "/",
-    maxAge: 60 * 60 * 24,
-    httpOnly: true,
-    sameSite: "lax",
-  });
-
+  // 비로그인 상태 — invited_by 쿠키는 middleware에서 설정됨
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
       <main className="flex flex-1 flex-col items-center justify-center px-6 text-center">
