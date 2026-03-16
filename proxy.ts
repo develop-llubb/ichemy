@@ -46,8 +46,8 @@ export async function proxy(request: NextRequest) {
     pathname.startsWith("/coupon/") ||
     pathname.startsWith("/og/");
 
-  // /invite/[id] → invited_by 쿠키 설정 (비로그인만 — 로그인 유저는 page에서 직접 처리)
-  if (!user && pathname.startsWith("/invite/")) {
+  // /invite/[id] → invited_by 쿠키 설정 (로그인 여부 무관 — 프로필 생성 시 필요)
+  if (pathname.startsWith("/invite/")) {
     const inviterId = pathname.split("/invite/")[1];
     if (inviterId) {
       response.cookies.set("invited_by", inviterId, {
@@ -59,8 +59,8 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // /coupon/[code] → coupon_code 쿠키 설정 (비로그인만 — 로그인 유저는 page에서 직접 처리)
-  if (!user && pathname.startsWith("/coupon/")) {
+  // /coupon/[code] → coupon_code 쿠키 설정 (로그인 여부 무관 — 프로필 생성 시 필요)
+  if (pathname.startsWith("/coupon/")) {
     const couponCode = pathname.split("/coupon/")[1];
     if (couponCode) {
       response.cookies.set("coupon_code", couponCode, {
