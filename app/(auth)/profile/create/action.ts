@@ -2,8 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
-import { befeProfiles, befeCouples } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { befeProfiles, befeCouples, befeCoupons } from "@/db/schema";
+import { eq, or, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 
@@ -91,6 +91,47 @@ export async function createProfile(
         })
         .onConflictDoNothing();
     }
+  }
+
+  // coupon_code 쿠키가 있으면 쿠폰 적용
+  const couponCode = cookieStore.get("coupon_code")?.value;
+  if (couponCode && newProfile) {
+    const [coupon] = await db
+      .select({
+        id: befeCoupons.id,
+        expires_at: befeCoupons.expires_at,
+        max_uses: befeCoupons.max_uses,
+        current_uses: befeCoupons.current_uses,
+        used_by: befeCoupons.used_by,
+      })
+      .from(befeCoupons)
+      .where(eq(befeCoupons.code, couponCode))
+      .limit(1);
+
+    if (coupon) {
+      const expired = coupon.expires_at
+        ? new Date(coupon.expires_at) < new Date()
+        : false;
+      const exhausted =
+        coupon.max_uses !== null ? coupon.current_uses >= coupon.max_uses : false;
+      const alreadyUsed = coupon.used_by?.includes(user.id);
+
+      if (!expired && !exhausted && !alreadyUsed) {
+        await db
+          .update(befeCoupons)
+          .set({
+            current_uses: sql`${befeCoupons.current_uses} + 1`,
+            used_by: sql`array_append(${befeCoupons.used_by}, ${user.id}::uuid)`,
+          })
+          .where(eq(befeCoupons.id, coupon.id));
+
+        await db
+          .update(befeProfiles)
+          .set({ coupon_id: coupon.id })
+          .where(eq(befeProfiles.id, newProfile.id));
+      }
+    }
+    cookieStore.delete("coupon_code");
   }
 
   // 쿠키 제거
