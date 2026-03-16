@@ -94,17 +94,7 @@ export async function createProfile(
   }
 
   // coupon_code: 쿠키 또는 formData에서 가져옴
-  const couponCookie = cookieStore.get("coupon_code")?.value;
-  const couponFormData = formData.get("coupon_code") as string;
-  const couponCode = couponCookie || couponFormData || null;
-
-  console.log("[createProfile] coupon debug:", {
-    couponCookie,
-    couponFormData,
-    couponCode,
-    newProfileId: newProfile?.id,
-    userId: user.id,
-  });
+  const couponCode = cookieStore.get("coupon_code")?.value || (formData.get("coupon_code") as string) || null;
 
   if (couponCode && newProfile) {
     const [coupon] = await db
@@ -119,23 +109,15 @@ export async function createProfile(
       .where(eq(befeCoupons.code, couponCode))
       .limit(1);
 
-    console.log("[createProfile] coupon lookup:", {
-      found: !!coupon,
-      couponId: coupon?.id,
-      expired: coupon?.expires_at ? new Date(coupon.expires_at) < new Date() : false,
-      exhausted: coupon?.max_uses !== null ? coupon?.current_uses >= (coupon?.max_uses ?? 0) : false,
-      alreadyUsed: coupon?.used_by?.includes(user.id),
-    });
-
     if (coupon) {
       const expired = coupon.expires_at
         ? new Date(coupon.expires_at) < new Date()
         : false;
       const exhausted =
         coupon.max_uses !== null ? coupon.current_uses >= coupon.max_uses : false;
-      const alreadyUsed = coupon.used_by?.includes(user.id);
 
-      if (!expired && !exhausted && !alreadyUsed) {
+      // 프로필 생성 시점이므로 alreadyUsed 체크 불필요 (프로필 재생성 케이스)
+      if (!expired && !exhausted) {
         await db
           .update(befeCoupons)
           .set({
@@ -149,9 +131,6 @@ export async function createProfile(
           .set({ coupon_id: coupon.id })
           .where(eq(befeProfiles.id, newProfile.id));
 
-        console.log("[createProfile] coupon applied successfully");
-      } else {
-        console.log("[createProfile] coupon skipped:", { expired, exhausted, alreadyUsed });
       }
     }
     cookieStore.delete("coupon_code");
