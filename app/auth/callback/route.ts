@@ -66,52 +66,33 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/?error=auth_failed`);
   }
 
-  // invited_by 쿠키가 있으면 초대 페이지로 (초대자 프로필이 존재할 때만)
-  const invitedBy = cookieStore.get("invited_by")?.value;
-  if (invitedBy) {
-    const [inviter] = await db
-      .select({ id: befeProfiles.id })
+  // 로그인한 유저 정보 + 프로필 조회 (공통으로 사용)
+  const { data: { user: authedUser } } = await supabase.auth.getUser();
+  let profile: { id: string; coupon_id: string | null } | undefined;
+  if (authedUser) {
+    const [p] = await db
+      .select({ id: befeProfiles.id, coupon_id: befeProfiles.coupon_id })
       .from(befeProfiles)
-      .where(eq(befeProfiles.id, invitedBy))
+      .where(eq(befeProfiles.user_id, authedUser.id))
       .limit(1);
-
-    if (inviter) {
-      // 초대자가 이미 커플이 있으면 초대 무효
-      const [inviterCouple] = await db
-        .select({ id: befeCouples.id })
-        .from(befeCouples)
-        .where(
-          or(
-            eq(befeCouples.inviter_profile_id, inviter.id),
-            eq(befeCouples.invitee_profile_id, inviter.id),
-          ),
-        )
-        .limit(1);
-
-      if (!inviterCouple) {
-        return NextResponse.redirect(`${origin}/invite/${invitedBy}`);
-      }
-    }
-    // 초대자 없거나 이미 커플 → 쿠키 제거하고 fall through
-    cookieStore.delete("invited_by");
+    profile = p;
   }
 
-  // coupon_code 쿠키가 있으면 쿠폰 페이지로 (유효한 쿠폰 + 미보유 유저만)
+  // coupon_code 쿠키 처리 (invited_by보다 먼저 — 쿠폰 페이지에서 로그인한 경우)
   const couponCode = cookieStore.get("coupon_code")?.value;
   if (couponCode) {
-    const { data: { user: authedUser } } = await supabase.auth.getUser();
-    let alreadyHasCoupon = false;
-
-    if (authedUser) {
-      const [profile] = await db
-        .select({ coupon_id: befeProfiles.coupon_id })
-        .from(befeProfiles)
-        .where(eq(befeProfiles.user_id, authedUser.id))
-        .limit(1);
-      alreadyHasCoupon = !!profile?.coupon_id;
+    // 프로필이 없으면 바로 프로필 생성 페이지로 (쿠폰 코드 전달)
+    if (!profile) {
+      return NextResponse.redirect(
+        `${origin}/profile/create?coupon=${encodeURIComponent(couponCode)}`,
+      );
     }
 
-    if (!alreadyHasCoupon) {
+    // 이미 쿠폰 보유 → 쿠키 삭제하고 fall through
+    if (profile.coupon_id) {
+      cookieStore.delete("coupon_code");
+    } else {
+      // 프로필 있고 쿠폰 미보유 → 쿠폰 페이지로
       const [coupon] = await db
         .select({
           id: befeCoupons.id,
@@ -134,10 +115,40 @@ export async function GET(request: NextRequest) {
       if (coupon && !expired && !exhausted) {
         return NextResponse.redirect(`${origin}/coupon/${couponCode}`);
       }
+      cookieStore.delete("coupon_code");
     }
+  }
 
-    // 쿠폰 무효 또는 이미 보유 → 쿠키 삭제하고 fall through
-    cookieStore.delete("coupon_code");
+  // invited_by 쿠키 처리
+  const invitedBy = cookieStore.get("invited_by")?.value;
+  if (invitedBy) {
+    const [inviter] = await db
+      .select({ id: befeProfiles.id })
+      .from(befeProfiles)
+      .where(eq(befeProfiles.id, invitedBy))
+      .limit(1);
+
+    if (inviter) {
+      const [inviterCouple] = await db
+        .select({ id: befeCouples.id })
+        .from(befeCouples)
+        .where(
+          or(
+            eq(befeCouples.inviter_profile_id, inviter.id),
+            eq(befeCouples.invitee_profile_id, inviter.id),
+          ),
+        )
+        .limit(1);
+
+      if (!inviterCouple) {
+        // 프로필 없으면 바로 프로필 생성으로 (invited_by 쿠키는 유지)
+        if (!profile) {
+          return NextResponse.redirect(`${origin}/profile/create`);
+        }
+        return NextResponse.redirect(`${origin}/invite/${invitedBy}`);
+      }
+    }
+    cookieStore.delete("invited_by");
   }
 
   return NextResponse.redirect(`${origin}/home`);
