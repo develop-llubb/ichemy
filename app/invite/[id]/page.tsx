@@ -181,7 +181,15 @@ export default async function InvitePage({
     );
   }
 
-  // 비로그인 상태
+  // 비로그인 상태 — invited_by 쿠키 설정 (로그인 후 다시 이 페이지로 돌아오도록)
+  const cookieStore = await cookies();
+  cookieStore.set("invited_by", inviter.id, {
+    path: "/",
+    maxAge: 60 * 60 * 24,
+    httpOnly: true,
+    sameSite: "lax",
+  });
+
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
       <main className="flex flex-1 flex-col items-center justify-center px-6 text-center">
