@@ -4,12 +4,14 @@ import { useState, useEffect, useCallback, useTransition } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import { logout } from "@/lib/auth-actions";
 import { acceptInvitationFromHome } from "./actions";
+import { deleteAccount } from "./delete-account-action";
 import {
   Drawer,
   DrawerClose,
   DrawerContent,
   DrawerTitle,
 } from "@/components/ui/drawer";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Loader2, X, PencilIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -54,6 +56,8 @@ export function HomeClient({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [acceptPending, startAcceptTransition] = useTransition();
   const [invitationAccepted, setInvitationAccepted] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deleting, startDeleting] = useTransition();
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 100);
@@ -157,6 +161,12 @@ export function HomeClient({
               className="flex h-11 w-full cursor-pointer items-center justify-center rounded-xl border-[1.5px] border-[#ECE8E3] bg-white text-[13px] font-medium text-[#6B6360]"
             >
               로그아웃
+            </button>
+            <button
+              onClick={() => setDeleteDialogOpen(true)}
+              className="mt-3 w-full cursor-pointer border-none bg-transparent text-center text-[11px] text-[#D4CFC8] underline transition-colors hover:text-[#8A8078]"
+            >
+              회원탈퇴
             </button>
             <div className="mt-4 flex items-center justify-center gap-3 text-[11px] text-[#C4BEB8]">
               <Link
@@ -427,6 +437,25 @@ export function HomeClient({
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="정말 탈퇴하시겠어요?"
+        description="탈퇴하면 모든 검사 결과와 리포트가 삭제되며 복구할 수 없습니다."
+        confirmLabel="탈퇴하기"
+        cancelLabel="취소"
+        loading={deleting}
+        onConfirm={() => {
+          startDeleting(async () => {
+            const result = await deleteAccount();
+            if (result?.error) {
+              toast(result.error);
+              setDeleteDialogOpen(false);
+            }
+          });
+        }}
+      />
     </>
   );
 }
