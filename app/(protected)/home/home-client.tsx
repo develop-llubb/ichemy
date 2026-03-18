@@ -163,7 +163,10 @@ export function HomeClient({
               로그아웃
             </button>
             <button
-              onClick={() => setDeleteDialogOpen(true)}
+              onClick={() => {
+                setDrawerOpen(false);
+                setTimeout(() => setDeleteDialogOpen(true), 300);
+              }}
               className="mt-3 w-full cursor-pointer border-none bg-transparent text-center text-[11px] text-[#D4CFC8] underline transition-colors hover:text-[#8A8078]"
             >
               회원탈퇴
