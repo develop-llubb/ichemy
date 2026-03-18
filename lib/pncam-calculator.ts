@@ -35,10 +35,21 @@ function clamp(min: number, max: number, v: number): number {
   return Math.max(min, Math.min(max, v));
 }
 
-function toGrade(score: number): "A" | "B" | "C" | "D" {
-  if (score >= 80) return "A";
-  if (score >= 60) return "B";
-  if (score >= 40) return "C";
+// v2.0 백분위 기반 등급 커팅포인트
+const GRADE_CUTS = {
+  esb: { A: 63, B: 54, C: 44 },
+  csp: { A: 59, B: 51, C: 43 },
+  pci: { A: 58, B: 50, C: 42 },
+  stb: { A: 52, B: 42, C: 31 },
+} as const;
+
+type Indicator = keyof typeof GRADE_CUTS;
+
+function toGrade(score: number, indicator: Indicator): "A" | "B" | "C" | "D" {
+  const cuts = GRADE_CUTS[indicator];
+  if (score >= cuts.A) return "A";
+  if (score >= cuts.B) return "B";
+  if (score >= cuts.C) return "C";
   return "D";
 }
 
@@ -137,10 +148,10 @@ export function calculatePNCAmScores(
     csp_score,
     pci_score,
     stb_score,
-    esb_grade: toGrade(esb_score),
-    csp_grade: toGrade(csp_score),
-    pci_grade: toGrade(pci_score),
-    stb_grade: toGrade(stb_score),
+    esb_grade: toGrade(esb_score, "esb"),
+    csp_grade: toGrade(csp_score, "csp"),
+    pci_grade: toGrade(pci_score, "pci"),
+    stb_grade: toGrade(stb_score, "stb"),
     pcq_score,
   };
 }
