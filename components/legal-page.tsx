@@ -2,7 +2,7 @@
 
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { Footer } from "./footer";
+
 
 export function LegalPage({
   title,
@@ -26,7 +26,6 @@ export function LegalPage({
           {children}
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
