@@ -10,7 +10,10 @@ export async function GET(
   const { id } = await params;
 
   const [report] = await db
-    .select({ status: befePersonalityReports.status })
+    .select({
+      status: befePersonalityReports.status,
+      content: befePersonalityReports.content,
+    })
     .from(befePersonalityReports)
     .where(eq(befePersonalityReports.id, id))
     .limit(1);
@@ -19,5 +22,8 @@ export async function GET(
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ status: report.status });
+  return NextResponse.json({
+    status: report.status,
+    ...(report.status === "completed" && report.content ? { content: report.content } : {}),
+  });
 }

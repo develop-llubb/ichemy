@@ -127,23 +127,18 @@ export function ReportClient({
       const res = await fetch(`/api/personality-report/${reportId}/status`);
       if (res.ok) {
         const data = await res.json();
-        setStatus(data.status);
-        if (data.status === "completed" || data.status === "failed") {
+        if (data.status === "completed" && data.content) {
+          setContent(data.content);
+          setStatus("completed");
           clearInterval(interval);
-          if (data.status === "completed") {
-            router.refresh();
-          }
+        } else if (data.status === "failed") {
+          setStatus("failed");
+          clearInterval(interval);
         }
       }
     }, 3000);
     return () => clearInterval(interval);
-  }, [reportId, status, router]);
-
-  useEffect(() => {
-    if (status === "completed" && !content) {
-      router.refresh();
-    }
-  }, [status, content, router]);
+  }, [reportId, status]);
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">

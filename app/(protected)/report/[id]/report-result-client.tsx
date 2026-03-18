@@ -257,26 +257,19 @@ export function ReportResultClient({
       const res = await fetch(`/api/report/${reportId}/status`);
       if (res.ok) {
         const data = await res.json();
-        setStatus(data.status);
-        if (data.status === "completed") {
+        if (data.status === "completed" && data.content) {
+          setContent(data.content);
+          setStatus("completed");
           clearInterval(interval);
-          // Reload to get content from server
-          router.refresh();
         } else if (data.status === "failed") {
+          setStatus("failed");
           clearInterval(interval);
         }
       }
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [reportId, status, router]);
-
-  // Sync content from server after refresh
-  useEffect(() => {
-    if (status === "completed" && !content) {
-      router.refresh();
-    }
-  }, [status, content, router]);
+  }, [reportId, status]);
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
