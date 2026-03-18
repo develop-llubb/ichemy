@@ -153,7 +153,18 @@ export function HomeClient({
           {/* Bottom: logout + footer */}
           <div className="border-t border-[#ECE8E3] px-5 pt-4 pb-6">
             <button
-              onClick={() => logout()}
+              onClick={async () => {
+                // 카카오 SDK 로그아웃
+                try {
+                  if (window.Kakao?.isInitialized()) {
+                    await new Promise<void>((resolve) =>
+                      window.Kakao.Auth.logout(() => resolve()),
+                    );
+                  }
+                } catch {}
+                // Supabase 로그아웃
+                await logout();
+              }}
               className="flex h-11 w-full cursor-pointer items-center justify-center rounded-xl border-[1.5px] border-[#ECE8E3] bg-white text-[13px] font-medium text-[#6B6360]"
             >
               로그아웃
