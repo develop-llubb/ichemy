@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { KakaoLoginButton } from "@/components/kakao-login-button";
-import { Footer } from "@/components/footer";
+
 import { CollabLogo } from "@/components/collab-logo";
 import { AuthErrorToast } from "./auth-error-toast";
 
@@ -205,8 +205,6 @@ export default function LandingPage() {
         </div>
       </main>
 
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }
