@@ -5,7 +5,7 @@ export function Footer() {
         <p>주식회사 럽(LLUBB Co., Ltd.) | 대표: 김유승</p>
         <p>사업자등록번호: 880-87-03398</p>
         <p>경기도 용인시 기흥구 덕영대로 2077번길 8, 103동 1201호</p>
-        <p>Tel: 031-8007-1222</p>
+        <p>Tel: 010-3082-3241</p>
         <p className="mt-1.5 text-[10px] opacity-60">
           Copyright © LLUBB Co., Ltd. All rights reserved.
         </p>
