@@ -403,7 +403,13 @@ export function HomeClient({
                   background: "linear-gradient(145deg, #FFE8D6, #FFF0E6)",
                 }}
               >
-                <Image src="/baby.png" alt="아기" width={32} height={32} className="h-8 w-8 object-contain" />
+                <Image
+                  src="/baby.png"
+                  alt="아기"
+                  width={32}
+                  height={32}
+                  className="h-8 w-8 object-contain"
+                />
               </div>
               <div className="flex-1">
                 <div className="mb-1 text-base font-bold text-primary">
@@ -426,8 +432,8 @@ export function HomeClient({
               <div className="flex items-start gap-2.5">
                 <span className="shrink-0 text-base">💡</span>
                 <p className="text-xs leading-[1.6] text-muted">
-                  육아 케어 리포트는 배우자와 함께 검사를 완료해야 생성돼요. 아직
-                  배우자가 검사를 하지 않았다면 초대 링크를 보내보세요.
+                  육아 케어 리포트는 배우자와 함께 검사를 완료해야 생성돼요.
+                  아직 배우자가 검사를 하지 않았다면 초대 링크를 보내보세요.
                 </p>
               </div>
               <button

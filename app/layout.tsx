@@ -1,9 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Jua, Mogra } from "next/font/google";
+import { Jua, Mogra, Geist } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import NextTopLoader from "nextjs-toploader";
 import { BusinessFooter } from "@/components/business-footer";
+import { cn } from "@/lib/utils";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const jua = Jua({
   variable: "--font-jua",
@@ -42,7 +45,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className="light" style={{ colorScheme: "light", background: "#FEFCF9" }}>
+    <html lang="ko" className={cn("light", "font-sans", geist.variable)} style={{ colorScheme: "light", background: "#FEFCF9" }}>
       <head>
         <link
           rel="stylesheet"

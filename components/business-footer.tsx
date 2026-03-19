@@ -8,7 +8,7 @@ export function BusinessFooter() {
         <div>사업자등록번호 880-87-03398</div>
         <div>통신판매업 제2025-용인기흥-0000호</div>
         <div>경기도 용인시 기흥구 덕영대로2077번길 8, 103동 1201호</div>
-        <div>010-3089-3241 · yskim@llubb.com</div>
+        <div>010-3082-3241 · yskim@llubb.com</div>
         <div className="flex items-center justify-center gap-2 pt-2">
           <Link
             href="/terms"

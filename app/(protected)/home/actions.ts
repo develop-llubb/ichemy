@@ -11,7 +11,10 @@ export async function acceptInvitationFromHome(
   inviterProfileId: string,
 ): Promise<{ success: boolean }> {
   const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
     redirect("/");
