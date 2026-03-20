@@ -154,28 +154,38 @@ export function HomeClient({
             </button>
 
             {/* 마케팅 동의 토글 */}
-            <label className="flex h-11 w-full cursor-pointer items-center justify-between rounded-xl px-3 text-[14px] font-medium text-foreground hover:bg-[#F8F6F3] transition-colors">
-              <span>제3자 정보 제공 동의</span>
-              <div
-                className="relative h-6 w-11 rounded-full transition-colors"
-                style={{ background: thirdPartyAgreed ? "#D4735C" : "#D4CFC8" }}
+            <div className="flex h-11 w-full items-center justify-between rounded-xl px-3 text-[14px] font-medium text-foreground">
+              <button
+                onClick={() => {
+                  setDrawerOpen(false);
+                  router.push("/marketing");
+                }}
+                className="cursor-pointer border-none bg-transparent p-0 text-[14px] font-medium text-foreground underline-offset-2 hover:underline"
               >
-                <input
-                  type="checkbox"
-                  checked={thirdPartyAgreed}
-                  onChange={async (e) => {
-                    const value = e.target.checked;
-                    setThirdPartyAgreed(value);
-                    await updateThirdPartyAgreed(value);
-                  }}
-                  className="sr-only"
-                />
+                제3자 정보 제공 동의
+              </button>
+              <label className="cursor-pointer">
                 <div
-                  className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
-                  style={{ transform: thirdPartyAgreed ? "translateX(22px)" : "translateX(2px)" }}
-                />
-              </div>
-            </label>
+                  className="relative h-6 w-11 rounded-full transition-colors"
+                  style={{ background: thirdPartyAgreed ? "#D4735C" : "#D4CFC8" }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={thirdPartyAgreed}
+                    onChange={async (e) => {
+                      const value = e.target.checked;
+                      setThirdPartyAgreed(value);
+                      await updateThirdPartyAgreed(value);
+                    }}
+                    className="sr-only"
+                  />
+                  <div
+                    className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
+                    style={{ transform: thirdPartyAgreed ? "translateX(22px)" : "translateX(2px)" }}
+                  />
+                </div>
+              </label>
+            </div>
           </div>
 
           {/* Spacer */}
