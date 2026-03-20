@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useTransition } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import { logout } from "@/lib/auth-actions";
-import { acceptInvitationFromHome, updateThirdPartyAgreed } from "./actions";
+import { acceptInvitationFromHome } from "./actions";
 import { deleteAccount } from "./delete-account-action";
 import {
   Drawer,
@@ -12,7 +12,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { Loader2, X, PencilIcon } from "lucide-react";
+import { Loader2, X, PencilIcon, ShieldCheck } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -37,7 +37,6 @@ interface HomeClientProps {
   reportId: string | null;
   reportCount: number;
   hasPersonalityReport: boolean;
-  thirdPartyAgreed: boolean;
 }
 
 // ── Main ──
@@ -51,7 +50,6 @@ export function HomeClient({
   reportId,
   reportCount,
   hasPersonalityReport,
-  thirdPartyAgreed: initialThirdPartyAgreed,
 }: HomeClientProps) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -60,7 +58,6 @@ export function HomeClient({
   const [invitationAccepted, setInvitationAccepted] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, startDeleting] = useTransition();
-  const [thirdPartyAgreed, setThirdPartyAgreed] = useState(initialThirdPartyAgreed);
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 100);
@@ -153,39 +150,16 @@ export function HomeClient({
               <PencilIcon size={14} className="" />내 정보 수정
             </button>
 
-            {/* 마케팅 동의 토글 */}
-            <div className="flex h-11 w-full items-center justify-between rounded-xl px-3 text-[14px] font-medium text-foreground">
-              <button
-                onClick={() => {
-                  setDrawerOpen(false);
-                  router.push("/marketing");
-                }}
-                className="cursor-pointer border-none bg-transparent p-0 text-[14px] font-medium text-foreground underline-offset-2 hover:underline"
-              >
-                제3자 정보 제공 동의
-              </button>
-              <label className="cursor-pointer">
-                <div
-                  className="relative h-6 w-11 rounded-full transition-colors"
-                  style={{ background: thirdPartyAgreed ? "#D4735C" : "#D4CFC8" }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={thirdPartyAgreed}
-                    onChange={async (e) => {
-                      const value = e.target.checked;
-                      setThirdPartyAgreed(value);
-                      await updateThirdPartyAgreed(value);
-                    }}
-                    className="sr-only"
-                  />
-                  <div
-                    className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
-                    style={{ transform: thirdPartyAgreed ? "translateX(22px)" : "translateX(2px)" }}
-                  />
-                </div>
-              </label>
-            </div>
+            {/* 마케팅 동의 */}
+            <button
+              onClick={() => {
+                setDrawerOpen(false);
+                router.push("/marketing");
+              }}
+              className="flex h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 text-[14px] font-medium text-foreground hover:bg-[#F8F6F3] transition-colors"
+            >
+              <ShieldCheck size={14} />제3자 정보 제공 동의
+            </button>
           </div>
 
           {/* Spacer */}

@@ -84,17 +84,3 @@ export async function acceptInvitationFromHome(
 
   return { success: true };
 }
-
-export async function updateThirdPartyAgreed(agreed: boolean) {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    redirect("/");
-  }
-
-  await db
-    .update(befeProfiles)
-    .set({ third_party_agreed: agreed })
-    .where(eq(befeProfiles.user_id, user.id));
-}
