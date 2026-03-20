@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useTransition } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import { logout } from "@/lib/auth-actions";
-import { acceptInvitationFromHome } from "./actions";
+import { acceptInvitationFromHome, updateThirdPartyAgreed } from "./actions";
 import { deleteAccount } from "./delete-account-action";
 import {
   Drawer,
@@ -37,6 +37,7 @@ interface HomeClientProps {
   reportId: string | null;
   reportCount: number;
   hasPersonalityReport: boolean;
+  thirdPartyAgreed: boolean;
 }
 
 // ── Main ──
@@ -50,6 +51,7 @@ export function HomeClient({
   reportId,
   reportCount,
   hasPersonalityReport,
+  thirdPartyAgreed: initialThirdPartyAgreed,
 }: HomeClientProps) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -58,6 +60,7 @@ export function HomeClient({
   const [invitationAccepted, setInvitationAccepted] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, startDeleting] = useTransition();
+  const [thirdPartyAgreed, setThirdPartyAgreed] = useState(initialThirdPartyAgreed);
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 100);
@@ -149,6 +152,30 @@ export function HomeClient({
             >
               <PencilIcon size={14} className="" />내 정보 수정
             </button>
+
+            {/* 마케팅 동의 토글 */}
+            <label className="flex h-11 w-full cursor-pointer items-center justify-between rounded-xl px-3 text-[14px] font-medium text-foreground hover:bg-[#F8F6F3] transition-colors">
+              <span>제3자 정보 제공 동의</span>
+              <div
+                className="relative h-6 w-11 rounded-full transition-colors"
+                style={{ background: thirdPartyAgreed ? "#D4735C" : "#D4CFC8" }}
+              >
+                <input
+                  type="checkbox"
+                  checked={thirdPartyAgreed}
+                  onChange={async (e) => {
+                    const value = e.target.checked;
+                    setThirdPartyAgreed(value);
+                    await updateThirdPartyAgreed(value);
+                  }}
+                  className="sr-only"
+                />
+                <div
+                  className="absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform"
+                  style={{ transform: thirdPartyAgreed ? "translateX(22px)" : "translateX(2px)" }}
+                />
+              </div>
+            </label>
           </div>
 
           {/* Spacer */}

@@ -171,6 +171,7 @@ export default async function HomePage() {
       reportId={reportId}
       reportCount={reports.length}
       hasPersonalityReport={hasPersonalityReport}
+      thirdPartyAgreed={profile.third_party_agreed ?? false}
     />
   );
 }
