@@ -49,7 +49,11 @@ export function ReportIntroClient({
     const code = searchParams.get("code");
     const message = searchParams.get("message");
     if (code) {
-      const cancelCodes = ["PAY_PROCESS_CANCELED", "USER_CANCEL", "PAY_PROCESS_ABORTED"];
+      const cancelCodes = [
+        "PAY_PROCESS_CANCELED",
+        "USER_CANCEL",
+        "PAY_PROCESS_ABORTED",
+      ];
       if (cancelCodes.includes(code)) {
         toast("결제가 취소되었습니다.");
       } else {
@@ -100,7 +104,7 @@ export function ReportIntroClient({
         {/* Header */}
         <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
           <button
-            onClick={() => router.back()}
+            onClick={() => router.push("/home")}
             className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
           >
             <ChevronLeft size={24} className="text-foreground" />
@@ -384,7 +388,9 @@ export function ReportIntroClient({
                     const tossPayments = await loadTossPayments(
                       process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!,
                     );
-                    const payment = tossPayments.payment({ customerKey: coupleId });
+                    const payment = tossPayments.payment({
+                      customerKey: coupleId,
+                    });
                     await payment.requestPayment({
                       method: "CARD",
                       amount: { currency: "KRW", value: order.amount },
