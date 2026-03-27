@@ -49,7 +49,7 @@ export async function redeemCoupon(
     return { error: "쿠폰 사용 한도를 초과했어요." };
   }
 
-  if (coupon.used_by_profile_ids.includes(profile.id)) {
+  if (profile.coupon_id) {
     return { error: "이미 쿠폰을 받았어요." };
   }
 
