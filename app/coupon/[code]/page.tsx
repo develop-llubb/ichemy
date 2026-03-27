@@ -109,8 +109,8 @@ export default async function CouponPage({
     redirect(`/profile/create?coupon=${encodeURIComponent(code)}`);
   }
 
-  // 이미 쿠폰을 받은 경우 (프로필에 쿠폰이 연결되었거나, 이 쿠폰의 used_by_profile_ids에 포함)
-  if (profile.coupon_id || coupon.used_by_profile_ids?.includes(profile.id)) {
+  // 이미 쿠폰을 받은 경우 (프로필에 쿠폰이 연결된 경우만 체크)
+  if (profile.coupon_id) {
     return <CouponClient couponCode={code} eventName={coupon.event_name} alreadyRedeemed />;
   }
 
