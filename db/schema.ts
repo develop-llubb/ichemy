@@ -203,6 +203,9 @@ export const befeProfiles = pgTable("befe_profiles", {
 
   // 쿠폰
   coupon_id: uuid("coupon_id").references(() => befeCoupons.id),
+
+  // 회원탈퇴 (soft delete)
+  deleted_at: timestamp("deleted_at", { withTimezone: true, mode: "string" }),
 });
 
 // ─── befe_answers ───
