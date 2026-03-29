@@ -27,6 +27,25 @@ export function InviteClient({
     return () => clearTimeout(t);
   }, [profileId]);
 
+  // 배우자가 초대를 수락했는지 폴링
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch("/api/couple/status");
+        const data = await res.json();
+        if (data.coupled) {
+          clearInterval(interval);
+          if (data.hasScores) {
+            router.push("/report");
+          } else {
+            router.push("/home/waiting");
+          }
+        }
+      } catch {}
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [router]);
+
   const ease = (delay = 0): React.CSSProperties => ({
     opacity: ready ? 1 : 0,
     transform: ready ? "translateY(0)" : "translateY(18px)",

@@ -60,9 +60,10 @@ export function HomeClient({
   const [deleting, startDeleting] = useTransition();
 
   useEffect(() => {
+    router.refresh();
     const t = setTimeout(() => setReady(true), 100);
     return () => clearTimeout(t);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const ease = (delay = 0): React.CSSProperties => ({
     opacity: ready ? 1 : 0,
