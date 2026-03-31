@@ -6,41 +6,43 @@
 
 :root {
   color-scheme: light;
-  --primary: oklch(0.205 0 0);
-  --primary-light: #E8927C;
-  --accent: oklch(0.97 0 0);
+  /* 프로젝트 커스텀 컬러 */
+  --background: #fefcf9;
+  --foreground: #3a3a3a;
+  --primary: #d4735c;
+  --primary-light: #e8927c;
+  --accent: #b8a898;
   --surface: rgba(255, 255, 255, 0.75);
-  --border: oklch(0.922 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-light: #B8A898;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --border: rgba(0, 0, 0, 0.05);
+  --muted: #8a8078;
+  --muted-light: #b8a898;
+  /* shadcn 필수 변수 */
+  --card: #fefcf9;
+  --card-foreground: #3a3a3a;
+  --popover: #fefcf9;
+  --popover-foreground: #3a3a3a;
+  --primary-foreground: #ffffff;
+  --secondary: #f0ede9;
+  --secondary-foreground: #3a3a3a;
+  --muted-foreground: #8a8078;
+  --accent-foreground: #3a3a3a;
   --destructive: oklch(0.577 0.245 27.325);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --input: rgba(0, 0, 0, 0.05);
+  --ring: #d4735c;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar: #fefcf9;
+  --sidebar-foreground: #3a3a3a;
+  --sidebar-primary: #d4735c;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f0ede9;
+  --sidebar-accent-foreground: #3a3a3a;
+  --sidebar-border: rgba(0, 0, 0, 0.05);
+  --sidebar-ring: #d4735c;
 }
 
 @theme inline {
@@ -90,36 +92,87 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-html, body {
+html,
+body {
   background: var(--background) !important;
   color: var(--foreground) !important;
-  font-family: "Pretendard Variable", "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  font-family:
+    "Pretendard Variable",
+    "Pretendard",
+    -apple-system,
+    BlinkMacSystemFont,
+    system-ui,
+    Roboto,
+    "Helvetica Neue",
+    "Segoe UI",
+    "Apple SD Gothic Neo",
+    "Noto Sans KR",
+    "Malgun Gothic",
+    "Apple Color Emoji",
+    "Segoe UI Emoji",
+    "Segoe UI Symbol",
+    sans-serif;
 }
 
 /* Animations */
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes scale-reveal {
-  from { opacity: 0; transform: scale(0.9); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 @keyframes float-pill {
-  0%, 100% { transform: translate(0, 0); }
-  50% { transform: translate(0, -5px); }
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(0, -5px);
+  }
 }
 @keyframes orb-1 {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  25% { transform: translate(20px, -15px) rotate(90deg); }
-  50% { transform: translate(-10px, 20px) rotate(180deg); }
-  75% { transform: translate(15px, 10px) rotate(270deg); }
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(20px, -15px) rotate(90deg);
+  }
+  50% {
+    transform: translate(-10px, 20px) rotate(180deg);
+  }
+  75% {
+    transform: translate(15px, 10px) rotate(270deg);
+  }
 }
 @keyframes orb-2 {
-  0%, 100% { transform: translate(0, 0) rotate(0deg); }
-  25% { transform: translate(-15px, 20px) rotate(-90deg); }
-  50% { transform: translate(25px, -10px) rotate(-180deg); }
-  75% { transform: translate(-20px, -15px) rotate(-270deg); }
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(-15px, 20px) rotate(-90deg);
+  }
+  50% {
+    transform: translate(25px, -10px) rotate(-180deg);
+  }
+  75% {
+    transform: translate(-20px, -15px) rotate(-270deg);
+  }
 }
 
 .animate-fade-up {
@@ -140,82 +193,114 @@ html, body {
 
 /* Test page animations */
 @keyframes flashPop {
-  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212,115,92,0.4); }
-  30% { transform: scale(1.03); box-shadow: 0 0 0 8px rgba(212,115,92,0.15); }
-  60% { transform: scale(1.01); box-shadow: 0 0 0 14px rgba(212,115,92,0); }
-  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212,115,92,0); }
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(212, 115, 92, 0.4);
+  }
+  30% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 8px rgba(212, 115, 92, 0.15);
+  }
+  60% {
+    transform: scale(1.01);
+    box-shadow: 0 0 0 14px rgba(212, 115, 92, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(212, 115, 92, 0);
+  }
 }
 @keyframes checkPop {
-  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
-  50% { transform: scale(1.3) rotate(0deg); opacity: 1; }
-  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  0% {
+    transform: scale(0) rotate(-45deg);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.3) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
 }
 @keyframes shimmerSlide {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(200%); }
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
 }
 @keyframes badgeBounce {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.15); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 @keyframes confettiBurst {
-  0% { transform: scale(0); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 @keyframes checkDraw {
-  0% { stroke-dashoffset: 24; }
-  100% { stroke-dashoffset: 0; }
+  0% {
+    stroke-dashoffset: 24;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
 }
 @keyframes ringPulse {
-  0% { transform: scale(1); opacity: 0.4; }
-  100% { transform: scale(1.8); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1.8);
+    opacity: 0;
+  }
 }
 
-.animate-flash-pop { animation: flashPop 0.5s cubic-bezier(0.22,1,0.36,1); }
-.animate-shimmer-slide { animation: shimmerSlide 0.5s ease-out; }
-.animate-badge-bounce { animation: badgeBounce 0.35s ease; }
-.animate-check-pop { animation: checkPop 0.3s cubic-bezier(0.22,1,0.36,1); }
-.animate-fade-in { animation: fadeIn 0.5s ease; }
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+.animate-flash-pop {
+  animation: flashPop 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
+.animate-shimmer-slide {
+  animation: shimmerSlide 0.5s ease-out;
+}
+.animate-badge-bounce {
+  animation: badgeBounce 0.35s ease;
+}
+.animate-check-pop {
+  animation: checkPop 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.animate-fade-in {
+  animation: fadeIn 0.5s ease;
+}
+
+/* dark 모드 — 현재 미사용 (light-only) */
 
 @layer base {
   * {
@@ -226,5 +311,8 @@ html, body {
   }
   html {
     @apply font-sans;
+  }
+  button {
+    cursor: pointer;
   }
 }
