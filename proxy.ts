@@ -8,6 +8,7 @@ const PUBLIC_PATHS = [
   "/privacy",
   "/marketing",
   "/profile/create",
+  "/partners/register",
 ];
 
 export async function proxy(request: NextRequest) {
@@ -44,13 +45,27 @@ export async function proxy(request: NextRequest) {
     PUBLIC_PATHS.includes(pathname) ||
     pathname.startsWith("/invite/") ||
     pathname.startsWith("/coupon/") ||
-    pathname.startsWith("/og/");
+    pathname.startsWith("/og/") ||
+    pathname.startsWith("/partner-invite/");
 
   // /invite/[id] → invited_by 쿠키 설정 (로그인 여부 무관 — 프로필 생성 시 필요)
   if (pathname.startsWith("/invite/")) {
     const inviterId = pathname.split("/invite/")[1];
     if (inviterId) {
       response.cookies.set("invited_by", inviterId, {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7,
+        httpOnly: true,
+        sameSite: "lax",
+      });
+    }
+  }
+
+  // /partner-invite/[code] → partner_invite 쿠키 설정
+  if (pathname.startsWith("/partner-invite/")) {
+    const partnerInviteCode = pathname.split("/partner-invite/")[1];
+    if (partnerInviteCode) {
+      response.cookies.set("partner_invite", partnerInviteCode, {
         path: "/",
         maxAge: 60 * 60 * 24 * 7,
         httpOnly: true,

@@ -6,7 +6,7 @@ import Image from "next/image";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
-import { saveHasChildren, requestReport } from "./actions";
+import { saveHasChildren, requestReport, requestPartnerReport } from "./actions";
 import { createOrder } from "@/app/payment/actions";
 import { JOURNEY_STEPS } from "@/lib/steps";
 import { CouponTicket } from "@/components/coupon-ticket";
@@ -18,6 +18,8 @@ interface ReportIntroClientProps {
   hasChildren: boolean | null;
   pcqScore: number;
   hasCoupon: boolean;
+  hasPartnerCredit?: boolean;
+  partnerCreditInfo?: { partnerId: string; invitationId: string; creditBalance: number } | null;
   lockedHasChildren?: boolean | null;
 }
 
@@ -28,8 +30,11 @@ export function ReportIntroClient({
   hasChildren: initialHasChildren,
   pcqScore,
   hasCoupon,
+  hasPartnerCredit = false,
+  partnerCreditInfo = null,
   lockedHasChildren = null,
 }: ReportIntroClientProps) {
+  const hasFreeAccess = hasCoupon || hasPartnerCredit;
   const router = useRouter();
   const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
@@ -320,10 +325,10 @@ export function ReportIntroClient({
             })}
           </div>
 
-          {hasCoupon ? (
+          {hasFreeAccess ? (
             <div className="mt-7 mb-6 w-full" style={ease(0.38)}>
               <CouponTicket
-                title="무료 쿠폰 적용 완료!"
+                title={hasPartnerCredit ? "파트너 크레딧 적용!" : "무료 쿠폰 적용 완료!"}
                 description="결제 없이 바로 리포트를 받을 수 있어요"
               />
             </div>
@@ -370,10 +375,12 @@ export function ReportIntroClient({
           <button
             disabled={hasChildren === null || requesting}
             onClick={() => {
-              if (hasCoupon) {
-                // 쿠폰 사용자: 바로 리포트 생성
+              if (hasFreeAccess) {
+                // 무료 사용자 (쿠폰 or 파트너 크레딧): 바로 리포트 생성
                 startRequesting(async () => {
-                  const result = await requestReport(coupleId, hasChildren!);
+                  const result = hasPartnerCredit && partnerCreditInfo
+                    ? await requestPartnerReport(coupleId, hasChildren!, partnerCreditInfo.partnerId)
+                    : await requestReport(coupleId, hasChildren!);
                   if ("error" in result) {
                     toast(result.error);
                     return;
@@ -425,7 +432,7 @@ export function ReportIntroClient({
           >
             {requesting ? (
               <Loader2 size={20} className="animate-spin" />
-            ) : hasCoupon ? (
+            ) : hasFreeAccess ? (
               "리포트 받기"
             ) : (
               "3,900원 결제하고 리포트 받기"

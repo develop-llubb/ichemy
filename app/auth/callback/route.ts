@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
-import { befeProfiles, befeCouples, befeCoupons } from "@/db/schema";
+import { befeProfiles, befeCouples, befeCoupons, befePartnerInvitations } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
 
 function getOrigin(request: NextRequest) {
@@ -68,10 +68,10 @@ export async function GET(request: NextRequest) {
 
   // 로그인한 유저 정보 + 프로필 조회 (공통으로 사용)
   const { data: { user: authedUser } } = await supabase.auth.getUser();
-  let profile: { id: string; coupon_id: string | null } | undefined;
+  let profile: { id: string; coupon_id: string | null; partner_invitation_id: string | null } | undefined;
   if (authedUser) {
     const [p] = await db
-      .select({ id: befeProfiles.id, coupon_id: befeProfiles.coupon_id })
+      .select({ id: befeProfiles.id, coupon_id: befeProfiles.coupon_id, partner_invitation_id: befeProfiles.partner_invitation_id })
       .from(befeProfiles)
       .where(eq(befeProfiles.user_id, authedUser.id))
       .limit(1);
@@ -117,6 +117,42 @@ export async function GET(request: NextRequest) {
       }
       cookieStore.delete("coupon_code");
     }
+  }
+
+  // partner_invite 쿠키 처리
+  const partnerInviteCode = cookieStore.get("partner_invite")?.value;
+  if (partnerInviteCode) {
+    const [invitation] = await db
+      .select({ id: befePartnerInvitations.id })
+      .from(befePartnerInvitations)
+      .where(eq(befePartnerInvitations.code, partnerInviteCode))
+      .limit(1);
+
+    if (invitation) {
+      if (!profile) {
+        // 프로필 없으면 프로필 생성으로 (쿠키 유지)
+        return NextResponse.redirect(`${origin}/profile/create`);
+      }
+
+      // 프로필이 있고 아직 partner_invitation_id가 없으면 설정
+      if (!profile.partner_invitation_id) {
+        await db
+          .update(befeProfiles)
+          .set({ partner_invitation_id: invitation.id })
+          .where(eq(befeProfiles.id, profile.id));
+
+        // 초대의 profile_id도 업데이트
+        await db
+          .update(befePartnerInvitations)
+          .set({
+            profile_id: profile.id,
+            status: "accepted",
+            updated_at: new Date().toISOString(),
+          })
+          .where(eq(befePartnerInvitations.id, invitation.id));
+      }
+    }
+    cookieStore.delete("partner_invite");
   }
 
   // invited_by 쿠키 처리

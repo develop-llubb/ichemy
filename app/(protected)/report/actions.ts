@@ -7,6 +7,7 @@ import { after } from "next/server";
 import { generateCareReport } from "@/lib/generate-report";
 import { PROMPT_VERSION } from "@/lib/report-prompt";
 import type { CareReport, Grade } from "@/lib/care-report";
+import { deductPartnerCredit } from "@/lib/partner-credit";
 
 export async function saveHasChildren(coupleId: string, hasChildren: boolean) {
   await db
@@ -269,4 +270,18 @@ export async function retryReport(reportId: string): Promise<{ error?: string }>
   });
 
   return {};
+}
+
+export async function requestPartnerReport(
+  coupleId: string,
+  hasChildren: boolean,
+  partnerId: string,
+): Promise<{ reportId: string } | { error: string }> {
+  try {
+    await deductPartnerCredit(partnerId, coupleId, "육아 케어 리포트 생성");
+  } catch {
+    return { error: "크레딧 차감에 실패했습니다." };
+  }
+
+  return requestReport(coupleId, hasChildren);
 }

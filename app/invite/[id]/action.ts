@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { befeProfiles, befeCouples, befeInvitations } from "@/db/schema";
+import { befeProfiles, befeCouples, befeInvitations, befePartnerInvitations } from "@/db/schema";
 import { eq, or, and } from "drizzle-orm";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
@@ -65,6 +65,19 @@ export async function acceptInvite(inviterProfileId: string) {
 
       if (profile.test_completed && inviter?.test_completed) {
         await populateCoupleScores(newCouple.id);
+      }
+
+      // 파트너 초대와 커플 연결 (본인 또는 상대 프로필에 partner_invitation_id가 있으면)
+      const partnerInvitationId =
+        profile.partner_invitation_id;
+      if (partnerInvitationId) {
+        await db
+          .update(befePartnerInvitations)
+          .set({
+            couple_id: newCouple.id,
+            updated_at: new Date().toISOString(),
+          })
+          .where(eq(befePartnerInvitations.id, partnerInvitationId));
       }
     }
   }

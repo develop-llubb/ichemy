@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { befeProfiles, befeCouples, befeReports } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
 import { ReportIntroClient } from "./report-intro-client";
+import { checkPartnerCredit } from "@/lib/partner-credit";
 
 export default async function ReportPage({
   searchParams,
@@ -52,12 +53,22 @@ export default async function ReportPage({
       : couple.inviter_profile_id;
 
   const [partner] = await db
-    .select({ nickname: befeProfiles.nickname, coupon_id: befeProfiles.coupon_id })
+    .select({
+      nickname: befeProfiles.nickname,
+      coupon_id: befeProfiles.coupon_id,
+      partner_invitation_id: befeProfiles.partner_invitation_id,
+    })
     .from(befeProfiles)
     .where(eq(befeProfiles.id, partnerId))
     .limit(1);
 
   const hasCoupon = !!(profile.coupon_id || partner?.coupon_id);
+
+  const partnerCredit = await checkPartnerCredit(
+    profile.partner_invitation_id,
+    partner?.partner_invitation_id ?? null,
+  );
+  const hasFreeAccess = hasCoupon || !!partnerCredit;
 
   const existingReports = await db
     .select({ has_children: befeReports.has_children })
@@ -81,6 +92,8 @@ export default async function ReportPage({
       hasChildren={lockedHasChildren ?? couple.has_children}
       pcqScore={couple.pcq_score}
       hasCoupon={hasCoupon}
+      hasPartnerCredit={!!partnerCredit}
+      partnerCreditInfo={partnerCredit}
       lockedHasChildren={lockedHasChildren}
     />
   );

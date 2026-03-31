@@ -46,6 +46,24 @@ export const reportStatusEnum = pgEnum("befe_report_status", [
   "completed",
   "failed",
 ]);
+export const partnerTypeEnum = pgEnum("befe_partner_type", [
+  "academy",
+  "insurance",
+  "other",
+]);
+export const creditTransactionTypeEnum = pgEnum(
+  "befe_credit_transaction_type",
+  ["purchase", "deduction", "refund", "adjustment"],
+);
+export const partnerInvitationStatusEnum = pgEnum(
+  "befe_partner_invitation_status",
+  ["pending", "accepted", "expired"],
+);
+export const partnerOrderStatusEnum = pgEnum("befe_partner_order_status", [
+  "pending",
+  "paid",
+  "failed",
+]);
 
 // ─── 공유 테이블 (읽기 전용, chemistry-rn과 동일) ───
 
@@ -203,6 +221,9 @@ export const befeProfiles = pgTable("befe_profiles", {
 
   // 쿠폰
   coupon_id: uuid("coupon_id").references(() => befeCoupons.id),
+
+  // 파트너 초대
+  partner_invitation_id: uuid("partner_invitation_id"),
 
   // 회원탈퇴 (soft delete)
   deleted_at: timestamp("deleted_at", { withTimezone: true, mode: "string" }),
@@ -416,6 +437,87 @@ export const befeOrders = pgTable("befe_orders", {
     .notNull(),
 });
 
+// ─── befe_partners ───
+
+export const befePartners = pgTable("befe_partners", {
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
+  user_id: uuid("user_id")
+    .notNull()
+    .unique()
+    .references(() => authUsers.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  partner_type: partnerTypeEnum("partner_type").notNull(),
+  phone: text("phone"),
+  company: text("company"),
+  credit_balance: integer("credit_balance").default(0).notNull(),
+  created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
+  updated_at: timestamp("updated_at", {
+    withTimezone: true,
+    mode: "string",
+  }).defaultNow(),
+});
+
+// ─── befe_partner_invitations ───
+
+export const befePartnerInvitations = pgTable("befe_partner_invitations", {
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
+  partner_id: uuid("partner_id")
+    .notNull()
+    .references(() => befePartners.id, { onDelete: "cascade" }),
+  code: text("code").notNull().unique(),
+  label: text("label"),
+  profile_id: uuid("profile_id").references(() => befeProfiles.id),
+  couple_id: uuid("couple_id").references(() => befeCouples.id),
+  status: partnerInvitationStatusEnum("status").default("pending").notNull(),
+  expires_at: timestamp("expires_at", { withTimezone: true, mode: "string" }),
+  created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
+  updated_at: timestamp("updated_at", {
+    withTimezone: true,
+    mode: "string",
+  }).defaultNow(),
+});
+
+// ─── befe_partner_credit_transactions ───
+
+export const befePartnerCreditTransactions = pgTable(
+  "befe_partner_credit_transactions",
+  {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    partner_id: uuid("partner_id")
+      .notNull()
+      .references(() => befePartners.id, { onDelete: "cascade" }),
+    type: creditTransactionTypeEnum("type").notNull(),
+    amount: integer("amount").notNull(),
+    balance_after: integer("balance_after").notNull(),
+    couple_id: uuid("couple_id").references(() => befeCouples.id),
+    description: text("description"),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+);
+
+// ─── befe_partner_orders ───
+
+export const befePartnerOrders = pgTable("befe_partner_orders", {
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
+  partner_id: uuid("partner_id")
+    .notNull()
+    .references(() => befePartners.id, { onDelete: "cascade" }),
+  order_id: text("order_id").notNull().unique(),
+  credit_amount: integer("credit_amount").notNull(),
+  amount: integer("amount").notNull(),
+  status: partnerOrderStatusEnum("status").default("pending").notNull(),
+  payment_key: text("payment_key"),
+  created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
+});
+
 // ─── befe_coupons ───
 
 export const befeCoupons = pgTable("befe_coupons", {
@@ -459,6 +561,18 @@ export type NewBefeOrder = typeof befeOrders.$inferInsert;
 
 export type BefeCoupon = typeof befeCoupons.$inferSelect;
 export type NewBefeCoupon = typeof befeCoupons.$inferInsert;
+
+export type BefePartner = typeof befePartners.$inferSelect;
+export type NewBefePartner = typeof befePartners.$inferInsert;
+
+export type BefePartnerInvitation = typeof befePartnerInvitations.$inferSelect;
+export type NewBefePartnerInvitation = typeof befePartnerInvitations.$inferInsert;
+
+export type BefePartnerCreditTransaction =
+  typeof befePartnerCreditTransactions.$inferSelect;
+
+export type BefePartnerOrder = typeof befePartnerOrders.$inferSelect;
+export type NewBefePartnerOrder = typeof befePartnerOrders.$inferInsert;
 
 export type Question = typeof questions.$inferSelect;
 export type Test = typeof tests.$inferSelect;

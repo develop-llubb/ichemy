@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { db } from "@/db";
-import { befeProfiles, befeCouples, befeCoupons } from "@/db/schema";
+import { befeProfiles, befeCouples, befeCoupons, befePartnerInvitations } from "@/db/schema";
 import { eq, or, sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
@@ -47,6 +47,7 @@ export async function createProfile(
 
   const cookieStore = await cookies();
   const inviterIdCookie = cookieStore.get("invited_by")?.value || null;
+  const partnerInviteCode = cookieStore.get("partner_invite")?.value || null;
 
   // 초대자 프로필이 실제 존재하는지 확인
   let inviterProfileId: string | null = null;
@@ -83,14 +84,57 @@ export async function createProfile(
       .limit(1);
 
     if (!inviterCouple) {
-      await db
+      const [newCouple] = await db
         .insert(befeCouples)
         .values({
           inviter_profile_id: inviterProfileId,
           invitee_profile_id: newProfile.id,
         })
-        .onConflictDoNothing();
+        .onConflictDoNothing()
+        .returning({ id: befeCouples.id });
+
+      // 파트너 초대와 커플 연결
+      if (newCouple && partnerInviteCode) {
+        const [inv] = await db
+          .select({ id: befePartnerInvitations.id })
+          .from(befePartnerInvitations)
+          .where(eq(befePartnerInvitations.code, partnerInviteCode))
+          .limit(1);
+
+        if (inv) {
+          await db
+            .update(befePartnerInvitations)
+            .set({ couple_id: newCouple.id, updated_at: new Date().toISOString() })
+            .where(eq(befePartnerInvitations.id, inv.id));
+        }
+      }
     }
+  }
+
+  // partner_invite 쿠키 처리
+  if (partnerInviteCode && newProfile) {
+    const [invitation] = await db
+      .select({ id: befePartnerInvitations.id })
+      .from(befePartnerInvitations)
+      .where(eq(befePartnerInvitations.code, partnerInviteCode))
+      .limit(1);
+
+    if (invitation) {
+      await db
+        .update(befeProfiles)
+        .set({ partner_invitation_id: invitation.id })
+        .where(eq(befeProfiles.id, newProfile.id));
+
+      await db
+        .update(befePartnerInvitations)
+        .set({
+          profile_id: newProfile.id,
+          status: "accepted",
+          updated_at: new Date().toISOString(),
+        })
+        .where(eq(befePartnerInvitations.id, invitation.id));
+    }
+    cookieStore.delete("partner_invite");
   }
 
   // coupon_code: 쿠키 또는 formData에서 가져옴

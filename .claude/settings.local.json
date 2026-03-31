@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(bun run:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
