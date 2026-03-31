@@ -6,6 +6,7 @@ import { eq } from "drizzle-orm";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { PartnerSidebar } from "./_components/partner-sidebar";
 import { PartnerHeader } from "./_components/partner-header";
+import { DarkBody } from "../_components/dark-body";
 
 export default async function PartnersLayout({
   children,
@@ -32,23 +33,26 @@ export default async function PartnersLayout({
   }
 
   return (
-    <SidebarProvider
-      style={
-        {
-          "--sidebar-width": "calc(var(--spacing) * 72)",
-          "--header-height": "calc(var(--spacing) * 12)",
-        } as React.CSSProperties
-      }
-    >
-      <PartnerSidebar partner={partner} />
-      <SidebarInset>
-        <PartnerHeader />
-        <div className="flex flex-1 flex-col">
-          <div className="@container/main flex flex-1 flex-col gap-2">
-            {children}
+    <div className="dark min-h-svh bg-background text-foreground">
+      <DarkBody />
+      <SidebarProvider
+        style={
+          {
+            "--sidebar-width": "calc(var(--spacing) * 72)",
+            "--header-height": "calc(var(--spacing) * 12)",
+          } as React.CSSProperties
+        }
+      >
+        <PartnerSidebar partner={partner} />
+        <SidebarInset>
+          <PartnerHeader />
+          <div className="flex flex-1 flex-col">
+            <div className="@container/main flex flex-1 flex-col gap-2">
+              {children}
+            </div>
           </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </SidebarInset>
+      </SidebarProvider>
+    </div>
   );
 }

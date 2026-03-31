@@ -28,39 +28,41 @@ export function CreditHistory({
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>유형</TableHead>
-          <TableHead>수량</TableHead>
-          <TableHead>잔액</TableHead>
-          <TableHead>설명</TableHead>
-          <TableHead>일시</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {transactions.map((tx) => (
-          <TableRow key={tx.id}>
-            <TableCell>
-              <Badge
-                variant={tx.amount > 0 ? "default" : "secondary"}
-              >
-                {typeLabels[tx.type]}
-              </Badge>
-            </TableCell>
-            <TableCell
-              className={tx.amount > 0 ? "text-green-600" : "text-red-600"}
-            >
-              {tx.amount > 0 ? `+${tx.amount}` : tx.amount}
-            </TableCell>
-            <TableCell>{tx.balance_after}</TableCell>
-            <TableCell className="text-sm">{tx.description || "-"}</TableCell>
-            <TableCell className="text-xs text-muted-foreground">
-              {new Date(tx.created_at).toLocaleString("ko-KR")}
-            </TableCell>
+    <div className="overflow-hidden rounded-lg border">
+      <Table>
+        <TableHeader className="sticky top-0 z-10 bg-muted">
+          <TableRow>
+            <TableHead>유형</TableHead>
+            <TableHead>수량</TableHead>
+            <TableHead>잔액</TableHead>
+            <TableHead>설명</TableHead>
+            <TableHead>일시</TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {transactions.map((tx) => (
+            <TableRow key={tx.id}>
+              <TableCell>
+                <Badge
+                  variant={tx.amount > 0 ? "default" : "secondary"}
+                >
+                  {typeLabels[tx.type]}
+                </Badge>
+              </TableCell>
+              <TableCell
+                className={tx.amount > 0 ? "text-green-400" : "text-destructive"}
+              >
+                {tx.amount > 0 ? `+${tx.amount}` : tx.amount}
+              </TableCell>
+              <TableCell>{tx.balance_after}</TableCell>
+              <TableCell className="text-sm">{tx.description || "-"}</TableCell>
+              <TableCell className="text-xs text-muted-foreground">
+                {new Date(tx.created_at).toLocaleString("ko-KR")}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

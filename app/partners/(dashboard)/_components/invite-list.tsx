@@ -39,49 +39,51 @@ export function InviteList({
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>메모</TableHead>
-          <TableHead>코드</TableHead>
-          <TableHead>상태</TableHead>
-          <TableHead>만료일</TableHead>
-          <TableHead>생성일</TableHead>
-          <TableHead></TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {invitations.map((inv) => (
-          <TableRow key={inv.id}>
-            <TableCell>{inv.label || "-"}</TableCell>
-            <TableCell className="font-mono text-xs">{inv.code}</TableCell>
-            <TableCell>
-              <Badge
-                variant={inv.status === "accepted" ? "default" : "secondary"}
-              >
-                {statusLabels[inv.status]}
-              </Badge>
-            </TableCell>
-            <TableCell className="text-xs text-muted-foreground">
-              {inv.expires_at
-                ? new Date(inv.expires_at).toLocaleDateString("ko-KR")
-                : "-"}
-            </TableCell>
-            <TableCell className="text-xs text-muted-foreground">
-              {new Date(inv.created_at).toLocaleDateString("ko-KR")}
-            </TableCell>
-            <TableCell>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => copyLink(inv.code)}
-              >
-                복사
-              </Button>
-            </TableCell>
+    <div className="overflow-hidden rounded-lg border">
+      <Table>
+        <TableHeader className="sticky top-0 z-10 bg-muted">
+          <TableRow>
+            <TableHead>메모</TableHead>
+            <TableHead>코드</TableHead>
+            <TableHead>상태</TableHead>
+            <TableHead>만료일</TableHead>
+            <TableHead>생성일</TableHead>
+            <TableHead></TableHead>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {invitations.map((inv) => (
+            <TableRow key={inv.id}>
+              <TableCell>{inv.label || "-"}</TableCell>
+              <TableCell className="font-mono text-xs">{inv.code}</TableCell>
+              <TableCell>
+                <Badge
+                  variant={inv.status === "accepted" ? "default" : "secondary"}
+                >
+                  {statusLabels[inv.status]}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-xs text-muted-foreground">
+                {inv.expires_at
+                  ? new Date(inv.expires_at).toLocaleDateString("ko-KR")
+                  : "-"}
+              </TableCell>
+              <TableCell className="text-xs text-muted-foreground">
+                {new Date(inv.created_at).toLocaleDateString("ko-KR")}
+              </TableCell>
+              <TableCell>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => copyLink(inv.code)}
+                >
+                  복사
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }

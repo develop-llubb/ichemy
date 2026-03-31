@@ -51,7 +51,7 @@ export function PurchaseCreditsDialog({ partnerId }: { partnerId: string }) {
       <select
         value={selected}
         onChange={(e) => setSelected(Number(e.target.value))}
-        className="rounded-md border px-3 py-2 text-sm"
+        className="rounded-md border border-input bg-background text-foreground px-3 py-2 text-sm"
       >
         {PACKAGES.map((pkg, i) => (
           <option key={i} value={i}>

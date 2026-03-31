@@ -56,7 +56,7 @@ export function RegisterForm() {
       </div>
 
       {state.error && (
-        <p className="text-sm text-red-500">{state.error}</p>
+        <p className="text-sm text-destructive">{state.error}</p>
       )}
 
       <Button type="submit" className="w-full" disabled={pending}>
