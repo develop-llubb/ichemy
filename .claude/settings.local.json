@@ -4,7 +4,10 @@
       "Bash(ls:*)",
       "Bash(bun run:*)",
       "Bash(npx tsc:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(bun add:*)",
+      "Bash(git add:*)"
     ]
   }
 }
