@@ -59,17 +59,20 @@ async function saveTemplate(
 export async function requestReport(
   coupleId: string,
   hasChildren: boolean,
+  childId?: string,
 ): Promise<{ reportId: string } | { error: string }> {
-  // 기존 리포트 확인 (couple_id + has_children 조합)
+  // 기존 리포트 확인
+  const conditions = [eq(befeReports.couple_id, coupleId)];
+  if (childId) {
+    conditions.push(eq(befeReports.child_id, childId));
+  } else {
+    conditions.push(eq(befeReports.has_children, hasChildren));
+  }
+
   const [existing] = await db
     .select({ id: befeReports.id })
     .from(befeReports)
-    .where(
-      and(
-        eq(befeReports.couple_id, coupleId),
-        eq(befeReports.has_children, hasChildren),
-      ),
-    )
+    .where(and(...conditions))
     .limit(1);
 
   if (existing) {
@@ -115,6 +118,7 @@ export async function requestReport(
       .values({
         couple_id: coupleId,
         has_children: hasChildren,
+        child_id: childId ?? null,
         status: "completed",
         content: template.content,
         model_version: template.model_version,
@@ -131,6 +135,7 @@ export async function requestReport(
     .values({
       couple_id: coupleId,
       has_children: hasChildren,
+      child_id: childId ?? null,
       status: "generating",
     })
     .returning({ id: befeReports.id });

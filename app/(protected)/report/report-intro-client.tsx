@@ -7,9 +7,19 @@ import { ChevronLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { saveHasChildren, requestReport } from "./actions";
+import { addChild } from "@/app/(protected)/home/children/actions";
 import { createOrder } from "@/app/payment/actions";
 import { JOURNEY_STEPS } from "@/lib/steps";
 import { CouponTicket } from "@/components/coupon-ticket";
+import { Camera, X, Plus } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+
+interface ChildInfo {
+  id: string;
+  name: string;
+  birth_date: string;
+  photo_url: string | null;
+}
 
 interface ReportIntroClientProps {
   nickname: string;
@@ -19,6 +29,8 @@ interface ReportIntroClientProps {
   pcqScore: number;
   hasCoupon: boolean;
   lockedHasChildren?: boolean | null;
+  children: ChildInfo[];
+  childrenWithReport: string[];
 }
 
 export function ReportIntroClient({
@@ -29,6 +41,8 @@ export function ReportIntroClient({
   pcqScore,
   hasCoupon,
   lockedHasChildren = null,
+  children,
+  childrenWithReport,
 }: ReportIntroClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -38,6 +52,16 @@ export function ReportIntroClient({
   );
   const [saving, setSaving] = useState(false);
   const [requesting, startRequesting] = useTransition();
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [showChildForm, setShowChildForm] = useState(false);
+  const [localChildren, setLocalChildren] = useState<ChildInfo[]>(children);
+  const [childName, setChildName] = useState("");
+  const [childBirthDate, setChildBirthDate] = useState("");
+  const [childPhotoFile, setChildPhotoFile] = useState<File | null>(null);
+  const [childPhotoPreview, setChildPhotoPreview] = useState<string | null>(null);
+  const [addingChild, setAddingChild] = useState(false);
+
+  const hasRegisteredChildren = localChildren.length > 0;
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 80);
@@ -80,8 +104,11 @@ export function ReportIntroClient({
     [coupleId],
   );
 
-  // Step 3 완료 조건: hasChildren이 선택됨
-  const step3Done = hasChildren !== null;
+  // Step 3 완료 조건: 자녀 선택 또는 "아직 없어요" 선택
+  const canProceed = hasRegisteredChildren
+    ? selectedChildId !== null
+    : hasChildren === false;
+  const step3Done = canProceed;
   // 현재 활성 스텝
   const activeIdx = step3Done ? 3 : 2;
 
@@ -181,63 +208,248 @@ export function ReportIntroClient({
               자녀 유무에 따라 리포트 내용이 달라져요.
             </p>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleSelect(true)}
-                disabled={saving || lockedHasChildren !== null}
-                className="flex flex-1 flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
-                style={{
-                  borderColor: hasChildren === true ? "#D4735C" : "#ECE8E3",
-                  background:
-                    hasChildren === true
+            {/* 두 버튼 (자녀 없고 폼 안 열린 상태에서만) */}
+            {!hasRegisteredChildren && !showChildForm && (
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setHasChildren(true);
+                    setShowChildForm(true);
+                  }}
+                  disabled={lockedHasChildren !== null}
+                  className="flex flex-1 flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
+                  style={{
+                    borderColor: hasChildren === true ? "#D4735C" : "#ECE8E3",
+                    background: hasChildren === true
                       ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
                       : "#fff",
-                  opacity:
-                    lockedHasChildren !== null && lockedHasChildren !== true
-                      ? 0.4
-                      : 1,
-                  cursor: lockedHasChildren !== null ? "default" : "pointer",
-                }}
-              >
-                <span className="text-3xl">👶</span>
-                <span
-                  className="text-sm font-semibold"
-                  style={{
-                    color: hasChildren === true ? "#D4735C" : "#6B6360",
+                    opacity: lockedHasChildren !== null && lockedHasChildren !== true ? 0.4 : 1,
+                    cursor: lockedHasChildren !== null ? "default" : "pointer",
                   }}
                 >
-                  네, 있어요
-                </span>
-              </button>
+                  <span className="text-3xl">👶</span>
+                  <span className="text-sm font-semibold" style={{ color: hasChildren === true ? "#D4735C" : "#6B6360" }}>
+                    네, 있어요
+                  </span>
+                </button>
 
-              <button
-                onClick={() => handleSelect(false)}
-                disabled={saving || lockedHasChildren !== null}
-                className="flex flex-1 flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
-                style={{
-                  borderColor: hasChildren === false ? "#D4735C" : "#ECE8E3",
-                  background:
-                    hasChildren === false
+                <button
+                  onClick={() => handleSelect(false)}
+                  disabled={saving || lockedHasChildren !== null}
+                  className="flex flex-1 flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
+                  style={{
+                    borderColor: hasChildren === false ? "#D4735C" : "#ECE8E3",
+                    background: hasChildren === false
                       ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
                       : "#fff",
-                  opacity:
-                    lockedHasChildren !== null && lockedHasChildren !== false
-                      ? 0.4
-                      : 1,
-                  cursor: lockedHasChildren !== null ? "default" : "pointer",
-                }}
-              >
-                <span className="text-3xl">🤰</span>
-                <span
-                  className="text-sm font-semibold"
-                  style={{
-                    color: hasChildren === false ? "#D4735C" : "#6B6360",
+                    opacity: lockedHasChildren !== null && lockedHasChildren !== false ? 0.4 : 1,
+                    cursor: lockedHasChildren !== null ? "default" : "pointer",
                   }}
                 >
-                  아직 없어요
-                </span>
-              </button>
-            </div>
+                  <span className="text-3xl">🤰</span>
+                  <span className="text-sm font-semibold" style={{ color: hasChildren === false ? "#D4735C" : "#6B6360" }}>
+                    아직 없어요
+                  </span>
+                </button>
+              </div>
+            )}
+
+            {/* 등록된 자녀 목록 */}
+            {hasRegisteredChildren && (
+              <div className="flex flex-col gap-2.5">
+                {localChildren.map((child) => {
+                  const hasReport = childrenWithReport.includes(child.id);
+                  const isSelected = selectedChildId === child.id;
+                  return (
+                    <button
+                      key={child.id}
+                      onClick={() => {
+                        if (hasReport) {
+                          router.push("/report/list");
+                        } else {
+                          setSelectedChildId(isSelected ? null : child.id);
+                          setHasChildren(true);
+                        }
+                      }}
+                      className="flex items-center gap-3.5 rounded-2xl border-2 px-4 py-3.5 transition-all duration-200"
+                      style={{
+                        borderColor: isSelected ? "#D4735C" : hasReport ? "#E8E2DC" : "#ECE8E3",
+                        background: isSelected ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)" : "#fff",
+                        opacity: hasReport ? 0.6 : 1,
+                      }}
+                    >
+                      <div
+                        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-lg"
+                        style={{ background: "linear-gradient(145deg, #FFE8D6, #FFF0E6)" }}
+                      >
+                        {child.photo_url ? (
+                          <img src={child.photo_url} alt={child.name} className="h-full w-full object-cover" />
+                        ) : "👶"}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="text-sm font-semibold" style={{ color: isSelected ? "#D4735C" : "#3A3A3A" }}>
+                          {child.name}
+                        </div>
+                        <div className="text-[11px] text-[#9A918A]">
+                          {hasReport ? "리포트 보기 →" : child.birth_date}
+                        </div>
+                      </div>
+                      {!hasReport && (
+                        <div
+                          className="flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all"
+                          style={{
+                            borderColor: isSelected ? "#D4735C" : "#D4CFC8",
+                            background: isSelected ? "#D4735C" : "transparent",
+                          }}
+                        >
+                          {isSelected && <div className="h-2 w-2 rounded-full bg-white" />}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+
+                {/* 아이 추가 버튼 (폼 열기) */}
+                {!showChildForm && (
+                  <button
+                    onClick={() => setShowChildForm(true)}
+                    className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border-[1.5px] border-dashed border-[#D4CFC8] text-[12px] font-medium text-[#9A918A] transition-colors hover:border-primary hover:text-primary"
+                  >
+                    <Plus size={14} /> 아이 추가하기
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* 인라인 자녀 등록 폼 */}
+            {showChildForm && (
+              <div className="mt-4 rounded-xl border border-[#ECE8E3] bg-[#FEFCF9] p-4">
+                <div className="mb-3 text-[13px] font-semibold text-foreground">
+                  아이 정보 입력
+                </div>
+
+                {/* 사진 */}
+                <div className="mb-3 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const input = document.createElement("input");
+                      input.type = "file";
+                      input.accept = "image/*";
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (!file) return;
+                        setChildPhotoFile(file);
+                        setChildPhotoPreview(URL.createObjectURL(file));
+                      };
+                      input.click();
+                    }}
+                    className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-[#D4CFC8] bg-[#F8F6F3] transition-colors hover:border-primary"
+                  >
+                    {childPhotoPreview ? (
+                      <>
+                        <img src={childPhotoPreview} alt="" className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setChildPhotoPreview(null); setChildPhotoFile(null); }}
+                          className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#6B6360] text-white"
+                        >
+                          <X size={10} />
+                        </button>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center gap-0.5">
+                        <Camera size={16} className="text-[#B8A898]" />
+                        <span className="text-[9px] text-[#B8A898]">선택</span>
+                      </div>
+                    )}
+                  </button>
+                </div>
+
+                {/* 이름 */}
+                <input
+                  type="text"
+                  value={childName}
+                  onChange={(e) => setChildName(e.target.value)}
+                  placeholder="아이 이름"
+                  className="mb-2 h-10 w-full rounded-xl border-[1.5px] border-[#ECE8E3] bg-white px-3 text-sm text-foreground outline-none placeholder:text-[#C4BEB8] focus:border-primary"
+                />
+
+                {/* 생년월일 */}
+                <input
+                  type="date"
+                  value={childBirthDate}
+                  onChange={(e) => setChildBirthDate(e.target.value)}
+                  className="mb-3 h-10 w-full rounded-xl border-[1.5px] border-[#ECE8E3] bg-white px-3 text-sm text-foreground outline-none focus:border-primary"
+                />
+
+                {/* 버튼 */}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowChildForm(false);
+                      setChildName("");
+                      setChildBirthDate("");
+                      setChildPhotoFile(null);
+                      setChildPhotoPreview(null);
+                      if (!hasRegisteredChildren) {
+                        setHasChildren(null);
+                      }
+                    }}
+                    className="flex h-10 flex-1 items-center justify-center rounded-xl border-[1.5px] border-[#ECE8E3] text-[12px] font-semibold text-[#6B6360]"
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="button"
+                    disabled={!childName.trim() || !childBirthDate || addingChild}
+                    onClick={async () => {
+                      setAddingChild(true);
+                      try {
+                        let photoUrl: string | undefined;
+                        if (childPhotoFile) {
+                          const supabase = createClient();
+                          const ext = childPhotoFile.name.split(".").pop() ?? "jpg";
+                          const path = `children/${coupleId}/${crypto.randomUUID()}.${ext}`;
+                          const { error } = await supabase.storage.from("images").upload(path, childPhotoFile, { contentType: childPhotoFile.type });
+                          if (!error) {
+                            const { data } = supabase.storage.from("images").getPublicUrl(path);
+                            photoUrl = data.publicUrl;
+                          }
+                        }
+                        const result = await addChild(coupleId, {
+                          name: childName.trim(),
+                          birthDate: childBirthDate,
+                          photoUrl,
+                        });
+                        setLocalChildren((prev) => [
+                          ...prev,
+                          { id: result.id, name: childName.trim(), birth_date: childBirthDate, photo_url: photoUrl ?? null },
+                        ]);
+                        setSelectedChildId(result.id);
+                        setShowChildForm(false);
+                        setChildName("");
+                        setChildBirthDate("");
+                        setChildPhotoFile(null);
+                        setChildPhotoPreview(null);
+                        toast("아이가 등록되었어요!");
+                      } finally {
+                        setAddingChild(false);
+                      }
+                    }}
+                    className="flex h-10 flex-1 items-center justify-center rounded-xl border-none text-[12px] font-semibold text-white transition-all disabled:opacity-50"
+                    style={{
+                      background: childName.trim() && childBirthDate
+                        ? "linear-gradient(135deg, #D4735C, #C0614A)"
+                        : "#D4CFC8",
+                    }}
+                  >
+                    {addingChild ? <Loader2 size={14} className="animate-spin" /> : "등록하기"}
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Journey tracker */}
@@ -368,12 +580,15 @@ export function ReportIntroClient({
           style={ease(0.4)}
         >
           <button
-            disabled={hasChildren === null || requesting}
+            disabled={!canProceed || requesting}
             onClick={() => {
+              const reportHasChildren = hasRegisteredChildren ? true : hasChildren!;
+              const childId = selectedChildId ?? undefined;
+
               if (hasCoupon) {
                 // 쿠폰 사용자: 바로 리포트 생성
                 startRequesting(async () => {
-                  const result = await requestReport(coupleId, hasChildren!);
+                  const result = await requestReport(coupleId, reportHasChildren, childId);
                   if ("error" in result) {
                     toast(result.error);
                     return;
@@ -384,7 +599,7 @@ export function ReportIntroClient({
                 // 결제 사용자: 토스 결제창 띄우기
                 startRequesting(async () => {
                   try {
-                    const order = await createOrder(coupleId, hasChildren!);
+                    const order = await createOrder(coupleId, reportHasChildren);
                     const tossPayments = await loadTossPayments(
                       process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!,
                     );
@@ -412,15 +627,13 @@ export function ReportIntroClient({
             }}
             className="flex h-[54px] w-full items-center justify-center rounded-2xl border-none text-base font-bold text-white transition-all duration-200"
             style={{
-              background:
-                hasChildren !== null
-                  ? "linear-gradient(135deg, #D4735C, #C0614A)"
-                  : "#D4CFC8",
-              boxShadow:
-                hasChildren !== null
-                  ? "0 4px 16px rgba(212,115,92,0.25)"
-                  : "none",
-              cursor: hasChildren !== null ? "pointer" : "not-allowed",
+              background: canProceed
+                ? "linear-gradient(135deg, #D4735C, #C0614A)"
+                : "#D4CFC8",
+              boxShadow: canProceed
+                ? "0 4px 16px rgba(212,115,92,0.25)"
+                : "none",
+              cursor: canProceed ? "pointer" : "not-allowed",
             }}
           >
             {requesting ? (

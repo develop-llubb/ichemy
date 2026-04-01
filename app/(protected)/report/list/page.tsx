@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { befeProfiles, befeCouples, befeReports } from "@/db/schema";
+import { befeProfiles, befeCouples, befeReports, befeChildren } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
 import { ReportListClient } from "./report-list-client";
 
@@ -46,15 +46,33 @@ export default async function ReportListPage() {
     .where(eq(befeProfiles.id, partnerId))
     .limit(1);
 
-  const reports = await db
+  const reportsRaw = await db
     .select({
       id: befeReports.id,
       has_children: befeReports.has_children,
+      child_id: befeReports.child_id,
       status: befeReports.status,
       created_at: befeReports.created_at,
     })
     .from(befeReports)
     .where(eq(befeReports.couple_id, couple.id));
+
+  // 자녀 이름 조회
+  const childIds = reportsRaw.filter((r) => r.child_id).map((r) => r.child_id!);
+  let childMap: Record<string, { name: string; photo_url: string | null }> = {};
+  if (childIds.length > 0) {
+    const childrenData = await db
+      .select({ id: befeChildren.id, name: befeChildren.name, photo_url: befeChildren.photo_url })
+      .from(befeChildren)
+      .where(eq(befeChildren.couple_id, couple.id));
+    childMap = Object.fromEntries(childrenData.map((c) => [c.id, { name: c.name, photo_url: c.photo_url }]));
+  }
+
+  const reports = reportsRaw.map((r) => ({
+    ...r,
+    childName: r.child_id ? childMap[r.child_id]?.name ?? null : null,
+    childPhotoUrl: r.child_id ? childMap[r.child_id]?.photo_url ?? null : null,
+  }));
 
   if (reports.length === 0) {
     redirect("/report");

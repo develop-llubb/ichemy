@@ -286,6 +286,31 @@ export const befeCouples = pgTable(
   ],
 );
 
+// ─── befe_children ───
+
+export const befeChildren = pgTable(
+  "befe_children",
+  {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    couple_id: uuid("couple_id")
+      .notNull()
+      .references(() => befeCouples.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    birth_date: text("birth_date").notNull(), // "YYYY-MM-DD"
+    photo_url: text("photo_url"),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updated_at: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).defaultNow(),
+  },
+  (table) => [
+    index("idx_befe_children_couple").on(table.couple_id),
+  ],
+);
+
 // ─── befe_invitations ───
 
 export const befeInvitations = pgTable(
@@ -355,6 +380,9 @@ export const befeReports = pgTable(
       .notNull()
       .references(() => befeCouples.id, { onDelete: "cascade" }),
     has_children: boolean("has_children").notNull(),
+    child_id: uuid("child_id").references(() => befeChildren.id, {
+      onDelete: "set null",
+    }),
     status: reportStatusEnum("status").default("generating").notNull(),
     content: jsonb("content").$type<CareReport>(),
     model_version: text("model_version"),
@@ -364,9 +392,9 @@ export const befeReports = pgTable(
       .notNull(),
   },
   (table) => [
-    unique("befe_reports_couple_type_key").on(
+    unique("befe_reports_couple_child_key").on(
       table.couple_id,
-      table.has_children,
+      table.child_id,
     ),
   ],
 );
@@ -447,6 +475,9 @@ export type NewBefeAnswer = typeof befeAnswers.$inferInsert;
 
 export type BefeCouple = typeof befeCouples.$inferSelect;
 export type NewBefeCouple = typeof befeCouples.$inferInsert;
+
+export type BefeChild = typeof befeChildren.$inferSelect;
+export type NewBefeChild = typeof befeChildren.$inferInsert;
 
 export type BefeInvitation = typeof befeInvitations.$inferSelect;
 export type NewBefeInvitation = typeof befeInvitations.$inferInsert;

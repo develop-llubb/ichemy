@@ -8,8 +8,11 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 interface Report {
   id: string;
   has_children: boolean;
+  child_id: string | null;
   status: "generating" | "completed" | "failed";
   created_at: string;
+  childName: string | null;
+  childPhotoUrl: string | null;
 }
 
 interface ReportListClientProps {
@@ -124,18 +127,28 @@ export function ReportListClient({
                 }}
               >
                 <div
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[22px]"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl text-[22px]"
                   style={{
                     background: report.has_children
                       ? "linear-gradient(145deg, #FFE8D6, #FFF0E6)"
                       : "linear-gradient(145deg, #E8F0E6, #F0F7EE)",
                   }}
                 >
-                  {report.has_children ? <Image src="/baby.png" alt="아기" width={28} height={28} className="h-7 w-7 object-contain" /> : "\uD83E\uDD30"}
+                  {report.childPhotoUrl ? (
+                    <img src={report.childPhotoUrl} alt={report.childName ?? ""} className="h-full w-full object-cover" />
+                  ) : report.has_children ? (
+                    <Image src="/baby.png" alt="아기" width={28} height={28} className="h-7 w-7 object-contain" />
+                  ) : (
+                    "\uD83E\uDD30"
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="text-[15px] font-semibold text-foreground">
-                    {report.has_children ? "자녀 양육 케어 리포트" : "예비 부모 육아 케어 리포트"}
+                    {report.childName
+                      ? `${report.childName} 육아 케어 리포트`
+                      : report.has_children
+                        ? "자녀 양육 케어 리포트"
+                        : "예비 부모 육아 케어 리포트"}
                   </div>
                   <div className="mt-0.5 flex items-center gap-1.5">
                     <span

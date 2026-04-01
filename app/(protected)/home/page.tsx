@@ -147,7 +147,7 @@ export default async function HomePage() {
     .limit(1);
   const hasPersonalityReport = !!personalityReport;
 
-  // 9. status 결정
+  // 10. status 결정
   let status: "done_no_partner" | "waiting_partner" | "both_complete";
 
   if (couple && partnerTestCompleted) {

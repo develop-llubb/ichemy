@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { befeProfiles, befeCouples, befeReports } from "@/db/schema";
+import { befeProfiles, befeCouples, befeReports, befeChildren } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
 import { ReportIntroClient } from "./report-intro-client";
 
@@ -59,12 +59,27 @@ export default async function ReportPage({
 
   const hasCoupon = !!(profile.coupon_id || partner?.coupon_id);
 
+  // 자녀 목록 조회
+  const children = await db
+    .select({
+      id: befeChildren.id,
+      name: befeChildren.name,
+      birth_date: befeChildren.birth_date,
+      photo_url: befeChildren.photo_url,
+    })
+    .from(befeChildren)
+    .where(eq(befeChildren.couple_id, couple.id));
+
+  // 기존 리포트 조회 (child_id 포함)
   const existingReports = await db
-    .select({ has_children: befeReports.has_children })
+    .select({ has_children: befeReports.has_children, child_id: befeReports.child_id })
     .from(befeReports)
     .where(eq(befeReports.couple_id, couple.id));
 
   const existingTypes = existingReports.map((r) => r.has_children);
+  const childrenWithReport = existingReports
+    .filter((r) => r.child_id !== null)
+    .map((r) => r.child_id!);
 
   let lockedHasChildren: boolean | null = null;
   if (type === "with" && !existingTypes.includes(true)) {
@@ -82,6 +97,8 @@ export default async function ReportPage({
       pcqScore={couple.pcq_score}
       hasCoupon={hasCoupon}
       lockedHasChildren={lockedHasChildren}
+      children={children}
+      childrenWithReport={childrenWithReport}
     />
   );
 }
