@@ -327,7 +327,7 @@ export function PrivacyContent() {
 export function ThirdPartyContent() {
   return (
     <>
-      <p>시행일자: 2025년 12월 10일</p>
+      <p>시행일자: 2026년 4월 2일</p>
       <p>
         주식회사 럽(이하 "회사")은 아이케미(iChemi) 서비스 이용자의 개인정보를
         아래와 같이 제3자에게 제공할 수 있습니다. 본 동의는 선택 사항이며,
@@ -342,6 +342,11 @@ export function ThirdPartyContent() {
         <li>신한라이프</li>
         <li>KB손해보험</li>
         <li>삼성화재</li>
+        <li>대교 (눈높이)</li>
+        <li>웅진씽크빅</li>
+        <li>교원구몬</li>
+        <li>해법에듀 (해법수학)</li>
+        <li>아이스크림에듀</li>
         <li>
           기타 회사와 제휴 관계에 있는 육아·교육 관련 기업, 마케팅 파트너사
         </li>
@@ -380,7 +385,7 @@ export function ThirdPartyContent() {
         다만, 제휴사를 통한 맞춤형 혜택 안내가 제한될 수 있습니다.
       </p>
 
-      <p className="mt-6">시행일자: 2025년 12월 10일</p>
+      <p className="mt-6">시행일자: 2026년 4월 2일</p>
     </>
   );
 }

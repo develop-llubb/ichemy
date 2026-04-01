@@ -428,7 +428,7 @@ export function ReportIntroClient({
             ) : hasCoupon ? (
               "리포트 받기"
             ) : (
-              "3,900원 결제하고 리포트 받기"
+              "19,000원 결제하고 리포트 받기"
             )}
           </button>
           <p className="mt-2.5 text-center text-[11px] text-[#B8A898]">
