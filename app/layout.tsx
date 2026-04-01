@@ -62,19 +62,17 @@ export default function RootLayout({
         {children}
         <BusinessFooter />
         <Toaster
-          position="bottom-center"
+          position="top-center"
           toastOptions={{
             style: {
-              background: "linear-gradient(160deg, #FFF6F2, #FFF0EB)",
+              background: "#FDF6F4",
               color: "#D4735C",
-              border: "none",
-            },
-            actionButtonStyle: {
-              background: "transparent",
-              color: "#D4735C",
-              border: "none",
-              fontWeight: 700,
-              fontSize: "14px",
+              border: "1px solid #D4735C",
+              borderRadius: "10px",
+              padding: "14px 18px",
+              fontSize: "13px",
+              fontWeight: 600,
+              boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
             },
           }}
         />

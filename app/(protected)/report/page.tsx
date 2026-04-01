@@ -60,7 +60,7 @@ export default async function ReportPage({
   const hasCoupon = !!(profile.coupon_id || partner?.coupon_id);
 
   // 자녀 목록 조회
-  const children = await db
+  const childrenRaw = await db
     .select({
       id: befeChildren.id,
       name: befeChildren.name,
@@ -69,6 +69,13 @@ export default async function ReportPage({
     })
     .from(befeChildren)
     .where(eq(befeChildren.couple_id, couple.id));
+
+  const children = childrenRaw.map((c) => ({
+    ...c,
+    photo_url: c.photo_url
+      ? supabase.storage.from("images").getPublicUrl(c.photo_url).data.publicUrl
+      : null,
+  }));
 
   // 기존 리포트 조회 (child_id 포함)
   const existingReports = await db

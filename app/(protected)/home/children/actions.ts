@@ -3,6 +3,20 @@
 import { db } from "@/db";
 import { befeChildren, befeCouples } from "@/db/schema";
 import { eq, and } from "drizzle-orm";
+import { createClient as createServiceClient } from "@supabase/supabase-js";
+
+export async function getUploadUrl(coupleId: string, ext: string) {
+  const supabase = createServiceClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SECRET_KEY!,
+  );
+  const path = `children/${coupleId}/${crypto.randomUUID()}.${ext}`;
+  const { data, error } = await supabase.storage
+    .from("images")
+    .createSignedUploadUrl(path);
+  if (error) throw new Error(error.message);
+  return { signedUrl: data.signedUrl, path };
+}
 
 export async function addChild(
   coupleId: string,

@@ -155,6 +155,13 @@
       "when": 1775028766136,
       "tag": "0021_massive_forge",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1775059875158,
+      "tag": "0022_first_thor_girl",
+      "breakpoints": true
     }
   ]
 }

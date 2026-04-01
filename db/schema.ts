@@ -206,7 +206,7 @@ export const befeProfiles = pgTable("befe_profiles", {
 
   // 회원탈퇴 (soft delete)
   deleted_at: timestamp("deleted_at", { withTimezone: true, mode: "string" }),
-});
+}).enableRLS();
 
 // ─── befe_answers ───
 
@@ -231,7 +231,7 @@ export const befeAnswers = pgTable(
       table.question_id,
     ),
   ],
-);
+).enableRLS();
 
 // ─── befe_couples ───
 
@@ -284,7 +284,7 @@ export const befeCouples = pgTable(
     index("idx_befe_couples_inviter").on(table.inviter_profile_id),
     index("idx_befe_couples_invitee").on(table.invitee_profile_id),
   ],
-);
+).enableRLS();
 
 // ─── befe_children ───
 
@@ -309,7 +309,7 @@ export const befeChildren = pgTable(
   (table) => [
     index("idx_befe_children_couple").on(table.couple_id),
   ],
-);
+).enableRLS();
 
 // ─── befe_invitations ───
 
@@ -339,7 +339,7 @@ export const befeInvitations = pgTable(
     ),
     index("idx_befe_invitations_invitee").on(table.invitee_profile_id),
   ],
-);
+).enableRLS();
 
 // ─── befe_report_templates (등급 조합별 리포트 캐시) ───
 
@@ -368,7 +368,7 @@ export const befeReportTemplates = pgTable(
       table.has_children,
     ),
   ],
-);
+).enableRLS();
 
 // ─── befe_reports (커플별 리포트 접근 기록) ───
 
@@ -397,7 +397,7 @@ export const befeReports = pgTable(
       table.child_id,
     ),
   ],
-);
+).enableRLS();
 
 // ─── befe_personality_reports (AI 성향 리포트) ───
 
@@ -419,7 +419,7 @@ export const befePersonalityReports = pgTable(
   (table) => [
     unique("befe_personality_reports_profile_key").on(table.profile_id),
   ],
-);
+).enableRLS();
 
 // ─── befe_orders (결제 주문) ───
 
@@ -442,7 +442,7 @@ export const befeOrders = pgTable("befe_orders", {
   created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),
-});
+}).enableRLS();
 
 // ─── befe_coupons ───
 
@@ -463,7 +463,7 @@ export const befeCoupons = pgTable("befe_coupons", {
   created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),
-});
+}).enableRLS();
 
 // ─── 타입 추론 ───
 
