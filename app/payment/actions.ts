@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 
 export async function createOrder(coupleId: string, hasChildren: boolean) {
   const orderId = `order_${nanoid()}`;
-  const amount = 3900;
+  const amount = 19000;
 
   const [order] = await db
     .insert(befeOrders)
