@@ -60,15 +60,49 @@ export function ReportListClient({
   nickname,
   partnerNickname,
   coupleId,
-  reports,
+  reports: initialReports,
 }: ReportListClientProps) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [reports, setReports] = useState(initialReports);
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 80);
     return () => clearTimeout(t);
   }, []);
+
+  // generating 상태인 리포트 폴링
+  useEffect(() => {
+    const generatingIds = reports
+      .filter((r) => r.status === "generating")
+      .map((r) => r.id);
+
+    if (generatingIds.length === 0) return;
+
+    const interval = setInterval(async () => {
+      let updated = false;
+      const next = [...reports];
+
+      for (const id of generatingIds) {
+        try {
+          const res = await fetch(`/api/report/${id}/status`);
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (data.status === "generating") continue;
+
+          const idx = next.findIndex((r) => r.id === id);
+          if (idx !== -1) {
+            next[idx] = { ...next[idx], status: data.status };
+            updated = true;
+          }
+        } catch { /* ignore */ }
+      }
+
+      if (updated) setReports(next);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [reports]);
 
   const ease = (delay = 0): React.CSSProperties => ({
     opacity: ready ? 1 : 0,
