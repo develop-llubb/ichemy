@@ -489,6 +489,68 @@ export const befeCoupons = pgTable("befe_coupons", {
     .notNull(),
 }).enableRLS();
 
+// ─── befe_criterion_responses (준거타당도 검증설문 응답) ───
+
+export const befeCriterionResponses = pgTable(
+  "befe_criterion_responses",
+  {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    couple_id: uuid("couple_id")
+      .notNull()
+      .references(() => befeCouples.id, { onDelete: "cascade" }),
+    profile_id: uuid("profile_id")
+      .notNull()
+      .references(() => befeProfiles.id, { onDelete: "cascade" }),
+    report_type: reportTypeEnum("report_type").notNull(),
+    cv1: smallint("cv1"),
+    cv2: smallint("cv2"),
+    cv3: smallint("cv3"),
+    cv4: smallint("cv4"),
+    cv5: smallint("cv5"),
+    cv6: smallint("cv6"),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    unique("befe_criterion_responses_unique").on(
+      table.couple_id,
+      table.profile_id,
+      table.report_type,
+    ),
+  ],
+).enableRLS();
+
+// ─── befe_report_reviews (리포트 리뷰) ───
+
+export const befeReportReviews = pgTable(
+  "befe_report_reviews",
+  {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    report_id: uuid("report_id")
+      .notNull()
+      .references(() => befeReports.id, { onDelete: "cascade" }),
+    profile_id: uuid("profile_id")
+      .notNull()
+      .references(() => befeProfiles.id, { onDelete: "cascade" }),
+    r1_accuracy: smallint("r1_accuracy").notNull(),
+    r2_usefulness: smallint("r2_usefulness").notNull(),
+    r3_confidence: smallint("r3_confidence").notNull(),
+    r4_feedback: text("r4_feedback"),
+    r5_practice: smallint("r5_practice"),
+    r5_answered_at: timestamp("r5_answered_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    unique("befe_report_reviews_report_key").on(table.report_id),
+  ],
+).enableRLS();
+
 // ─── 타입 추론 ───
 
 export type BefeProfile = typeof befeProfiles.$inferSelect;
@@ -514,6 +576,12 @@ export type NewBefeOrder = typeof befeOrders.$inferInsert;
 
 export type BefeCoupon = typeof befeCoupons.$inferSelect;
 export type NewBefeCoupon = typeof befeCoupons.$inferInsert;
+
+export type BefeCriterionResponse = typeof befeCriterionResponses.$inferSelect;
+export type NewBefeCriterionResponse = typeof befeCriterionResponses.$inferInsert;
+
+export type BefeReportReview = typeof befeReportReviews.$inferSelect;
+export type NewBefeReportReview = typeof befeReportReviews.$inferInsert;
 
 export type Question = typeof questions.$inferSelect;
 export type Test = typeof tests.$inferSelect;

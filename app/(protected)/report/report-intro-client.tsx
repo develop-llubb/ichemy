@@ -765,7 +765,7 @@ export function ReportIntroClient({
                     toast(result.error);
                     return;
                   }
-                  router.replace(`/report/${result.reportId}`);
+                  router.replace(`/report/${result.reportId}/criterion`);
                 });
               } else {
                 // 결제 사용자: 토스 결제창 띄우기

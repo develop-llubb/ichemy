@@ -4,7 +4,9 @@ import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { retryReport } from "../actions";
+import { submitReportReview } from "./actions";
 import { handleDownloadPdf } from "@/lib/report-pdf";
+import { toast } from "sonner";
 import type {
   CareReport,
   Grade,
@@ -19,6 +21,8 @@ interface ReportResultClientProps {
   childName: string | null;
   status: "generating" | "completed" | "failed";
   content: CareReport | null;
+  profileId: string;
+  hasReview: boolean;
 }
 
 // ── Grade config ──
@@ -73,6 +77,41 @@ const INDICATOR_META: Record<string, { emoji: string; gradient: string }> = {
 };
 
 // ── Theory box ──
+
+function ReviewStars({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <div>
+      <p className="mb-2 text-[13px] font-medium text-foreground">{label}</p>
+      <div className="flex gap-1.5">
+        {[1, 2, 3, 4, 5].map((v) => (
+          <button
+            key={v}
+            type="button"
+            onClick={() => onChange(v)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border-[1.5px] text-[15px] transition-all"
+            style={{
+              borderColor: value >= v ? "#D4735C" : "#ECE8E3",
+              background:
+                value >= v
+                  ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
+                  : "#fff",
+            }}
+          >
+            <span style={{ opacity: value >= v ? 1 : 0.3 }}>★</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function TheoryBox({ theory }: { theory: TheoryReference }) {
   return (
@@ -233,6 +272,8 @@ export function ReportResultClient({
   childName,
   status: initialStatus,
   content: initialContent,
+  profileId,
+  hasReview: initialHasReview,
 }: ReportResultClientProps) {
   const router = useRouter();
   const [status, setStatus] = useState(initialStatus);
@@ -240,6 +281,14 @@ export function ReportResultClient({
   const [retrying, startRetry] = useTransition();
   const [downloading, setDownloading] = useState(false);
   const [ready, setReady] = useState(false);
+
+  // Review state
+  const [hasReview, setHasReview] = useState(initialHasReview);
+  const [reviewR1, setReviewR1] = useState(0);
+  const [reviewR2, setReviewR2] = useState(0);
+  const [reviewR3, setReviewR3] = useState(0);
+  const [reviewR4, setReviewR4] = useState("");
+  const [submittingReview, startSubmittingReview] = useTransition();
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 80);
@@ -598,8 +647,94 @@ export function ReportResultClient({
             </div>
           )}
 
+          {/* ── Report Review ── */}
+          <div className="mt-7" style={ease(0.6)}>
+            {hasReview ? (
+              <div className="flex flex-col items-center gap-2 rounded-[18px] border border-[#ECE8E3] bg-[#FEFCF9] py-6">
+                <span className="text-2xl">💝</span>
+                <p className="text-[13px] font-semibold text-foreground">
+                  소중한 의견 감사합니다!
+                </p>
+                <p className="text-[11px] text-[#9A918A]">
+                  더 나은 리포트를 만드는 데 도움이 됩니다.
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-[18px] border border-[#ECE8E3] bg-white px-5 py-6">
+                <div className="mb-1 text-center text-[15px] font-bold text-foreground">
+                  이 리포트는 어떠셨나요?
+                </div>
+                <p className="mb-5 text-center text-[11px] text-[#9A918A]">
+                  두 분의 소중한 의견이 더 나은 리포트를 만듭니다.
+                </p>
+
+                <div className="flex flex-col gap-4">
+                  <ReviewStars
+                    label="우리 부부의 모습을 잘 묘사했나요?"
+                    value={reviewR1}
+                    onChange={setReviewR1}
+                  />
+                  <ReviewStars
+                    label="제안한 조언이 도움이 될 것 같나요?"
+                    value={reviewR2}
+                    onChange={setReviewR2}
+                  />
+                  <ReviewStars
+                    label="양육에 대한 자신감이 생겼나요?"
+                    value={reviewR3}
+                    onChange={setReviewR3}
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <label className="mb-1.5 block text-[12px] text-[#9A918A]">
+                    인상 깊은 부분이나 아쉬운 점 (선택)
+                  </label>
+                  <textarea
+                    value={reviewR4}
+                    onChange={(e) => setReviewR4(e.target.value)}
+                    placeholder="자유롭게 적어주세요."
+                    rows={3}
+                    className="w-full resize-none rounded-xl border-[1.5px] border-[#ECE8E3] bg-[#FEFCF9] px-3.5 py-3 text-[13px] text-foreground outline-none placeholder:text-[#C4BEB8] focus:border-primary"
+                  />
+                </div>
+
+                <button
+                  disabled={!reviewR1 || !reviewR2 || !reviewR3 || submittingReview}
+                  onClick={() => {
+                    startSubmittingReview(async () => {
+                      await submitReportReview(
+                        reportId,
+                        profileId,
+                        reviewR1,
+                        reviewR2,
+                        reviewR3,
+                        reviewR4.trim() || undefined,
+                      );
+                      setHasReview(true);
+                      toast("소중한 의견 감사합니다!");
+                    });
+                  }}
+                  className="mt-4 flex h-11 w-full items-center justify-center rounded-xl border-none text-[13px] font-semibold text-white transition-all disabled:opacity-40"
+                  style={{
+                    background:
+                      reviewR1 && reviewR2 && reviewR3
+                        ? "linear-gradient(135deg, #D4735C, #C0614A)"
+                        : "#D4CFC8",
+                  }}
+                >
+                  {submittingReview ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    "제출하기"
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* ── Actions ── */}
-          <div className="mt-7 flex flex-col gap-2" style={ease(0.6)}>
+          <div className="mt-7 flex flex-col gap-2" style={ease(0.65)}>
             <button
               onClick={() => router.push("/report/list")}
               className="h-12 w-full cursor-pointer rounded-[14px] border-none text-sm font-bold text-white"

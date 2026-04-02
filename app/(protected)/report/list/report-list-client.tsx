@@ -46,6 +46,7 @@ interface Report {
   status: "generating" | "completed" | "failed";
   created_at: string;
   childPhotoUrl: string | null;
+  criterionComplete: boolean;
 }
 
 interface ReportListClientProps {
@@ -173,7 +174,11 @@ export function ReportListClient({
             return (
               <button
                 key={report.id}
-                onClick={() => router.push(`/report/${report.id}`)}
+                onClick={() => router.push(
+                  report.criterionComplete
+                    ? `/report/${report.id}`
+                    : `/report/${report.id}/criterion`
+                )}
                 className="group flex w-full items-center gap-4 rounded-2xl bg-white px-5 py-4 text-left transition-all duration-150 active:scale-[0.98]"
                 style={{
                   border: "1px solid #EEEAE6",

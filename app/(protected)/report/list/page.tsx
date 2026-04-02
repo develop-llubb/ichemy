@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { befeProfiles, befeCouples, befeReports, befeChildren } from "@/db/schema";
+import { befeProfiles, befeCouples, befeReports, befeChildren, befeCriterionResponses } from "@/db/schema";
 import { eq, or, and, isNull } from "drizzle-orm";
 import { ReportListClient } from "./report-list-client";
 
@@ -76,9 +76,35 @@ export default async function ReportListPage() {
     ]));
   }
 
+  // 준거 설문 완료 여부 조회
+  const criterionRows = await db
+    .select({
+      report_type: befeCriterionResponses.report_type,
+      cv1: befeCriterionResponses.cv1,
+      cv2: befeCriterionResponses.cv2,
+      cv3: befeCriterionResponses.cv3,
+      cv4: befeCriterionResponses.cv4,
+      cv5: befeCriterionResponses.cv5,
+      cv6: befeCriterionResponses.cv6,
+    })
+    .from(befeCriterionResponses)
+    .where(
+      and(
+        eq(befeCriterionResponses.couple_id, couple.id),
+        eq(befeCriterionResponses.profile_id, profile.id),
+      ),
+    );
+
+  const criterionCompleteTypes = new Set(
+    criterionRows
+      .filter((r) => [r.cv1, r.cv2, r.cv3, r.cv4, r.cv5, r.cv6].every((v) => v !== null))
+      .map((r) => r.report_type),
+  );
+
   const reports = reportsRaw.map((r) => ({
     ...r,
     childPhotoUrl: r.child_id ? photoMap[r.child_id] ?? null : null,
+    criterionComplete: criterionCompleteTypes.has(r.report_type),
   }));
 
   if (reports.length === 0) {

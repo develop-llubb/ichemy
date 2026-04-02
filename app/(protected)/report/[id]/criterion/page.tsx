@@ -1,18 +1,27 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { befeProfiles, befeCouples, befeReports, befeReportReviews, befeCriterionResponses } from "@/db/schema";
+import {
+  befeProfiles,
+  befeCouples,
+  befeReports,
+  befeCriterionResponses,
+} from "@/db/schema";
 import { eq, or, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
-import { ReportResultClient } from "./report-result-client";
+import { CriterionClient } from "./criterion-client";
 
-export default async function ReportResultPage({
+export default async function CriterionPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { id } = await params;
+
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const [profile] = await db
     .select({ id: befeProfiles.id })
@@ -20,7 +29,6 @@ export default async function ReportResultPage({
     .where(eq(befeProfiles.user_id, user!.id))
     .limit(1);
 
-  // 내가 속한 couple 확인
   const [myCouple] = await db
     .select({ id: befeCouples.id })
     .from(befeCouples)
@@ -36,23 +44,15 @@ export default async function ReportResultPage({
     redirect("/home");
   }
 
-  const { id } = await params;
-
-  // report가 내 couple 소속인지 확인
   const [report] = await db
     .select({
       id: befeReports.id,
       report_type: befeReports.report_type,
-      child_name: befeReports.child_name,
-      status: befeReports.status,
-      content: befeReports.content,
+      couple_id: befeReports.couple_id,
     })
     .from(befeReports)
     .where(
-      and(
-        eq(befeReports.id, id),
-        eq(befeReports.couple_id, myCouple.id),
-      ),
+      and(eq(befeReports.id, id), eq(befeReports.couple_id, myCouple.id)),
     )
     .limit(1);
 
@@ -60,8 +60,8 @@ export default async function ReportResultPage({
     notFound();
   }
 
-  // 준거 설문 미완료 시 criterion 페이지로 리다이렉트
-  const [criterionResponse] = await db
+  // 기존 응답 조회
+  const [existing] = await db
     .select({
       cv1: befeCriterionResponses.cv1,
       cv2: befeCriterionResponses.cv2,
@@ -80,29 +80,25 @@ export default async function ReportResultPage({
     )
     .limit(1);
 
-  const criterionComplete = criterionResponse &&
-    [criterionResponse.cv1, criterionResponse.cv2, criterionResponse.cv3, criterionResponse.cv4, criterionResponse.cv5, criterionResponse.cv6].every((v) => v !== null);
-
-  if (!criterionComplete) {
-    redirect(`/report/${id}/criterion`);
+  // 6문항 모두 응답 완료 시 리포트로 리다이렉트
+  if (existing) {
+    const vals = [existing.cv1, existing.cv2, existing.cv3, existing.cv4, existing.cv5, existing.cv6];
+    if (vals.every((v) => v !== null)) {
+      redirect(`/report/${id}`);
+    }
   }
 
-  // 리뷰 존재 여부 확인
-  const [existingReview] = await db
-    .select({ id: befeReportReviews.id })
-    .from(befeReportReviews)
-    .where(eq(befeReportReviews.report_id, report.id))
-    .limit(1);
+  const initialAnswers: (number | null)[] = existing
+    ? [existing.cv1, existing.cv2, existing.cv3, existing.cv4, existing.cv5, existing.cv6]
+    : [null, null, null, null, null, null];
 
   return (
-    <ReportResultClient
+    <CriterionClient
       reportId={report.id}
-      reportType={report.report_type}
-      childName={report.child_name}
-      status={report.status}
-      content={report.content}
+      coupleId={report.couple_id}
       profileId={profile.id}
-      hasReview={!!existingReview}
+      reportType={report.report_type}
+      initialAnswers={initialAnswers}
     />
   );
 }
