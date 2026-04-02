@@ -78,6 +78,14 @@ const INDICATOR_META: Record<string, { emoji: string; gradient: string }> = {
 
 // ── Theory box ──
 
+function RoundStar({ color }: { color: string }) {
+  return (
+    <svg width="30" height="30" viewBox="0 0 24 24" fill={color}>
+      <path d="M12 2.5c.4 0 .8.3 1 .7l2.3 4.7 5.2.8c.8.1 1.1 1.1.5 1.6l-3.8 3.7.9 5.1c.1.8-.7 1.4-1.4 1l-4.7-2.5-4.7 2.5c-.7.4-1.5-.2-1.4-1l.9-5.1L3 9.3c-.6-.5-.3-1.5.5-1.6l5.2-.8L11 2.2c.2-.4.6-.7 1-.7z" />
+    </svg>
+  );
+}
+
 function ReviewStars({
   label,
   value,
@@ -87,27 +95,47 @@ function ReviewStars({
   value: number;
   onChange: (v: number) => void;
 }) {
+  const handleClick = (starIdx: number, isRight: boolean) => {
+    const v = starIdx + (isRight ? 1 : 0.5);
+    onChange(value === v ? 0 : v);
+  };
+
   return (
     <div>
       <p className="mb-2 text-[13px] font-medium text-foreground">{label}</p>
-      <div className="flex gap-1.5">
-        {[1, 2, 3, 4, 5].map((v) => (
-          <button
-            key={v}
-            type="button"
-            onClick={() => onChange(v)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border-[1.5px] text-[15px] transition-all"
-            style={{
-              borderColor: value >= v ? "#D4735C" : "#ECE8E3",
-              background:
-                value >= v
-                  ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
-                  : "#fff",
-            }}
-          >
-            <span style={{ opacity: value >= v ? 1 : 0.3 }}>★</span>
-          </button>
-        ))}
+      <div className="flex gap-0">
+        {[0, 1, 2, 3, 4].map((starIdx) => {
+          const full = value >= starIdx + 1;
+          const half = !full && value >= starIdx + 0.5;
+
+          return (
+            <div key={starIdx} className="relative h-10 w-10 cursor-pointer select-none">
+              {/* 빈 별 */}
+              <span className="absolute inset-0 flex items-center justify-center">
+                <RoundStar color="#E8E2DC" />
+              </span>
+              {/* 채워진 별 */}
+              {(full || half) && (
+                <span
+                  className="absolute inset-0 flex items-center justify-center overflow-hidden"
+                  style={{ clipPath: full ? undefined : "inset(0 50% 0 0)" }}
+                >
+                  <RoundStar color="#D4735C" />
+                </span>
+              )}
+              {/* 왼쪽 반 클릭 */}
+              <span
+                className="absolute inset-0 w-1/2"
+                onClick={() => handleClick(starIdx, false)}
+              />
+              {/* 오른쪽 반 클릭 */}
+              <span
+                className="absolute right-0 top-0 h-full w-1/2"
+                onClick={() => handleClick(starIdx, true)}
+              />
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -650,13 +678,13 @@ export function ReportResultClient({
           {/* ── Report Review ── */}
           <div className="mt-7" style={ease(0.6)}>
             {hasReview ? (
-              <div className="flex flex-col items-center gap-2 rounded-[18px] border border-[#ECE8E3] bg-[#FEFCF9] py-6">
-                <span className="text-2xl">💝</span>
+              <div className="flex flex-col items-center gap-2 rounded-[18px] border border-[#ECE8E3] bg-white py-6">
+                <span className="text-2xl">💌</span>
                 <p className="text-[13px] font-semibold text-foreground">
-                  소중한 의견 감사합니다!
+                  의견을 남겨주셨어요
                 </p>
                 <p className="text-[11px] text-[#9A918A]">
-                  더 나은 리포트를 만드는 데 도움이 됩니다.
+                  두 분의 이야기가 더 나은 리포트를 만드는 데 도움이 돼요
                 </p>
               </div>
             ) : (
@@ -706,9 +734,9 @@ export function ReportResultClient({
                       await submitReportReview(
                         reportId,
                         profileId,
-                        reviewR1,
-                        reviewR2,
-                        reviewR3,
+                        reviewR1 * 2,
+                        reviewR2 * 2,
+                        reviewR3 * 2,
                         reviewR4.trim() || undefined,
                       );
                       setHasReview(true);
@@ -758,7 +786,7 @@ export function ReportResultClient({
                   setDownloading(false);
                 }
               }}
-              className="flex h-11 w-full cursor-pointer items-center justify-center rounded-[14px] border-[1.5px] border-[#ECE8E3] bg-transparent text-[13px] font-medium text-[#6B6360] disabled:opacity-50"
+              className="flex h-11 w-full cursor-pointer items-center justify-center rounded-[14px] border-[1.5px] border-[#ECE8E3] bg-white text-[13px] font-medium text-[#6B6360] disabled:opacity-50"
             >
               {downloading ? (
                 <Loader2 size={16} className="animate-spin text-[#6B6360]" />
