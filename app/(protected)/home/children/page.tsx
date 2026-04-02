@@ -30,15 +30,23 @@ export default async function ChildrenPage() {
     redirect("/home");
   }
 
-  const children = await db
+  const childrenRaw = await db
     .select({
       id: befeChildren.id,
       name: befeChildren.name,
+      gender: befeChildren.gender,
       birth_date: befeChildren.birth_date,
       photo_url: befeChildren.photo_url,
     })
     .from(befeChildren)
     .where(eq(befeChildren.couple_id, couple.id));
+
+  const children = childrenRaw.map((c) => ({
+    ...c,
+    photo_url: c.photo_url
+      ? supabase.storage.from("images").getPublicUrl(c.photo_url).data.publicUrl
+      : null,
+  }));
 
   return (
     <ChildrenClient

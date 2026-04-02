@@ -1,0 +1,2 @@
+ALTER TABLE "befe_reports" DROP CONSTRAINT "befe_reports_couple_child_key";--> statement-breakpoint
+ALTER TABLE "befe_reports" ADD CONSTRAINT "befe_reports_couple_child_type_key" UNIQUE("couple_id","child_id","report_type");

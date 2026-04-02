@@ -75,7 +75,7 @@ export function HomeClient({
     if (reportCount >= 1) {
       router.push("/report/list");
     } else if (hasCouple && status === "both_complete") {
-      router.push("/report");
+      router.push("/report?from=/home");
     } else if (status === "waiting_partner") {
       router.push("/home/waiting");
     } else {

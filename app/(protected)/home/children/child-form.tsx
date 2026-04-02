@@ -9,11 +9,13 @@ interface ChildFormProps {
   initial?: {
     id: string;
     name: string;
+    gender: string;
     birthDate: string;
     photoUrl: string | null;
   };
   onSubmit: (data: {
     name: string;
+    gender: string;
     birthDate: string;
     photoUrl?: string;
   }) => Promise<void>;
@@ -29,6 +31,7 @@ export function ChildForm({
   submitLabel,
 }: ChildFormProps) {
   const [name, setName] = useState(initial?.name ?? "");
+  const [gender, setGender] = useState(initial?.gender ?? "");
   const [birthDate, setBirthDate] = useState(initial?.birthDate ?? "");
   const [photoPreview, setPhotoPreview] = useState<string | null>(
     initial?.photoUrl ?? null,
@@ -37,7 +40,7 @@ export function ChildForm({
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const isValid = name.trim() !== "" && birthDate !== "";
+  const isValid = name.trim() !== "" && gender !== "" && birthDate !== "";
 
   async function uploadPhoto(file: File): Promise<string> {
     const supabase = createClient();
@@ -71,6 +74,7 @@ export function ChildForm({
 
       await onSubmit({
         name: name.trim(),
+        gender,
         birthDate,
         photoUrl,
       });
@@ -142,6 +146,36 @@ export function ChildForm({
           placeholder="아이 이름"
           className="h-11 w-full rounded-xl border-[1.5px] border-[#ECE8E3] bg-[#FEFCF9] px-3.5 text-sm text-foreground outline-none transition-colors placeholder:text-[#C4BEB8] focus:border-primary"
         />
+      </div>
+
+      {/* 성별 */}
+      <div className="mb-3">
+        <label className="mb-1.5 block text-xs font-semibold text-[#6B6360]">
+          성별
+        </label>
+        <div className="flex gap-2.5">
+          {([
+            { value: "boy", label: "남아", emoji: "👦" },
+            { value: "girl", label: "여아", emoji: "👧" },
+          ] as const).map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => setGender(opt.value)}
+              className="flex flex-1 items-center justify-center gap-2 rounded-xl border-2 py-2.5 text-sm font-semibold transition-all"
+              style={{
+                borderColor: gender === opt.value ? "#D4735C" : "#ECE8E3",
+                background: gender === opt.value
+                  ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
+                  : "#fff",
+                color: gender === opt.value ? "#D4735C" : "#6B6360",
+              }}
+            >
+              <span className="text-lg">{opt.emoji}</span>
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* 생년월일 */}

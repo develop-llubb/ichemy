@@ -4,7 +4,7 @@ export const JOURNEY_STEPS = [
   {
     num: "3",
     title: "리포트 유형 선택",
-    desc: "자녀 유무에 따라 맞춤형 리포트를 제공해요.",
+    desc: "자녀의 나이에 맞는 맞춤형 리포트를 제공해요.",
   },
   {
     num: "4",

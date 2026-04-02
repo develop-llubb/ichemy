@@ -64,6 +64,7 @@ export default async function ReportPage({
     .select({
       id: befeChildren.id,
       name: befeChildren.name,
+      gender: befeChildren.gender,
       birth_date: befeChildren.birth_date,
       photo_url: befeChildren.photo_url,
     })
@@ -79,19 +80,20 @@ export default async function ReportPage({
 
   // 기존 리포트 조회 (child_id 포함)
   const existingReports = await db
-    .select({ has_children: befeReports.has_children, child_id: befeReports.child_id })
+    .select({ report_type: befeReports.report_type, child_id: befeReports.child_id })
     .from(befeReports)
     .where(eq(befeReports.couple_id, couple.id));
 
-  const existingTypes = existingReports.map((r) => r.has_children);
-  const childrenWithReport = existingReports
+  const hasNoChildReport = existingReports.some((r) => r.report_type === "no_child");
+  const hasChildReport = existingReports.some((r) => r.report_type !== "no_child");
+  const childReportKeys = existingReports
     .filter((r) => r.child_id !== null)
-    .map((r) => r.child_id!);
+    .map((r) => `${r.child_id}:${r.report_type}`);
 
   let lockedHasChildren: boolean | null = null;
-  if (type === "with" && !existingTypes.includes(true)) {
+  if (type === "with" && !hasChildReport) {
     lockedHasChildren = true;
-  } else if (type === "without" && !existingTypes.includes(false)) {
+  } else if (type === "without" && !hasNoChildReport) {
     lockedHasChildren = false;
   }
 
@@ -105,7 +107,8 @@ export default async function ReportPage({
       hasCoupon={hasCoupon}
       lockedHasChildren={lockedHasChildren}
       children={children}
-      childrenWithReport={childrenWithReport}
+      childReportKeys={childReportKeys}
+      hasNoChildReport={hasNoChildReport}
     />
   );
 }

@@ -8,13 +8,15 @@ import { handleDownloadPdf } from "@/lib/report-pdf";
 import type {
   CareReport,
   Grade,
+  ReportType,
   TheoryReference,
   IndicatorAnalysis,
 } from "@/lib/care-report";
 
 interface ReportResultClientProps {
   reportId: string;
-  hasChildren: boolean;
+  reportType: ReportType;
+  childName: string | null;
   status: "generating" | "completed" | "failed";
   content: CareReport | null;
 }
@@ -227,7 +229,8 @@ function IndicatorSection({
 
 export function ReportResultClient({
   reportId,
-  hasChildren,
+  reportType,
+  childName,
   status: initialStatus,
   content: initialContent,
 }: ReportResultClientProps) {
@@ -282,7 +285,7 @@ export function ReportResultClient({
           <ChevronLeft size={24} className="text-foreground" />
         </button>
         <span className="text-center text-[15px] font-semibold text-foreground">
-          {hasChildren ? "자녀 양육 케어 리포트" : "예비 부모 육아 케어 리포트"}
+          {childName ? `${childName}의 육아 케어 리포트` : "예비 부모 육아 케어 리포트"}
         </span>
         <div />
       </div>
@@ -505,17 +508,107 @@ export function ReportResultClient({
             </div>
           </div>
 
+          {/* ── Prenatal Guide (예비 부모 전용) ── */}
+          {content.prenatal && (
+            <div
+              className="mt-5 rounded-[20px] border border-black/[0.03] bg-white px-5 py-6"
+              style={ease(0.58)}
+            >
+              <div className="mb-5 flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-[#FFF0EB] text-base">
+                  🤰
+                </div>
+                <div className="text-[15px] font-bold text-foreground">
+                  태교 커뮤니케이션 가이드
+                </div>
+              </div>
+
+              {/* 소통 스타일 */}
+              <div className="mb-5">
+                <div className="mb-2 text-[13px] font-bold text-primary">
+                  💬 두 분의 소통 스타일
+                </div>
+                <p className="text-[13px] leading-[1.85] text-[#555]">
+                  {content.prenatal.communication_style}
+                </p>
+              </div>
+
+              {/* 태교 활동 */}
+              <div className="mb-5">
+                <div className="mb-3 text-[13px] font-bold text-primary">
+                  🎯 맞춤 태교 활동
+                </div>
+                <div className="flex flex-col gap-3">
+                  {content.prenatal.activities.map((activity, i) => (
+                    <div
+                      key={i}
+                      className="rounded-xl border border-[#ECE8E3] bg-[#FEFCF9] px-4 py-3.5"
+                    >
+                      <div className="text-[13px] font-bold text-foreground">
+                        {activity.type_name}
+                      </div>
+                      <div className="mt-1 text-[11px] text-[#9A918A]">
+                        {activity.reason}
+                      </div>
+                      <ul className="mt-2 flex flex-col gap-1">
+                        {activity.activities.map((act, j) => (
+                          <li key={j} className="flex items-start gap-1.5 text-[12px] leading-[1.6] text-[#555]">
+                            <span className="mt-0.5 text-primary">•</span>
+                            {act}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-2 text-[11px] leading-[1.6] text-[#9A918A]">
+                        {activity.how_to_start} · {activity.together}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 매일 태교 대화법 */}
+              <div className="mb-5">
+                <div className="mb-2 text-[13px] font-bold text-primary">
+                  🗓️ 매일 태교 대화법
+                </div>
+                <p className="text-[13px] leading-[1.85] text-[#555]">
+                  {content.prenatal.daily_conversation}
+                </p>
+              </div>
+
+              {/* 대화 스크립트 */}
+              <div
+                className="mb-5 rounded-xl px-4 py-3.5"
+                style={{ background: "linear-gradient(160deg, #FFF6F2, #FFF0EB)" }}
+              >
+                <div className="mb-2 text-[12px] font-bold text-primary">
+                  💌 오늘의 태교 대화 스크립트
+                </div>
+                <p className="whitespace-pre-line text-[13px] leading-[1.85] text-[#555]">
+                  {content.prenatal.script}
+                </p>
+              </div>
+
+              {/* 한줄 메시지 */}
+              <div className="rounded-xl bg-[#F8F6F3] px-4 py-3 text-center">
+                <p className="text-[13px] font-semibold leading-[1.6] text-foreground">
+                  {content.prenatal.one_line_message}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* ── Actions ── */}
           <div className="mt-7 flex flex-col gap-2" style={ease(0.6)}>
             <button
-              onClick={() => router.push("/home")}
+              onClick={() => router.push("/report/list")}
               className="h-12 w-full cursor-pointer rounded-[14px] border-none text-sm font-bold text-white"
               style={{
                 background: "linear-gradient(135deg, #D4735C, #C0614A)",
                 boxShadow: "0 4px 14px rgba(212,115,92,0.25)",
               }}
             >
-              홈으로 돌아가기
+              목록으로 돌아가기
             </button>
             <button
               disabled={downloading}

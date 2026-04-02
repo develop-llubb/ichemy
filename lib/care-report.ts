@@ -1,4 +1,5 @@
 export type Grade = "A" | "B" | "C" | "D";
+export type ReportType = "no_child" | "infant" | "toddler" | "elementary" | "middle_school";
 
 export interface TheoryReference {
   title: string;
@@ -28,6 +29,22 @@ export interface IndicatorAnalysis {
   scenes_theory?: TheoryReference | null;
 
   tips: string[];
+}
+
+export interface PrenatalActivity {
+  type_name: string;
+  reason: string;
+  activities: string[];
+  how_to_start: string;
+  together: string;
+}
+
+export interface PrenatalGuide {
+  communication_style: string;
+  activities: PrenatalActivity[];
+  daily_conversation: string;
+  script: string;
+  one_line_message: string;
 }
 
 export interface CareReport {
@@ -60,4 +77,6 @@ export interface CareReport {
     text: string;
     theory: TheoryReference;
   };
+
+  prenatal?: PrenatalGuide;
 }

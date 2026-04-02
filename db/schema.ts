@@ -46,6 +46,13 @@ export const reportStatusEnum = pgEnum("befe_report_status", [
   "completed",
   "failed",
 ]);
+export const reportTypeEnum = pgEnum("befe_report_type", [
+  "no_child",
+  "infant",
+  "toddler",
+  "elementary",
+  "middle_school",
+]);
 
 // ─── 공유 테이블 (읽기 전용, chemistry-rn과 동일) ───
 
@@ -296,6 +303,7 @@ export const befeChildren = pgTable(
       .notNull()
       .references(() => befeCouples.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
+    gender: text("gender").notNull(), // "boy" | "girl"
     birth_date: text("birth_date").notNull(), // "YYYY-MM-DD"
     photo_url: text("photo_url"),
     created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
@@ -351,7 +359,7 @@ export const befeReportTemplates = pgTable(
     csp_grade: gradeEnum("csp_grade").notNull(),
     pci_grade: gradeEnum("pci_grade").notNull(),
     stb_grade: gradeEnum("stb_grade").notNull(),
-    has_children: boolean("has_children").notNull(),
+    report_type: reportTypeEnum("report_type").notNull(),
     content: jsonb("content").$type<CareReport>().notNull(),
     model_version: text("model_version"),
     prompt_version: text("prompt_version"),
@@ -365,7 +373,7 @@ export const befeReportTemplates = pgTable(
       table.csp_grade,
       table.pci_grade,
       table.stb_grade,
-      table.has_children,
+      table.report_type,
     ),
   ],
 ).enableRLS();
@@ -379,10 +387,14 @@ export const befeReports = pgTable(
     couple_id: uuid("couple_id")
       .notNull()
       .references(() => befeCouples.id, { onDelete: "cascade" }),
-    has_children: boolean("has_children").notNull(),
+    report_type: reportTypeEnum("report_type").notNull(),
     child_id: uuid("child_id").references(() => befeChildren.id, {
       onDelete: "set null",
     }),
+    child_name: text("child_name"),
+    child_gender: text("child_gender"),
+    child_birth_date: text("child_birth_date"),
+    child_age: smallint("child_age"),
     status: reportStatusEnum("status").default("generating").notNull(),
     content: jsonb("content").$type<CareReport>(),
     model_version: text("model_version"),
@@ -392,9 +404,10 @@ export const befeReports = pgTable(
       .notNull(),
   },
   (table) => [
-    unique("befe_reports_couple_child_key").on(
+    unique("befe_reports_couple_child_type_key").on(
       table.couple_id,
       table.child_id,
+      table.report_type,
     ),
   ],
 ).enableRLS();
@@ -438,7 +451,10 @@ export const befeOrders = pgTable("befe_orders", {
   amount: integer("amount").notNull(),
   status: orderStatusEnum("status").default("pending").notNull(),
   payment_key: text("payment_key"),
-  has_children: boolean("has_children").notNull(),
+  report_type: reportTypeEnum("report_type").notNull(),
+  child_id: uuid("child_id").references(() => befeChildren.id, {
+    onDelete: "set null",
+  }),
   created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),

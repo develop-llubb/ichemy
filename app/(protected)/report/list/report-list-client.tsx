@@ -3,15 +3,48 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+
+import type { ReportType } from "@/lib/care-report";
+
+const REPORT_TYPE_LABEL: Record<ReportType, string> = {
+  no_child: "예비 부모",
+  infant: "영아기",
+  toddler: "유아기",
+  elementary: "초등학생",
+  middle_school: "중학생",
+};
+
+const REPORT_TYPE_COLOR: Record<ReportType, { bg: string; text: string }> = {
+  no_child: { bg: "#F0F7EE", text: "#7BA872" },
+  infant: { bg: "#FFF0EB", text: "#D4735C" },
+  toddler: { bg: "#FFF0EB", text: "#D4735C" },
+  elementary: { bg: "#EEF4FB", text: "#5B9BD5" },
+  middle_school: { bg: "#F3EFF9", text: "#8B72BE" },
+};
+
+function formatChildAge(birthDate: string): string {
+  const birth = new Date(birthDate);
+  const now = new Date();
+  const months =
+    (now.getFullYear() - birth.getFullYear()) * 12 +
+    (now.getMonth() - birth.getMonth());
+  if (months < 1) return "신생아";
+  if (months < 12) return `${months}개월`;
+  const years = Math.floor(months / 12);
+  return `만 ${years}세`;
+}
 
 interface Report {
   id: string;
-  has_children: boolean;
+  report_type: ReportType;
   child_id: string | null;
+  child_name: string | null;
+  child_gender: string | null;
+  child_birth_date: string | null;
+  child_age: number | null;
   status: "generating" | "completed" | "failed";
   created_at: string;
-  childName: string | null;
   childPhotoUrl: string | null;
 }
 
@@ -41,11 +74,6 @@ export function ReportListClient({
     transform: ready ? "translateY(0)" : "translateY(16px)",
     transition: `all 0.6s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
   });
-
-  const hasWithChildren = reports.some((r) => r.has_children);
-  const hasWithoutChildren = reports.some((r) => !r.has_children);
-  const canCreateAnother = !hasWithChildren || !hasWithoutChildren;
-  const missingType = !hasWithChildren ? true : false;
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
@@ -111,11 +139,37 @@ export function ReportListClient({
           육아 케어 리포트 목록
         </p>
 
+        {/* 우리 아이 관리 */}
+        <button
+          onClick={() => router.push("/home/children")}
+          className="mt-8 flex w-full items-center gap-3.5 rounded-2xl bg-white px-5 py-3.5 text-left transition-all duration-150 active:scale-[0.98]"
+          style={{ border: "1px solid #EEEAE6", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", ...ease(0.13) }}
+        >
+          <div
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-base"
+            style={{ background: "linear-gradient(145deg, #FFE8D6, #FFF0E6)" }}
+          >
+            👶
+          </div>
+          <div className="flex-1">
+            <div className="text-[14px] font-semibold text-foreground">
+              우리 아이 관리
+            </div>
+            <div className="mt-0.5 text-[11px] text-[#9A918A]">
+              아이를 추가하거나 수정할 수 있어요
+            </div>
+          </div>
+          <ChevronRight size={16} className="text-[#D4CFC8]" />
+        </button>
+
         {/* Report cards */}
-        <div className="mt-8 flex flex-col gap-3" style={ease(0.15)}>
+        <div className="mt-4 flex flex-col gap-3" style={ease(0.15)}>
           {reports.map((report) => {
             const isCompleted = report.status === "completed";
             const isGenerating = report.status === "generating";
+            const typeColor = REPORT_TYPE_COLOR[report.report_type];
+            const hasChild = report.report_type !== "no_child";
+
             return (
               <button
                 key={report.id}
@@ -126,50 +180,69 @@ export function ReportListClient({
                   boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
                 }}
               >
+                {/* Icon / Photo */}
                 <div
                   className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl text-[22px]"
                   style={{
-                    background: report.has_children
+                    background: hasChild
                       ? "linear-gradient(145deg, #FFE8D6, #FFF0E6)"
                       : "linear-gradient(145deg, #E8F0E6, #F0F7EE)",
                   }}
                 >
                   {report.childPhotoUrl ? (
-                    <img src={report.childPhotoUrl} alt={report.childName ?? ""} className="h-full w-full object-cover" />
-                  ) : report.has_children ? (
+                    <img src={report.childPhotoUrl} alt={report.child_name ?? ""} className="h-full w-full object-cover" />
+                  ) : hasChild ? (
                     <Image src="/baby.png" alt="아기" width={28} height={28} className="h-7 w-7 object-contain" />
                   ) : (
                     "\uD83E\uDD30"
                   )}
                 </div>
+
+                {/* Info */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-[15px] font-semibold text-foreground">
-                    {report.childName
-                      ? `${report.childName} 육아 케어 리포트`
-                      : report.has_children
-                        ? "자녀 양육 케어 리포트"
+                  <div className="flex items-center gap-2">
+                    <span className="truncate text-[15px] font-semibold text-foreground">
+                      {report.child_name
+                        ? `${report.child_name}의 육아 케어 리포트`
                         : "예비 부모 육아 케어 리포트"}
+                    </span>
                   </div>
-                  <div className="mt-0.5 flex items-center gap-1.5">
-                    <span
-                      className="inline-block h-[6px] w-[6px] rounded-full"
-                      style={{
-                        background: isCompleted
-                          ? "#7BA872"
+                  <div className="mt-1 flex items-center gap-1.5">
+                    {/* Report type + age */}
+                    {report.child_name && (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                        style={{ background: typeColor.bg, color: typeColor.text }}
+                      >
+                        {report.child_gender === "girl" ? "♀" : "♂"}{" "}
+                        {REPORT_TYPE_LABEL[report.report_type]}
+                        {report.child_birth_date && ` (${formatChildAge(report.child_birth_date)})`}
+                      </span>
+                    )}
+                    {/* Status */}
+                    <span className="flex items-center gap-1">
+                      <span
+                        className="inline-block h-[5px] w-[5px] rounded-full"
+                        style={{
+                          background: isCompleted
+                            ? "#7BA872"
+                            : isGenerating
+                              ? "#D4A74A"
+                              : "#D4735C",
+                        }}
+                      />
+                      <span className="text-[11px] text-muted">
+                        {isCompleted
+                          ? "완성됨"
                           : isGenerating
-                            ? "#D4A74A"
-                            : "#D4735C",
-                      }}
-                    />
-                    <span className="text-xs text-muted">
-                      {isCompleted
-                        ? "완성됨"
-                        : isGenerating
-                          ? "생성 중..."
-                          : "생성 실패"}
+                            ? "생성 중..."
+                            : "생성 실패"}
+                      </span>
                     </span>
                   </div>
                 </div>
+
+                {/* Arrow / Spinner */}
                 {isGenerating ? (
                   <span className="inline-block h-4 w-4 animate-spin rounded-full border-[1.5px] border-[#D4CFC8] border-t-primary" />
                 ) : (
@@ -180,40 +253,34 @@ export function ReportListClient({
           })}
         </div>
 
-        {/* Create another report button */}
-        {canCreateAnother && (
-          <div className="mt-4" style={ease(0.2)}>
-            <button
-              onClick={() =>
-                router.push(`/report?type=${missingType ? "with" : "without"}`)
-              }
-              className="flex w-full items-center gap-4 rounded-2xl border-[1.5px] border-dashed border-primary/25 px-5 py-4 text-left transition-all duration-150 active:scale-[0.98]"
+        {/* New report button */}
+        <div className="mt-4 mb-8" style={ease(0.2)}>
+          <button
+            onClick={() => router.push("/report?from=/report/list")}
+            className="flex w-full items-center gap-4 rounded-2xl border-[1.5px] border-dashed border-primary/25 px-5 py-4 text-left transition-all duration-150 active:scale-[0.98]"
+            style={{
+              background: "linear-gradient(160deg, #FFFBF9, #FFF6F2)",
+            }}
+          >
+            <div
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-primary"
               style={{
-                background: "linear-gradient(160deg, #FFFBF9, #FFF6F2)",
+                background: "linear-gradient(145deg, #FFF0EB, #FFE8D6)",
               }}
             >
-              <div
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-lg font-bold text-primary"
-                style={{
-                  background: "linear-gradient(145deg, #FFF0EB, #FFE8D6)",
-                }}
-              >
-                +
+              <Plus size={20} strokeWidth={2.5} />
+            </div>
+            <div className="flex-1">
+              <div className="text-[15px] font-semibold text-primary">
+                새 리포트 만들기
               </div>
-              <div className="flex-1">
-                <div className="text-[15px] font-semibold text-primary">
-                  {missingType
-                    ? "자녀 양육 버전 만들기"
-                    : "예비 부모 버전 만들기"}
-                </div>
-                <div className="mt-0.5 text-xs text-muted">
-                  다른 버전의 리포트도 만들어 보세요
-                </div>
+              <div className="mt-0.5 text-xs text-muted">
+                다른 유형의 리포트를 만들어 보세요
               </div>
-              <ChevronRight size={18} className="text-primary/40" />
-            </button>
-          </div>
-        )}
+            </div>
+            <ChevronRight size={18} className="text-primary/40" />
+          </button>
+        </div>
       </div>
     </div>
   );

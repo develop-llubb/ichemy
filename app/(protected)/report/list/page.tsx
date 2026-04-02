@@ -49,33 +49,40 @@ export default async function ReportListPage() {
   const reportsRaw = await db
     .select({
       id: befeReports.id,
-      has_children: befeReports.has_children,
+      report_type: befeReports.report_type,
       child_id: befeReports.child_id,
+      child_name: befeReports.child_name,
+      child_gender: befeReports.child_gender,
+      child_birth_date: befeReports.child_birth_date,
+      child_age: befeReports.child_age,
       status: befeReports.status,
       created_at: befeReports.created_at,
     })
     .from(befeReports)
     .where(eq(befeReports.couple_id, couple.id));
 
-  // 자녀 이름 조회
+  // 자녀 사진 조회 (사진은 스냅샷이 아니므로 최신 값 사용)
   const childIds = reportsRaw.filter((r) => r.child_id).map((r) => r.child_id!);
-  let childMap: Record<string, { name: string; photo_url: string | null }> = {};
+  let photoMap: Record<string, string | null> = {};
   if (childIds.length > 0) {
     const childrenData = await db
-      .select({ id: befeChildren.id, name: befeChildren.name, photo_url: befeChildren.photo_url })
+      .select({ id: befeChildren.id, photo_url: befeChildren.photo_url })
       .from(befeChildren)
       .where(eq(befeChildren.couple_id, couple.id));
-    childMap = Object.fromEntries(childrenData.map((c) => [c.id, { name: c.name, photo_url: c.photo_url }]));
+    photoMap = Object.fromEntries(childrenData.map((c) => [c.id,
+      c.photo_url
+        ? supabase.storage.from("images").getPublicUrl(c.photo_url).data.publicUrl
+        : null,
+    ]));
   }
 
   const reports = reportsRaw.map((r) => ({
     ...r,
-    childName: r.child_id ? childMap[r.child_id]?.name ?? null : null,
-    childPhotoUrl: r.child_id ? childMap[r.child_id]?.photo_url ?? null : null,
+    childPhotoUrl: r.child_id ? photoMap[r.child_id] ?? null : null,
   }));
 
   if (reports.length === 0) {
-    redirect("/report");
+    redirect("/report?from=/home");
   }
 
   return (

@@ -1,0 +1,1 @@
+ALTER TABLE "befe_reports" ADD COLUMN "child_birth_date" text;

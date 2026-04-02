@@ -162,6 +162,48 @@
       "when": 1775059875158,
       "tag": "0022_first_thor_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1775107685604,
+      "tag": "0023_careful_sue_storm",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1775110961277,
+      "tag": "0024_smooth_cobalt_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1775112150321,
+      "tag": "0025_red_toad",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1775112914889,
+      "tag": "0026_real_dazzler",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1775116556540,
+      "tag": "0027_legal_catseye",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1775117085448,
+      "tag": "0028_conscious_moon_knight",
+      "breakpoints": true
     }
   ]
 }

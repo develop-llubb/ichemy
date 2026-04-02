@@ -130,10 +130,10 @@ export default async function HomePage() {
   }
 
   // 7. 기존 리포트 조회 (모든 리포트)
-  let reports: Array<{ id: string; has_children: boolean }> = [];
+  let reports: Array<{ id: string; report_type: string }> = [];
   if (couple) {
     reports = await db
-      .select({ id: befeReports.id, has_children: befeReports.has_children })
+      .select({ id: befeReports.id, report_type: befeReports.report_type })
       .from(befeReports)
       .where(eq(befeReports.couple_id, couple.id));
   }

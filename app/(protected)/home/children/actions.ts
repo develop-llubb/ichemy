@@ -20,13 +20,14 @@ export async function getUploadUrl(coupleId: string, ext: string) {
 
 export async function addChild(
   coupleId: string,
-  data: { name: string; birthDate: string; photoUrl?: string },
+  data: { name: string; gender: string; birthDate: string; photoUrl?: string },
 ) {
   const [child] = await db
     .insert(befeChildren)
     .values({
       couple_id: coupleId,
       name: data.name,
+      gender: data.gender,
       birth_date: data.birthDate,
       photo_url: data.photoUrl ?? null,
     })
@@ -43,12 +44,13 @@ export async function addChild(
 
 export async function updateChild(
   childId: string,
-  data: { name?: string; birthDate?: string; photoUrl?: string | null },
+  data: { name?: string; gender?: string; birthDate?: string; photoUrl?: string | null },
 ) {
   const updates: Record<string, unknown> = {
     updated_at: new Date().toISOString(),
   };
   if (data.name !== undefined) updates.name = data.name;
+  if (data.gender !== undefined) updates.gender = data.gender;
   if (data.birthDate !== undefined) updates.birth_date = data.birthDate;
   if (data.photoUrl !== undefined) updates.photo_url = data.photoUrl;
 

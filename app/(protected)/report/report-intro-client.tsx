@@ -9,6 +9,7 @@ import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { saveHasChildren, requestReport } from "./actions";
 import { addChild, updateChild, getUploadUrl } from "@/app/(protected)/home/children/actions";
 import { createOrder } from "@/app/payment/actions";
+import type { ReportType } from "@/lib/care-report";
 import { JOURNEY_STEPS } from "@/lib/steps";
 import { CouponTicket } from "@/components/coupon-ticket";
 import { Camera, X, Plus, Pencil } from "lucide-react";
@@ -24,6 +25,7 @@ import {
 interface ChildInfo {
   id: string;
   name: string;
+  gender: string;
   birth_date: string;
   photo_url: string | null;
 }
@@ -37,7 +39,30 @@ interface ReportIntroClientProps {
   hasCoupon: boolean;
   lockedHasChildren?: boolean | null;
   children: ChildInfo[];
-  childrenWithReport: string[];
+  childReportKeys: string[];
+  hasNoChildReport: boolean;
+}
+
+const REPORT_TYPE_LABEL: Record<ReportType, string> = {
+  no_child: "예비 부모",
+  infant: "영아기 (출생~만2세)",
+  toddler: "유아기 (만2세~만6세)",
+  elementary: "초등학생",
+  middle_school: "중학생",
+};
+
+function getReportTypeFromBirthDate(birthDate: string): ReportType {
+  const birth = new Date(birthDate);
+  const now = new Date();
+  let ageYears = now.getFullYear() - birth.getFullYear();
+  const monthDiff = now.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+    ageYears--;
+  }
+  if (ageYears < 2) return "infant";
+  if (ageYears < 6) return "toddler";
+  if (ageYears < 13) return "elementary";
+  return "middle_school";
 }
 
 export function ReportIntroClient({
@@ -49,7 +74,8 @@ export function ReportIntroClient({
   hasCoupon,
   lockedHasChildren = null,
   children,
-  childrenWithReport,
+  childReportKeys,
+  hasNoChildReport,
 }: ReportIntroClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -60,9 +86,11 @@ export function ReportIntroClient({
   const [saving, setSaving] = useState(false);
   const [requesting, startRequesting] = useTransition();
   const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [preparingNewChild, setPreparingNewChild] = useState(false);
   const [showChildForm, setShowChildForm] = useState(false);
   const [localChildren, setLocalChildren] = useState<ChildInfo[]>(children);
   const [childName, setChildName] = useState("");
+  const [childGender, setChildGender] = useState("");
   const [childBirthDate, setChildBirthDate] = useState("");
   const [childPhotoFile, setChildPhotoFile] = useState<File | null>(null);
   const [childPhotoPreview, setChildPhotoPreview] = useState<string | null>(null);
@@ -74,6 +102,7 @@ export function ReportIntroClient({
   const resetForm = () => {
     setEditingChildId(null);
     setChildName("");
+    setChildGender("");
     setChildBirthDate("");
     setChildPhotoFile(null);
     setChildPhotoPreview(null);
@@ -87,11 +116,14 @@ export function ReportIntroClient({
   const openEditForm = (child: ChildInfo) => {
     setEditingChildId(child.id);
     setChildName(child.name);
+    setChildGender(child.gender);
     setChildBirthDate(child.birth_date);
     setChildPhotoPreview(child.photo_url);
     setChildPhotoFile(null);
     setShowChildForm(true);
   };
+
+  const backPath = searchParams.get("from") || "/home";
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 80);
@@ -134,10 +166,8 @@ export function ReportIntroClient({
     [coupleId],
   );
 
-  // Step 3 완료 조건: 자녀 선택 또는 "아직 없어요" 선택
-  const canProceed = hasRegisteredChildren
-    ? selectedChildId !== null
-    : hasChildren === false;
+  // Step 3 완료 조건: 자녀 선택 또는 "새 아이 준비 중" 선택
+  const canProceed = selectedChildId !== null || preparingNewChild;
   const step3Done = canProceed;
   // 현재 활성 스텝
   const activeIdx = step3Done ? 3 : 2;
@@ -161,7 +191,7 @@ export function ReportIntroClient({
         {/* Header */}
         <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
           <button
-            onClick={() => router.push("/home")}
+            onClick={() => router.push(backPath)}
             className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
           >
             <ChevronLeft size={24} className="text-foreground" />
@@ -208,9 +238,9 @@ export function ReportIntroClient({
             className="mt-2 text-center text-[13px] leading-[1.7] text-muted"
             style={ease(0.15)}
           >
-            두 분의 검사 결과를 바탕으로
+            두 분의 검사 결과와 자녀의 나이에 맞는
             <br />
-            맞춤형 부부 육아 리포트를 생성해 드려요.
+            맞춤형 육아 케어 리포트를 생성해 드려요.
           </p>
 
           {/* PCQ Score preview */}
@@ -226,69 +256,22 @@ export function ReportIntroClient({
             </span>
           </div>
 
-          {/* Children question */}
+          {/* Children selection */}
           <div
             className="mt-7 w-full rounded-2xl border-[1.5px] border-[#ECE8E3] bg-white p-5"
             style={ease(0.25)}
           >
             <div className="mb-1.5 text-sm font-semibold text-foreground">
-              {hasRegisteredChildren ? "리포트를 받을 아이를 선택해주세요" : "현재 자녀가 있으신가요?"}
+              리포트를 받을 아이를 선택해주세요
             </div>
             <p className="mb-4 text-xs leading-[1.5] text-[#9A918A]">
-              {hasRegisteredChildren ? "아이별로 맞춤 육아 리포트가 생성돼요." : "자녀 유무에 따라 리포트 내용이 달라져요."}
+              자녀의 나이에 따라 맞춤 리포트가 생성돼요.
             </p>
 
-            {/* 두 버튼 (등록된 자녀 없을 때 항상 표시) */}
-            {!hasRegisteredChildren && (
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    setHasChildren(true);
-                    openAddForm();
-                  }}
-                  disabled={lockedHasChildren !== null}
-                  className="flex flex-1 flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
-                  style={{
-                    borderColor: hasChildren === true ? "#D4735C" : "#ECE8E3",
-                    background: hasChildren === true
-                      ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
-                      : "#fff",
-                    opacity: lockedHasChildren !== null && lockedHasChildren !== true ? 0.4 : 1,
-                    cursor: lockedHasChildren !== null ? "default" : "pointer",
-                  }}
-                >
-                  <span className="text-3xl">👶</span>
-                  <span className="text-sm font-semibold" style={{ color: hasChildren === true ? "#D4735C" : "#6B6360" }}>
-                    네, 있어요
-                  </span>
-                </button>
-
-                <button
-                  onClick={() => { handleSelect(false); setShowChildForm(false); }}
-                  disabled={saving || lockedHasChildren !== null}
-                  className="flex flex-1 flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
-                  style={{
-                    borderColor: hasChildren === false ? "#D4735C" : "#ECE8E3",
-                    background: hasChildren === false
-                      ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
-                      : "#fff",
-                    opacity: lockedHasChildren !== null && lockedHasChildren !== false ? 0.4 : 1,
-                    cursor: lockedHasChildren !== null ? "default" : "pointer",
-                  }}
-                >
-                  <span className="text-3xl">🤰</span>
-                  <span className="text-sm font-semibold" style={{ color: hasChildren === false ? "#D4735C" : "#6B6360" }}>
-                    아직 없어요
-                  </span>
-                </button>
-              </div>
-            )}
-
-            {/* 등록된 자녀 목록 */}
-            {hasRegisteredChildren && (
-              <div className="flex flex-col gap-2.5">
+            <div className="flex flex-col gap-2.5">
                 {localChildren.map((child) => {
-                  const hasReport = childrenWithReport.includes(child.id);
+                  const childReportType = getReportTypeFromBirthDate(child.birth_date);
+                  const hasReport = childReportKeys.includes(`${child.id}:${childReportType}`);
                   const isSelected = selectedChildId === child.id;
                   return (
                     <button
@@ -298,6 +281,7 @@ export function ReportIntroClient({
                           router.push("/report/list");
                         } else {
                           setSelectedChildId(isSelected ? null : child.id);
+                          setPreparingNewChild(false);
                           setHasChildren(true);
                         }
                       }}
@@ -314,14 +298,27 @@ export function ReportIntroClient({
                       >
                         {child.photo_url ? (
                           <img src={child.photo_url} alt={child.name} className="h-full w-full object-cover" />
-                        ) : "👶"}
+                        ) : child.gender === "girl" ? "👧" : "👦"}
                       </div>
                       <div className="flex-1 text-left">
-                        <div className="text-sm font-semibold" style={{ color: isSelected ? "#D4735C" : "#3A3A3A" }}>
-                          {child.name}
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold" style={{ color: isSelected ? "#D4735C" : "#3A3A3A" }}>
+                            {child.name}
+                          </span>
+                          {!hasReport && (
+                            <span
+                              className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                              style={{
+                                background: isSelected ? "rgba(212,115,92,0.12)" : "#F0EDE9",
+                                color: isSelected ? "#D4735C" : "#9A918A",
+                              }}
+                            >
+                              {REPORT_TYPE_LABEL[childReportType]}
+                            </span>
+                          )}
                         </div>
                         <div className="text-[11px] text-[#9A918A]">
-                          {hasReport ? "리포트 보기 →" : child.birth_date}
+                          {hasReport ? "리포트 보기 →" : `${child.gender === "girl" ? "♀" : "♂"} ${child.birth_date}`}
                         </div>
                       </div>
                       {!hasReport && (
@@ -351,6 +348,50 @@ export function ReportIntroClient({
                   );
                 })}
 
+                {/* 새 아이 준비 중 버튼 */}
+                <button
+                  onClick={() => {
+                    if (hasNoChildReport) {
+                      router.push("/report/list");
+                    } else {
+                      setPreparingNewChild(!preparingNewChild);
+                      setSelectedChildId(null);
+                    }
+                  }}
+                  className="flex items-center gap-3.5 rounded-2xl border-2 px-4 py-3.5 transition-all duration-200"
+                  style={{
+                    borderColor: preparingNewChild ? "#D4735C" : hasNoChildReport ? "#E8E2DC" : "#ECE8E3",
+                    background: preparingNewChild ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)" : "#fff",
+                    opacity: hasNoChildReport ? 0.6 : 1,
+                  }}
+                >
+                  <div
+                    className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-lg"
+                    style={{ background: "linear-gradient(145deg, #E8F0E6, #F0F7EE)" }}
+                  >
+                    🤰
+                  </div>
+                  <div className="flex-1 text-left">
+                    <span className="text-sm font-semibold" style={{ color: preparingNewChild ? "#D4735C" : "#3A3A3A" }}>
+                      새 아이 준비 중이에요
+                    </span>
+                    <div className="text-[11px] text-[#9A918A]">
+                      {hasNoChildReport ? "리포트 보기 →" : "출산 전 태교 리포트를 받을 수 있어요"}
+                    </div>
+                  </div>
+                  {!hasNoChildReport && (
+                    <div
+                      className="flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all"
+                      style={{
+                        borderColor: preparingNewChild ? "#D4735C" : "#D4CFC8",
+                        background: preparingNewChild ? "#D4735C" : "transparent",
+                      }}
+                    >
+                      {preparingNewChild && <div className="h-2 w-2 rounded-full bg-white" />}
+                    </div>
+                  )}
+                </button>
+
                 {/* 아이 추가 버튼 (폼 열기) */}
                 <button
                   onClick={openAddForm}
@@ -358,10 +399,41 @@ export function ReportIntroClient({
                 >
                   <Plus size={14} /> 아이 추가하기
                 </button>
-              </div>
-            )}
+            </div>
 
           </div>
+
+          {/* 선택된 아이의 리포트 타입 안내 */}
+          {selectedChildId && !preparingNewChild && (() => {
+            const selectedChild = localChildren.find((c) => c.id === selectedChildId);
+            if (!selectedChild) return null;
+            const reportType = getReportTypeFromBirthDate(selectedChild.birth_date);
+            return (
+              <div
+                className="mt-3 flex items-start gap-2.5 rounded-xl border border-[#ECE8E3] bg-[#FFFBF9] px-4 py-3"
+                style={ease(0.28)}
+              >
+                <span className="mt-0.5 text-sm">📋</span>
+                <p className="text-[12px] leading-[1.6] text-[#6B6360]">
+                  <strong className="text-primary">{selectedChild.name}</strong> 아이의 나이에 맞는{" "}
+                  <strong className="text-primary">{REPORT_TYPE_LABEL[reportType]}</strong>{" "}
+                  리포트가 생성됩니다.
+                </p>
+              </div>
+            );
+          })()}
+          {preparingNewChild && (
+            <div
+              className="mt-3 flex items-start gap-2.5 rounded-xl border border-[#ECE8E3] bg-[#FFFBF9] px-4 py-3"
+              style={ease(0.28)}
+            >
+              <span className="mt-0.5 text-sm">🤰</span>
+              <p className="text-[12px] leading-[1.6] text-[#6B6360]">
+                <strong className="text-primary">예비 부모</strong> 리포트와 함께{" "}
+                <strong className="text-primary">태교 커뮤니케이션 가이드</strong>가 포함됩니다.
+              </p>
+            </div>
+          )}
 
           {/* 자녀 등록/수정 Drawer */}
           <Drawer
@@ -429,6 +501,31 @@ export function ReportIntroClient({
                   className="mb-2 h-11 w-full rounded-lg border-[1.5px] border-[#ECE8E3] bg-white px-3 text-sm text-foreground outline-none placeholder:text-[#C4BEB8] focus:border-primary"
                 />
 
+                {/* 성별 */}
+                <div className="mb-2 flex gap-2">
+                  {([
+                    { value: "boy", label: "남아", emoji: "👦" },
+                    { value: "girl", label: "여아", emoji: "👧" },
+                  ] as const).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setChildGender(opt.value)}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border-2 py-2.5 text-sm font-semibold transition-all"
+                      style={{
+                        borderColor: childGender === opt.value ? "#D4735C" : "#ECE8E3",
+                        background: childGender === opt.value
+                          ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
+                          : "#fff",
+                        color: childGender === opt.value ? "#D4735C" : "#6B6360",
+                      }}
+                    >
+                      <span className="text-lg">{opt.emoji}</span>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
                 {/* 생년월일 */}
                 <input
                   type="text"
@@ -449,7 +546,7 @@ export function ReportIntroClient({
                 {/* 버튼 */}
                 <button
                   type="button"
-                  disabled={!childName.trim() || !childBirthDate || addingChild}
+                  disabled={!childName.trim() || !childGender || !childBirthDate || addingChild}
                   onClick={async () => {
                     setAddingChild(true);
                     try {
@@ -476,13 +573,14 @@ export function ReportIntroClient({
                         const existing = localChildren.find((c) => c.id === editingChildId);
                         await updateChild(editingChildId, {
                           name: childName.trim(),
+                          gender: childGender,
                           birthDate: childBirthDate,
                           ...(photoPath !== undefined ? { photoUrl: photoPath } : childPhotoPreview === null && existing?.photo_url ? { photoUrl: null } : {}),
                         });
                         setLocalChildren((prev) =>
                           prev.map((c) =>
                             c.id === editingChildId
-                              ? { ...c, name: childName.trim(), birth_date: childBirthDate, photo_url: photoDisplayUrl ?? (childPhotoPreview === null ? null : c.photo_url) }
+                              ? { ...c, name: childName.trim(), gender: childGender, birth_date: childBirthDate, photo_url: photoDisplayUrl ?? (childPhotoPreview === null ? null : c.photo_url) }
                               : c,
                           ),
                         );
@@ -490,12 +588,13 @@ export function ReportIntroClient({
                       } else {
                         const result = await addChild(coupleId, {
                           name: childName.trim(),
+                          gender: childGender,
                           birthDate: childBirthDate,
                           photoUrl: photoPath,
                         });
                         setLocalChildren((prev) => [
                           ...prev,
-                          { id: result.id, name: childName.trim(), birth_date: childBirthDate, photo_url: photoDisplayUrl ?? null },
+                          { id: result.id, name: childName.trim(), gender: childGender, birth_date: childBirthDate, photo_url: photoDisplayUrl ?? null },
                         ]);
                         setSelectedChildId(result.id);
                         toast("아이가 등록되었어요!");
@@ -509,7 +608,7 @@ export function ReportIntroClient({
                   }}
                   className="flex h-12 w-full items-center justify-center rounded-lg border-none text-sm font-semibold text-white transition-all disabled:opacity-50"
                   style={{
-                    background: childName.trim() && childBirthDate
+                    background: childName.trim() && childGender && childBirthDate
                       ? "linear-gradient(135deg, #D4735C, #C0614A)"
                       : "#D4CFC8",
                   }}
@@ -650,13 +749,18 @@ export function ReportIntroClient({
           <button
             disabled={!canProceed || requesting}
             onClick={() => {
-              const reportHasChildren = hasRegisteredChildren ? true : hasChildren!;
-              const childId = selectedChildId ?? undefined;
+              const childId = preparingNewChild ? undefined : (selectedChildId ?? undefined);
+              const selectedChild = selectedChildId && !preparingNewChild
+                ? localChildren.find((c) => c.id === selectedChildId)
+                : null;
+              const reportType: ReportType = selectedChild
+                ? getReportTypeFromBirthDate(selectedChild.birth_date)
+                : "no_child";
 
               if (hasCoupon) {
                 // 쿠폰 사용자: 바로 리포트 생성
                 startRequesting(async () => {
-                  const result = await requestReport(coupleId, reportHasChildren, childId);
+                  const result = await requestReport(coupleId, reportType, childId);
                   if ("error" in result) {
                     toast(result.error);
                     return;
@@ -667,7 +771,7 @@ export function ReportIntroClient({
                 // 결제 사용자: 토스 결제창 띄우기
                 startRequesting(async () => {
                   try {
-                    const order = await createOrder(coupleId, reportHasChildren);
+                    const order = await createOrder(coupleId, reportType, childId);
                     const tossPayments = await loadTossPayments(
                       process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!,
                     );
