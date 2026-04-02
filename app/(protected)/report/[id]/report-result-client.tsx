@@ -681,7 +681,7 @@ export function ReportResultClient({
               <div className="flex flex-col items-center gap-2 rounded-[18px] border border-[#ECE8E3] bg-white py-6">
                 <span className="text-2xl">💌</span>
                 <p className="text-[13px] font-semibold text-foreground">
-                  의견을 남겨 주셨어요!
+                  소중한 의견을 남겨 주셨어요!
                 </p>
                 <p className="text-[11px] text-[#9A918A]">
                   두 분의 이야기가 더 나은 리포트를 만드는 데 큰 도움이 돼요
