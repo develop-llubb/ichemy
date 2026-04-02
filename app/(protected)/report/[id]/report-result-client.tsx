@@ -249,7 +249,7 @@ export function ReportResultClient({
     transition: `all 0.6s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
   });
 
-  // Polling
+  // Polling — 서버가 created_at 기준 5분 초과 시 failed 반환
   useEffect(() => {
     if (status !== "generating") return;
 
