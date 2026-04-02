@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { befeProfiles, befeCouples, befeChildren } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { eq, or, and, isNull } from "drizzle-orm";
 import { ChildrenClient } from "./children-client";
 
 export default async function ChildrenPage() {
@@ -39,7 +39,7 @@ export default async function ChildrenPage() {
       photo_url: befeChildren.photo_url,
     })
     .from(befeChildren)
-    .where(eq(befeChildren.couple_id, couple.id));
+    .where(and(eq(befeChildren.couple_id, couple.id), isNull(befeChildren.deleted_at)));
 
   const children = childrenRaw.map((c) => ({
     ...c,

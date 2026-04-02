@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import { ChevronLeft, Plus, Pencil, Trash2, Camera, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { addChild, updateChild, deleteChild, getUploadUrl } from "./actions";
-import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
   Drawer,
   DrawerContent,
@@ -43,8 +42,20 @@ function calculateAge(birthDate: string): string {
 
 export function ChildrenClient({ coupleId, children: initialChildren }: ChildrenClientProps) {
   const router = useRouter();
+  const [ready, setReady] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Child | null>(null);
   const [deleting, startDeleting] = useTransition();
+
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), 80);
+    return () => clearTimeout(t);
+  }, []);
+
+  const ease = (delay = 0): React.CSSProperties => ({
+    opacity: ready ? 1 : 0,
+    transform: ready ? "translateY(0)" : "translateY(16px)",
+    transition: `all 0.6s cubic-bezier(0.22,1,0.36,1) ${delay}s`,
+  });
 
   // Drawer form state
   const [showForm, setShowForm] = useState(false);
@@ -151,7 +162,7 @@ export function ChildrenClient({ coupleId, children: initialChildren }: Children
 
         <div className="flex-1 px-5 pt-6">
           {initialChildren.length === 0 ? (
-            <div className="mt-12 flex flex-col items-center">
+            <div className="mt-12 flex flex-col items-center" style={ease(0)}>
               <div
                 className="flex h-24 w-24 items-center justify-center rounded-full text-4xl"
                 style={{ background: "linear-gradient(145deg, #FFE8D6, #FFF0E6)" }}
@@ -167,10 +178,11 @@ export function ChildrenClient({ coupleId, children: initialChildren }: Children
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {initialChildren.map((child) => (
+              {initialChildren.map((child, i) => (
                 <div
                   key={child.id}
                   className="flex items-center gap-4 rounded-[20px] border-[1.5px] border-[#ECE8E3] bg-white p-4"
+                  style={ease(i * 0.05)}
                 >
                   <div
                     className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full text-xl"
@@ -208,6 +220,7 @@ export function ChildrenClient({ coupleId, children: initialChildren }: Children
           <button
             onClick={openAddForm}
             className="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-[16px] border-2 border-dashed border-[#D4CFC8] text-[13px] font-semibold text-[#9A918A] transition-colors hover:border-primary hover:text-primary"
+            style={ease(initialChildren.length * 0.05 + 0.05)}
           >
             <Plus size={16} />
             아이 추가하기
@@ -332,24 +345,41 @@ export function ChildrenClient({ coupleId, children: initialChildren }: Children
         </DrawerContent>
       </Drawer>
 
-      <ConfirmDialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}
-        title={`${deleteTarget?.name}의 정보를 삭제할까요?`}
-        description="삭제하면 해당 아이의 정보가 제거됩니다."
-        confirmLabel="삭제"
-        cancelLabel="취소"
-        loading={deleting}
-        onConfirm={() => {
-          if (!deleteTarget) return;
-          startDeleting(async () => {
-            await deleteChild(deleteTarget.id, coupleId);
-            toast(`${deleteTarget.name}의 정보가 삭제되었어요.`);
-            setDeleteTarget(null);
-            router.refresh();
-          });
-        }}
-      />
+      {/* 삭제 확인 Drawer */}
+      <Drawer open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{deleteTarget?.name}의 정보를 삭제할까요?</DrawerTitle>
+            <DrawerDescription>
+              삭제하면 해당 아이의 리포트도 모두 삭제되며, 되돌릴 수 없습니다.
+            </DrawerDescription>
+          </DrawerHeader>
+          <div className="flex gap-2.5 px-5 pb-6">
+            <button
+              onClick={() => setDeleteTarget(null)}
+              className="flex h-12 flex-1 items-center justify-center rounded-xl border-[1.5px] border-[#ECE8E3] text-[13px] font-semibold text-[#6B6360]"
+            >
+              취소
+            </button>
+            <button
+              disabled={deleting}
+              onClick={() => {
+                if (!deleteTarget) return;
+                startDeleting(async () => {
+                  await deleteChild(deleteTarget.id, coupleId);
+                  toast(`${deleteTarget.name}의 정보가 삭제되었어요.`);
+                  setDeleteTarget(null);
+                  router.refresh();
+                });
+              }}
+              className="flex h-12 flex-1 items-center justify-center rounded-xl border-none text-[13px] font-semibold text-white disabled:opacity-50"
+              style={{ background: "linear-gradient(135deg, #D4735C, #C0614A)" }}
+            >
+              {deleting ? <Loader2 size={16} className="animate-spin" /> : "삭제"}
+            </button>
+          </div>
+        </DrawerContent>
+      </Drawer>
     </>
   );
 }

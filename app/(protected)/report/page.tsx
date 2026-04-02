@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { befeProfiles, befeCouples, befeReports, befeChildren } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { eq, or, and, isNull } from "drizzle-orm";
 import { ReportIntroClient } from "./report-intro-client";
 
 export default async function ReportPage({
@@ -69,7 +69,7 @@ export default async function ReportPage({
       photo_url: befeChildren.photo_url,
     })
     .from(befeChildren)
-    .where(eq(befeChildren.couple_id, couple.id));
+    .where(and(eq(befeChildren.couple_id, couple.id), isNull(befeChildren.deleted_at)));
 
   const children = childrenRaw.map((c) => ({
     ...c,
@@ -82,7 +82,7 @@ export default async function ReportPage({
   const existingReports = await db
     .select({ report_type: befeReports.report_type, child_id: befeReports.child_id })
     .from(befeReports)
-    .where(eq(befeReports.couple_id, couple.id));
+    .where(and(eq(befeReports.couple_id, couple.id), isNull(befeReports.deleted_at)));
 
   const hasNoChildReport = existingReports.some((r) => r.report_type === "no_child");
   const hasChildReport = existingReports.some((r) => r.report_type !== "no_child");

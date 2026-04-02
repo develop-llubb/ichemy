@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
 import { befeProfiles, befeCouples, befeReports, befeChildren } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { eq, or, and, isNull } from "drizzle-orm";
 import { ReportListClient } from "./report-list-client";
 
 export default async function ReportListPage() {
@@ -59,7 +59,7 @@ export default async function ReportListPage() {
       created_at: befeReports.created_at,
     })
     .from(befeReports)
-    .where(eq(befeReports.couple_id, couple.id));
+    .where(and(eq(befeReports.couple_id, couple.id), isNull(befeReports.deleted_at)));
 
   // 자녀 사진 조회 (사진은 스냅샷이 아니므로 최신 값 사용)
   const childIds = reportsRaw.filter((r) => r.child_id).map((r) => r.child_id!);

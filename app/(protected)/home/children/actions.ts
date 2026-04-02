@@ -1,8 +1,8 @@
 "use server";
 
 import { db } from "@/db";
-import { befeChildren, befeCouples } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import { befeChildren, befeCouples, befeReports } from "@/db/schema";
+import { eq, and, isNull } from "drizzle-orm";
 import { createClient as createServiceClient } from "@supabase/supabase-js";
 
 export async function getUploadUrl(coupleId: string, ext: string) {
@@ -61,19 +61,31 @@ export async function updateChild(
 }
 
 export async function deleteChild(childId: string, coupleId: string) {
-  await db.delete(befeChildren).where(eq(befeChildren.id, childId));
+  const now = new Date().toISOString();
+
+  // 자녀 soft delete
+  await db
+    .update(befeChildren)
+    .set({ deleted_at: now })
+    .where(eq(befeChildren.id, childId));
+
+  // 관련 리포트 soft delete
+  await db
+    .update(befeReports)
+    .set({ deleted_at: now })
+    .where(eq(befeReports.child_id, childId));
 
   // 남은 자녀가 없으면 has_children 리셋
   const remaining = await db
     .select({ id: befeChildren.id })
     .from(befeChildren)
-    .where(eq(befeChildren.couple_id, coupleId))
+    .where(and(eq(befeChildren.couple_id, coupleId), isNull(befeChildren.deleted_at)))
     .limit(1);
 
   if (remaining.length === 0) {
     await db
       .update(befeCouples)
-      .set({ has_children: null, updated_at: new Date().toISOString() })
+      .set({ has_children: null, updated_at: now })
       .where(eq(befeCouples.id, coupleId));
   }
 }

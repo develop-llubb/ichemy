@@ -313,6 +313,10 @@ export const befeChildren = pgTable(
       withTimezone: true,
       mode: "string",
     }).defaultNow(),
+    deleted_at: timestamp("deleted_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
   },
   (table) => [
     index("idx_befe_children_couple").on(table.couple_id),
@@ -402,6 +406,10 @@ export const befeReports = pgTable(
     created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
       .defaultNow()
       .notNull(),
+    deleted_at: timestamp("deleted_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
   },
   (table) => [
     unique("befe_reports_couple_child_type_key").on(

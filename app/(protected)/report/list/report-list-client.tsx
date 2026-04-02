@@ -139,31 +139,31 @@ export function ReportListClient({
           육아 케어 리포트 목록
         </p>
 
-        {/* 우리 아이 관리 */}
-        <button
-          onClick={() => router.push("/home/children")}
-          className="mt-8 flex w-full items-center gap-3.5 rounded-2xl bg-white px-5 py-3.5 text-left transition-all duration-150 active:scale-[0.98]"
-          style={{ border: "1px solid #EEEAE6", boxShadow: "0 1px 4px rgba(0,0,0,0.04)", ...ease(0.13) }}
-        >
-          <div
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-base"
-            style={{ background: "linear-gradient(145deg, #FFE8D6, #FFF0E6)" }}
-          >
-            👶
-          </div>
-          <div className="flex-1">
-            <div className="text-[14px] font-semibold text-foreground">
-              우리 아이 관리
-            </div>
-            <div className="mt-0.5 text-[11px] text-[#9A918A]">
-              아이를 추가하거나 수정할 수 있어요
-            </div>
-          </div>
-          <ChevronRight size={16} className="text-[#D4CFC8]" />
-        </button>
-
         {/* Report cards */}
-        <div className="mt-4 flex flex-col gap-3" style={ease(0.15)}>
+        <div className="mt-8 flex flex-col gap-3" style={ease(0.15)}>
+          {/* 우리 아이 관리 */}
+          <button
+            onClick={() => router.push("/home/children")}
+            className="flex w-full items-center gap-4 rounded-2xl bg-white px-5 py-4 text-left transition-all duration-150 active:scale-[0.98]"
+            style={{ border: "1px solid #EEEAE6", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}
+          >
+            <div
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[22px]"
+              style={{ background: "linear-gradient(145deg, #FFE8D6, #FFF0E6)" }}
+            >
+              👶
+            </div>
+            <div className="flex-1">
+              <div className="text-[14px] font-semibold text-foreground">
+                우리 아이 관리
+              </div>
+              <div className="mt-0.5 text-[11px] text-[#9A918A]">
+                아이를 추가하거나 수정할 수 있어요
+              </div>
+            </div>
+            <ChevronRight size={16} className="text-[#D4CFC8]" />
+          </button>
+
           {reports.map((report) => {
             const isCompleted = report.status === "completed";
             const isGenerating = report.status === "generating";
