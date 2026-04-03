@@ -1,6 +1,12 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function BusinessFooter() {
+  const pathname = usePathname();
+  if (pathname.startsWith("/b2b")) return null;
+
   return (
     <footer className="mx-auto w-full max-w-[430px] border-t border-[#ECE8E3] px-5 py-6">
       <div className="space-y-0.5 text-center text-[10px] leading-[1.6] text-[#D4CFC8]">

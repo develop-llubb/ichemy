@@ -17,7 +17,34 @@ interface GenerateReportInput {
   };
 }
 
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 3000;
+
+async function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function generateCareReport(
+  input: GenerateReportInput,
+): Promise<{ content: CareReport; modelVersion: string }> {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await _generateCareReport(input);
+    } catch (e) {
+      lastError = e;
+      console.error(`Report generation attempt ${attempt + 1} failed:`, e);
+      if (attempt < MAX_RETRIES) {
+        await sleep(RETRY_DELAY_MS * (attempt + 1));
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+async function _generateCareReport(
   input: GenerateReportInput,
 ): Promise<{ content: CareReport; modelVersion: string }> {
   const { sequence, grades, hasChildren } = input;

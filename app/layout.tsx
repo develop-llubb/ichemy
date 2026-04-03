@@ -45,7 +45,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={cn("light", "font-sans", geist.variable)} style={{ colorScheme: "light", background: "#FEFCF9" }}>
+    <html lang="ko" className={cn("light", "font-sans", geist.variable)} style={{ colorScheme: "light" }}>
       <head>
         <link
           rel="stylesheet"
@@ -56,7 +56,6 @@ export default function RootLayout({
       </head>
       <body
         className={`${jua.variable} ${mogra.variable} font-sans antialiased`}
-        style={{ background: "#FEFCF9" }}
       >
         <NextTopLoader color="#D4735C" showSpinner={false} />
         {children}
