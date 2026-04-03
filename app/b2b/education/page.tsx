@@ -114,7 +114,7 @@ function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center">
       <div
-        className="font-[var(--font-outfit)] text-4xl font-extrabold leading-none sm:text-5xl"
+        className="font-[var(--font-outfit)] text-3xl font-extrabold leading-none sm:text-5xl"
         style={{
           fontFamily: "var(--font-outfit), 'Outfit', sans-serif",
           letterSpacing: -2,
@@ -334,7 +334,7 @@ export default function B2BEducationLanding() {
         </nav>
 
         {/* ══════ HERO ══════ */}
-        <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pb-20 pt-[120px] text-center">
+        <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 pb-16 pt-[100px] text-center sm:px-6 sm:pb-20 sm:pt-[120px]">
 
           <div style={ease(0)}>
             <Badge>Education B2B Data Solution</Badge>
@@ -344,7 +344,7 @@ export default function B2BEducationLanding() {
             className="mx-auto mt-8 font-black leading-[1.2]"
             style={{
               fontFamily: "var(--font-noto), 'Noto Sans KR', sans-serif",
-              fontSize: "clamp(32px, 5vw, 60px)",
+              fontSize: "clamp(28px, 5vw, 60px)",
               letterSpacing: -2,
               ...ease(0.08),
             }}
@@ -366,12 +366,12 @@ export default function B2BEducationLanding() {
           </h1>
 
           <p
-            className="mx-auto mt-6 max-w-[520px] text-[17px] font-light leading-[1.7]"
+            className="mx-auto mt-6 max-w-[520px] text-[15px] font-light leading-[1.7] sm:text-[17px]"
             style={{ color: c.textSecondary, ...ease(0.16) }}
           >
-            4분 진단 리포트를 통한 신규 세일즈 퍼널 구축
+            4분 진단 리포트를 통한
             <br />
-            및 장기 록인(Lock-in) 전략
+            신규 세일즈 퍼널 구축 및 장기 록인 전략
           </p>
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row" style={ease(0.24)}>
@@ -578,7 +578,7 @@ export default function B2BEducationLanding() {
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>4-in-1 System</Badge>
               <h2 className="mt-5 text-2xl font-extrabold leading-[1.3] sm:text-4xl" style={{ letterSpacing: -1.5 }}>
-                아이의 숨은 강점부터 부모의 양육 환경까지
+                아이의 강점부터 양육 환경까지
                 <br />
                 <span style={{ color: c.accent }}>4-in-1</span> 통합 진단
               </h2>
@@ -679,7 +679,9 @@ export default function B2BEducationLanding() {
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Lifetime Pipeline</Badge>
               <h2 className="mt-5 text-2xl font-extrabold sm:text-4xl" style={{ letterSpacing: -1.5 }}>
-                5세 진입으로 10년의 장기 구독을 구조화합니다
+                5세 진입으로
+                <br />
+                10년의 장기 구독을 구조화합니다
               </h2>
             </div>
           </Section>
@@ -733,7 +735,7 @@ export default function B2BEducationLanding() {
                   <div className="pb-8">
                     <div className="mb-2 flex items-center gap-2.5">
                       <span
-                        className="text-2xl font-extrabold"
+                        className="text-xl font-extrabold sm:text-2xl"
                         style={{
                           fontFamily:
                             "var(--font-outfit), 'Outfit', sans-serif",
@@ -985,7 +987,7 @@ export default function B2BEducationLanding() {
             ].map((item, i, arr) => (
               <Section key={i} delay={i * 0.06} className={i === arr.length - 1 ? "col-span-2 sm:col-span-1" : ""}>
                 <div
-                  className="h-full rounded-xl px-5 py-6 text-center"
+                  className="h-full rounded-xl px-4 py-5 text-center sm:px-5 sm:py-6"
                   style={{
                     background: c.bgCard,
                     border: `1px solid ${c.border}`,
