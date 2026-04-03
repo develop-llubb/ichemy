@@ -687,11 +687,25 @@ export default function B2BLanding() {
           <div className="flex flex-col">
             {[
               {
+                age: "임신중",
+                stage: "태아",
+                action: "예비 부모 대상 육아 성향 진단 · 출산 준비 컨설팅",
+                insurance: "태아보험 가입 및 산모 건강보험 설계",
+                active: true,
+              },
+              {
+                age: "0~4세",
+                stage: "영유아",
+                action: "신생아 맞춤 양육 가이드 · 부부 공동양육 리포트",
+                insurance: "어린이 보험 전환 및 부모 종합보험 점검",
+                active: false,
+              },
+              {
                 age: "5세",
                 stage: "유치부",
                 action: "첫 만남 · 맞춤형 육아/배움 컨설팅",
-                insurance: "첫 어린이 보험 가입 및 부모 건강보험 점검",
-                active: true,
+                insurance: "보장 확대 및 학자금 저축 플랜 시작",
+                active: false,
               },
               {
                 age: "8세",
