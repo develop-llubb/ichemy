@@ -14,7 +14,7 @@ const notoSansKR = Noto_Sans_KR({
 });
 
 export const metadata: Metadata = {
-  title: "i-Chemy B2B - 데이터 기반 보험 컨설팅 시스템",
+  title: "아이케미 B2B - 데이터 기반 보험 컨설팅 시스템",
   description:
     "어린이·자녀 보험 영업의 판도를 바꾸는 데이터 기반 맞춤형 보험 컨설팅 시스템",
 };

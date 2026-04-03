@@ -26,6 +26,13 @@ const CSS = `
     opacity: 1;
     transform: translateY(0);
   }
+  .cta-btn { transition: transform 0.2s ease; }
+  .cta-btn:hover { transform: scale(1.04); }
+  .cta-btn span { display: inline-block; transition: transform 0.2s ease; }
+  .cta-btn:hover span { transform: translateX(4px); }
+  @media (max-width: 639px) {
+    .funnel-step { width: 100% !important; }
+  }
 `;
 
 // ── Colors ──
@@ -109,7 +116,7 @@ function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="text-center">
       <div
-        className="font-[var(--font-outfit)] text-5xl font-extrabold leading-none"
+        className="font-[var(--font-outfit)] text-4xl font-extrabold leading-none sm:text-5xl"
         style={{
           fontFamily: "var(--font-outfit), 'Outfit', sans-serif",
           letterSpacing: -2,
@@ -157,10 +164,9 @@ export default function B2BLanding() {
       >
         {/* ══════ NAV ══════ */}
         <nav
-          className="fixed inset-x-0 top-0 z-[100] flex items-center justify-between px-8 py-4"
+          className="fixed inset-x-0 top-0 z-[100] flex items-center justify-between px-5 py-4 sm:px-8"
           style={{
-            background: "rgba(10,10,11,0.8)",
-            backdropFilter: "blur(16px)",
+            background: c.bg,
             borderBottom: `1px solid ${c.border}`,
           }}
         >
@@ -186,7 +192,7 @@ export default function B2BLanding() {
             </span>
           </div>
           <button
-            className="rounded-lg border-none px-5 py-2 text-[13px] font-semibold"
+            className="cta-btn rounded-lg border-none px-5 py-2 text-[13px] font-semibold"
             style={{
               background: c.accent,
               color: "#0A0A0B",
@@ -253,9 +259,9 @@ export default function B2BLanding() {
             데이터 기반 맞춤형 보험 컨설팅 시스템
           </p>
 
-          <div className="mt-10 flex gap-3" style={ease(0.24)}>
+          <div className="mt-10 flex flex-col gap-3 sm:flex-row" style={ease(0.24)}>
             <button
-              className="rounded-[10px] border-none px-8 py-3.5 text-[15px] font-bold"
+              className="cta-btn rounded-[10px] border-none px-8 py-3.5 text-[15px] font-bold"
               style={{
                 background: c.accent,
                 color: "#0A0A0B",
@@ -263,24 +269,12 @@ export default function B2BLanding() {
                 cursor: "pointer",
               }}
             >
-              도입 상담 신청 →
-            </button>
-            <button
-              className="rounded-[10px] px-7 py-3.5 text-[15px] font-medium"
-              style={{
-                background: "transparent",
-                color: c.text,
-                border: `1px solid ${c.borderLight}`,
-                fontFamily: "var(--font-noto), 'Noto Sans KR', sans-serif",
-                cursor: "pointer",
-              }}
-            >
-              데모 보기
+              도입 상담 신청 <span>→</span>
             </button>
           </div>
 
           {/* Stats */}
-          <div className="mt-20 flex gap-16" style={ease(0.32)}>
+          <div className="mt-16 flex gap-8 sm:mt-20 sm:gap-16" style={ease(0.32)}>
             <Stat value="4분" label="설문 소요 시간" />
             <Stat value="256" label="맞춤형 리포트 조합" />
             <Stat value="10년" label="고객 터치포인트" />
@@ -288,11 +282,11 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ PAIN POINTS ══════ */}
-        <section className="mx-auto max-w-[960px] px-6 py-[100px]">
+        <section className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
-            <div className="mb-[60px] text-center">
+            <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Problem</Badge>
-              <h2 className="mt-5 text-4xl font-extrabold leading-[1.3]" style={{ letterSpacing: -1.5 }}>
+              <h2 className="mt-5 text-2xl font-extrabold leading-[1.3] sm:text-4xl" style={{ letterSpacing: -1.5 }}>
                 보험 설계사가 매일 마주하는
                 <br />
                 <span style={{ color: c.textMuted }}>3개의 거대한 벽</span>
@@ -323,7 +317,7 @@ export default function B2BLanding() {
             ].map((item, i) => (
               <Section key={i} delay={i * 0.08}>
                 <div
-                  className="flex gap-6 rounded-2xl p-7"
+                  className="flex gap-4 rounded-2xl p-5 sm:gap-6 sm:p-7"
                   style={{
                     background: c.bgCard,
                     border: `1px solid ${c.border}`,
@@ -368,11 +362,11 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ SOLUTION ══════ */}
-        <section className="mx-auto max-w-[960px] px-6 py-[100px]">
+        <section className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
-            <div className="mb-[60px] text-center">
+            <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Solution</Badge>
-              <h2 className="mt-5 text-4xl font-extrabold leading-[1.3]" style={{ letterSpacing: -1.5 }}>
+              <h2 className="mt-5 text-2xl font-extrabold leading-[1.3] sm:text-4xl" style={{ letterSpacing: -1.5 }}>
                 기존 영업 방식은 잊으세요
                 <br />
                 <span
@@ -439,11 +433,11 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ 4 MODULES ══════ */}
-        <section className="mx-auto max-w-[960px] px-6 py-[100px]">
+        <section className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
-            <div className="mb-[60px] text-center">
+            <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>4-Module System</Badge>
-              <h2 className="mt-5 text-4xl font-extrabold leading-[1.3]" style={{ letterSpacing: -1.5 }}>
+              <h2 className="mt-5 text-2xl font-extrabold leading-[1.3] sm:text-4xl" style={{ letterSpacing: -1.5 }}>
                 단 4분의 설문으로 완성되는
                 <br />
                 <span style={{ color: c.accent }}>256가지</span> 맞춤형 프리미엄 리포트
@@ -457,7 +451,7 @@ export default function B2BLanding() {
             </div>
           </Section>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {[
               {
                 module: "A",
@@ -500,30 +494,39 @@ export default function B2BLanding() {
                     border: `1px solid ${item.color}15`,
                   }}
                 >
-                  <span
-                    className="text-[11px] font-bold tracking-widest"
-                    style={{
-                      fontFamily: "var(--font-outfit), 'Outfit', sans-serif",
-                      color: item.color,
-                    }}
-                  >
-                    MODULE {item.module}
-                  </span>
-                  <h3 className="mb-2.5 mt-2.5 text-xl font-bold">
-                    {item.title}
-                  </h3>
+                  <div className="mb-4">
+                    <span
+                      className="text-[11px] font-bold tracking-widest"
+                      style={{
+                        fontFamily: "var(--font-outfit), 'Outfit', sans-serif",
+                        color: item.color,
+                      }}
+                    >
+                      MODULE {item.module}
+                    </span>
+                    <h3 className="mt-2 text-xl font-bold">
+                      {item.title}
+                    </h3>
+                  </div>
+                  <div
+                    className="mb-4 h-px w-full"
+                    style={{ background: `${item.color}20` }}
+                  />
                   <p
-                    className="text-[13px] font-light leading-[1.6]"
-                    style={{ color: c.textSecondary }}
+                    className="text-sm font-normal leading-relaxed"
+                    style={{ color: c.text }}
                   >
                     {item.desc}
                   </p>
-                  <p
-                    className="mt-2 text-[11px] font-normal"
-                    style={{ color: c.textMuted }}
+                  <span
+                    className="mt-3 inline-block rounded-md px-2.5 py-1 text-[11px] font-medium"
+                    style={{
+                      background: `${item.color}12`,
+                      color: item.color,
+                    }}
                   >
                     {item.sub}
-                  </p>
+                  </span>
                 </div>
               </Section>
             ))}
@@ -531,11 +534,11 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ PIPELINE ══════ */}
-        <section className="mx-auto max-w-[960px] px-6 py-[100px]">
+        <section className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
-            <div className="mb-[60px] text-center">
+            <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Lifetime Pipeline</Badge>
-              <h2 className="mt-5 text-4xl font-extrabold" style={{ letterSpacing: -1.5 }}>
+              <h2 className="mt-5 text-2xl font-extrabold sm:text-4xl" style={{ letterSpacing: -1.5 }}>
                 끊임없이 이어지는 10년의 고객 터치포인트
               </h2>
             </div>
@@ -652,17 +655,17 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ PRIVACY ══════ */}
-        <section className="mx-auto max-w-[960px] px-6 py-[100px]">
+        <section className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
-            <div className="mb-[60px] text-center">
+            <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Privacy &amp; Security</Badge>
-              <h2 className="mt-5 text-4xl font-extrabold" style={{ letterSpacing: -1.5 }}>
+              <h2 className="mt-5 text-2xl font-extrabold sm:text-4xl" style={{ letterSpacing: -1.5 }}>
                 강력한 프라이버시 보호
               </h2>
             </div>
           </Section>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Section>
               <div
                 className="h-full rounded-2xl px-7 py-8"
@@ -740,17 +743,17 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ FUNNEL ══════ */}
-        <section className="mx-auto max-w-[960px] px-6 py-[100px]">
+        <section className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
-            <div className="mb-[60px] text-center">
+            <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Sales Engine</Badge>
-              <h2 className="mt-5 text-4xl font-extrabold" style={{ letterSpacing: -1.5 }}>
+              <h2 className="mt-5 text-2xl font-extrabold sm:text-4xl" style={{ letterSpacing: -1.5 }}>
                 궁극의 보험 세일즈 엔진
               </h2>
             </div>
           </Section>
 
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-3 sm:gap-0.5">
             {[
               {
                 step: "1",
@@ -791,16 +794,16 @@ export default function B2BLanding() {
             ].map((item, i) => (
               <Section key={i} delay={i * 0.08}>
                 <div
-                  className="mx-auto rounded-[14px] px-7 py-6"
+                  className="funnel-step mx-auto rounded-[14px] px-7 py-6"
                   style={{
                     width: item.width,
                     background: item.bg,
                     border: `1px solid ${item.color}18`,
                   }}
                 >
-                  <div className="mb-2 flex items-center gap-3">
+                  <div className="mb-3 flex items-center gap-2">
                     <span
-                      className="text-[13px] font-bold"
+                      className="text-sm font-bold"
                       style={{
                         fontFamily:
                           "var(--font-outfit), 'Outfit', sans-serif",
@@ -810,15 +813,18 @@ export default function B2BLanding() {
                       {item.step}. {item.title}
                     </span>
                     <span
-                      className="text-[11px]"
-                      style={{ color: c.textMuted }}
+                      className="rounded-md px-2 py-0.5 text-[11px] font-medium"
+                      style={{
+                        background: `${item.color}15`,
+                        color: item.color,
+                      }}
                     >
-                      ({item.subtitle})
+                      {item.subtitle}
                     </span>
                   </div>
                   <p
-                    className="text-[13px] font-light leading-[1.6]"
-                    style={{ color: c.textSecondary }}
+                    className="text-sm font-normal leading-relaxed"
+                    style={{ color: c.text }}
                   >
                     {item.desc}
                   </p>
@@ -829,7 +835,7 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ CTA ══════ */}
-        <section className="relative px-6 py-[200px] text-center">
+        <section className="relative px-5 py-[120px] text-center sm:px-6 sm:py-[200px]">
           <div
             className="pointer-events-none absolute left-1/2 top-1/2"
             style={{
@@ -861,7 +867,7 @@ export default function B2BLanding() {
               아이케미 B2B 도입 상담을 신청하세요.
             </p>
             <button
-              className="relative rounded-xl border-none px-12 py-4 text-base font-bold"
+              className="cta-btn relative rounded-xl border-none px-12 py-4 text-base font-bold"
               style={{
                 background: c.accent,
                 color: "#0A0A0B",
@@ -869,14 +875,14 @@ export default function B2BLanding() {
                 cursor: "pointer",
               }}
             >
-              도입 상담 신청 →
+              도입 상담 신청 <span>→</span>
             </button>
           </Section>
         </section>
 
         {/* ══════ FOOTER ══════ */}
         <footer
-          className="mx-auto max-w-[960px] px-8 py-10"
+          className="mx-auto max-w-[960px] px-5 py-8 sm:px-8 sm:py-10"
           style={{ borderTop: `1px solid ${c.border}` }}
         >
           <div className="space-y-0.5 text-center text-[10px] leading-[1.6]" style={{ color: c.textMuted }}>
