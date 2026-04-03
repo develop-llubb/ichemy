@@ -7,8 +7,6 @@ const PUBLIC_PATHS = [
   "/terms",
   "/privacy",
   "/marketing",
-  "/b2b/insurance",
-  "/b2b/education",
   "/profile/create",
 ];
 
@@ -46,7 +44,8 @@ export async function proxy(request: NextRequest) {
     PUBLIC_PATHS.includes(pathname) ||
     pathname.startsWith("/invite/") ||
     pathname.startsWith("/coupon/") ||
-    pathname.startsWith("/og/");
+    pathname.startsWith("/og/") ||
+    pathname.startsWith("/b2b/");
 
   // /invite/[id] → invited_by 쿠키 설정 (로그인 여부 무관 — 프로필 생성 시 필요)
   if (pathname.startsWith("/invite/")) {
