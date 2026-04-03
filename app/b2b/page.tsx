@@ -292,7 +292,7 @@ export default function B2BLanding() {
       >
         {/* ══════ NAV ══════ */}
         <nav
-          className="fixed inset-x-0 top-0 z-[100] flex items-center justify-between px-5 py-4 sm:px-8"
+          className="fixed inset-x-0 top-0 z-[100] flex items-center justify-between px-5 py-2 sm:px-8 sm:py-3"
           style={{
             background: c.bg,
             borderBottom: `1px solid ${c.border}`,
