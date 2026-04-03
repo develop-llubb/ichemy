@@ -22,10 +22,11 @@ export async function submitInquiry(input: InquiryInput) {
     await resend.emails.send({
       from: "아이케미 B2B <noreply@llubb.com>",
       to: "yskim@llubb.com",
-      subject: `[B2B 도입 문의] ${company} - ${name}`,
+      subject: `[B2B 보험 도입 문의] ${company} - ${name}`,
       html: `
-        <h2>B2B 도입 상담 신청</h2>
+        <h2>B2B 도입 상담 신청 (보험)</h2>
         <table style="border-collapse:collapse;font-size:14px;">
+          <tr><td style="padding:8px 16px 8px 0;font-weight:bold;">채널</td><td>보험 (Insurance)</td></tr>
           <tr><td style="padding:8px 16px 8px 0;font-weight:bold;">업체명</td><td>${company}</td></tr>
           <tr><td style="padding:8px 16px 8px 0;font-weight:bold;">담당자</td><td>${name}</td></tr>
           <tr><td style="padding:8px 16px 8px 0;font-weight:bold;">연락처</td><td>${phone}</td></tr>

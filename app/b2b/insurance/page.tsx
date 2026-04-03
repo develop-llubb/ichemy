@@ -316,7 +316,7 @@ export default function B2BLanding() {
                 padding: "2px 8px",
               }}
             >
-              B2B
+              INSURANCE
             </span>
           </a>
           <a
@@ -422,7 +422,7 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ PAIN POINTS ══════ */}
-        <section className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]">
+        <section className="mx-auto flex min-h-[70vh] max-w-[960px] flex-col justify-center px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Problem</Badge>
@@ -502,7 +502,7 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ SOLUTION ══════ */}
-        <section className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]">
+        <section className="mx-auto flex min-h-[70vh] max-w-[960px] flex-col justify-center px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Solution</Badge>
@@ -555,8 +555,8 @@ export default function B2BLanding() {
                 >
                   <Badge>{item.label}</Badge>
                   <p
-                    className="mt-2.5 text-[13px] font-light leading-[1.6]"
-                    style={{ color: c.textSecondary }}
+                    className="mt-2.5 text-sm font-normal leading-[1.6]"
+                    style={{ color: c.text }}
                   >
                     {item.before}
                   </p>
@@ -573,7 +573,7 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ 4 MODULES ══════ */}
-        <section className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]">
+        <section className="mx-auto flex min-h-[70vh] max-w-[960px] flex-col justify-center px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>4-Module System</Badge>
@@ -674,7 +674,7 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ PIPELINE ══════ */}
-        <section className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]">
+        <section className="mx-auto flex min-h-[70vh] max-w-[960px] flex-col justify-center px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Lifetime Pipeline</Badge>
@@ -795,7 +795,7 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ PRIVACY ══════ */}
-        <section className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]">
+        <section className="mx-auto flex min-h-[70vh] max-w-[960px] flex-col justify-center px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Privacy &amp; Security</Badge>
@@ -883,7 +883,7 @@ export default function B2BLanding() {
         </section>
 
         {/* ══════ FUNNEL ══════ */}
-        <section className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]">
+        <section className="mx-auto flex min-h-[70vh] max-w-[960px] flex-col justify-center px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Sales Engine</Badge>
@@ -977,7 +977,7 @@ export default function B2BLanding() {
         {/* ══════ CTA / INQUIRY FORM ══════ */}
         <section
           id="inquiry"
-          className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]"
+          className="mx-auto min-h-[70vh] max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]"
           style={{ scrollMarginTop: 80 }}
         >
           <Section>

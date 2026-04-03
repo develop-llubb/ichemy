@@ -8,6 +8,7 @@ const PUBLIC_PATHS = [
   "/privacy",
   "/marketing",
   "/b2b/insurance",
+  "/b2b/education",
   "/profile/create",
 ];
 
