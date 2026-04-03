@@ -1,16 +1,14 @@
 "use client";
 
-import { useState, useEffect, useRef, type ReactNode } from "react";
+import { useState, useEffect, useRef, type ReactNode, type FormEvent } from "react";
+import { submitInquiry } from "./actions";
 
 // ── CSS Variables & Keyframes (inline style tag) ──
 const CSS = `
+  html { scroll-behavior: smooth; }
   @keyframes fadeUp {
     from { opacity: 0; transform: translateY(28px); }
     to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes glow {
-    0%, 100% { opacity: 0.4; }
-    50% { opacity: 0.7; }
   }
   @keyframes gradientShift {
     0% { background-position: 0% 50%; }
@@ -137,6 +135,136 @@ function Stat({ value, label }: { value: string; label: string }) {
   );
 }
 
+// ── Inquiry Form ──
+const inputStyle = {
+  background: c.bgCard,
+  border: `1px solid ${c.border}`,
+  color: c.text,
+  outline: "none",
+  fontFamily: "var(--font-noto), 'Noto Sans KR', sans-serif",
+};
+
+function InquiryForm() {
+  const [form, setForm] = useState({ company: "", name: "", phone: "", message: "" });
+  const [touched, setTouched] = useState({ company: false, name: false, phone: false });
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+
+  const errors = {
+    company: touched.company && !form.company.trim() ? "업체명을 입력해 주세요." : "",
+    name: touched.name && !form.name.trim() ? "담당자명을 입력해 주세요." : "",
+    phone: touched.phone && form.phone.replace(/\D/g, "").length < 10 ? "연락처를 정확히 입력해 주세요." : "",
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setTouched({ company: true, name: true, phone: true });
+    if (!form.company.trim() || !form.name.trim() || form.phone.replace(/\D/g, "").length < 10) {
+      return;
+    }
+    setStatus("sending");
+    const result = await submitInquiry(form);
+    if (result.error) {
+      setErrorMsg(result.error);
+      setStatus("error");
+    } else {
+      setStatus("sent");
+    }
+  };
+
+  if (status === "sent") {
+    return (
+      <div
+        className="mx-auto max-w-[480px] rounded-2xl px-8 py-12 text-center"
+        style={{ background: c.bgCard, border: `1px solid ${c.border}` }}
+      >
+        <div className="text-3xl">✓</div>
+        <h3 className="mt-4 text-lg font-bold">신청이 완료되었습니다</h3>
+        <p className="mt-2 text-sm" style={{ color: c.textSecondary }}>
+          빠른 시일 내에 연락드리겠습니다.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="mx-auto flex max-w-[480px] flex-col gap-4"
+    >
+      <div>
+        <input
+          type="text"
+          placeholder="업체명 *"
+          value={form.company}
+          onChange={(e) => { setTouched({ ...touched, company: true }); setForm({ ...form, company: e.target.value }); }}
+          className="w-full rounded-xl px-5 py-3.5 text-sm"
+          style={{ ...inputStyle, borderColor: errors.company ? c.coral : c.border }}
+        />
+        {errors.company && <p className="mt-1.5 text-xs" style={{ color: c.coral }}>{errors.company}</p>}
+      </div>
+      <div>
+        <input
+          type="text"
+          placeholder="담당자명 *"
+          value={form.name}
+          onChange={(e) => { setTouched({ ...touched, name: true }); setForm({ ...form, name: e.target.value }); }}
+          className="w-full rounded-xl px-5 py-3.5 text-sm"
+          style={{ ...inputStyle, borderColor: errors.name ? c.coral : c.border }}
+        />
+        {errors.name && <p className="mt-1.5 text-xs" style={{ color: c.coral }}>{errors.name}</p>}
+      </div>
+      <div>
+        <input
+          type="tel"
+          placeholder="연락처 *"
+          value={form.phone}
+          onChange={(e) => {
+            setTouched({ ...touched, phone: true });
+            const digits = e.target.value.replace(/\D/g, "").slice(0, 11);
+            let formatted = digits;
+            if (digits.length > 7) {
+              formatted = `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+            } else if (digits.length > 3) {
+              formatted = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+            }
+            setForm({ ...form, phone: formatted });
+          }}
+          className="w-full rounded-xl px-5 py-3.5 text-sm"
+          style={{ ...inputStyle, borderColor: errors.phone ? c.coral : c.border }}
+        />
+        {errors.phone && <p className="mt-1.5 text-xs" style={{ color: c.coral }}>{errors.phone}</p>}
+      </div>
+      <textarea
+        placeholder="문의 내용 (선택)"
+        value={form.message}
+        onChange={(e) => setForm({ ...form, message: e.target.value })}
+        rows={4}
+        className="w-full resize-none rounded-xl px-5 py-3.5 text-sm"
+        style={inputStyle}
+      />
+      {status === "error" && errorMsg && (
+        <p className="text-center text-sm" style={{ color: c.coral }}>
+          {errorMsg}
+        </p>
+      )}
+      <button
+        type="submit"
+        disabled={status === "sending"}
+        className="cta-btn mt-2 w-full rounded-xl border-none py-4 text-base font-bold"
+        style={{
+          background: status === "sending" ? c.borderLight : c.accent,
+          color: "#0A0A0B",
+          fontFamily: "var(--font-noto), 'Noto Sans KR', sans-serif",
+          cursor: status === "sending" ? "default" : "pointer",
+        }}
+      >
+        {status === "sending" ? "전송 중..." : <>상담 신청하기 <span>→</span></>}
+      </button>
+    </form>
+  );
+}
+
 // ── Main Page ──
 export default function B2BLanding() {
   const [ready, setReady] = useState(false);
@@ -170,7 +298,7 @@ export default function B2BLanding() {
             borderBottom: `1px solid ${c.border}`,
           }}
         >
-          <div className="flex items-center gap-2.5">
+          <a href="#" className="flex items-center gap-2.5 no-underline">
             <span
               className="text-xl font-bold tracking-wider"
               style={{
@@ -190,9 +318,10 @@ export default function B2BLanding() {
             >
               B2B
             </span>
-          </div>
-          <button
-            className="cta-btn rounded-lg border-none px-5 py-2 text-[13px] font-semibold"
+          </a>
+          <a
+            href="#inquiry"
+            className="cta-btn rounded-lg border-none px-5 py-2 text-[13px] font-semibold no-underline"
             style={{
               background: c.accent,
               color: "#0A0A0B",
@@ -201,25 +330,11 @@ export default function B2BLanding() {
             }}
           >
             도입 문의
-          </button>
+          </a>
         </nav>
 
         {/* ══════ HERO ══════ */}
         <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pb-20 pt-[120px] text-center">
-          {/* Ambient glow */}
-          <div
-            className="pointer-events-none absolute left-1/2 top-[20%]"
-            style={{
-              transform: "translateX(-50%)",
-              width: 600,
-              height: 400,
-              borderRadius: "50%",
-              background:
-                "radial-gradient(circle, rgba(110,231,183,0.08) 0%, transparent 70%)",
-              filter: "blur(80px)",
-              animation: "glow 6s ease-in-out infinite",
-            }}
-          />
 
           <div style={ease(0)}>
             <Badge>Insurance B2B Data Solution</Badge>
@@ -260,8 +375,9 @@ export default function B2BLanding() {
           </p>
 
           <div className="mt-10 flex flex-col gap-3 sm:flex-row" style={ease(0.24)}>
-            <button
-              className="cta-btn rounded-[10px] border-none px-8 py-3.5 text-[15px] font-bold"
+            <a
+              href="#inquiry"
+              className="cta-btn rounded-[10px] border-none px-8 py-3.5 text-[15px] font-bold no-underline"
               style={{
                 background: c.accent,
                 color: "#0A0A0B",
@@ -270,7 +386,7 @@ export default function B2BLanding() {
               }}
             >
               도입 상담 신청 <span>→</span>
-            </button>
+            </a>
           </div>
 
           {/* Stats */}
@@ -834,50 +950,31 @@ export default function B2BLanding() {
           </div>
         </section>
 
-        {/* ══════ CTA ══════ */}
-        <section className="relative px-5 py-[120px] text-center sm:px-6 sm:py-[200px]">
-          <div
-            className="pointer-events-none absolute left-1/2 top-1/2"
-            style={{
-              transform: "translate(-50%, -50%)",
-              width: 500,
-              height: 300,
-              borderRadius: "50%",
-              background:
-                "radial-gradient(circle, rgba(110,231,183,0.06) 0%, transparent 70%)",
-              filter: "blur(60px)",
-            }}
-          />
+        {/* ══════ CTA / INQUIRY FORM ══════ */}
+        <section
+          id="inquiry"
+          className="mx-auto max-w-[960px] px-5 py-16 sm:px-6 sm:py-[100px]"
+          style={{ scrollMarginTop: 80 }}
+        >
           <Section>
-            <h2
-              className="relative mb-5 font-extrabold leading-[1.3]"
-              style={{
-                fontSize: "clamp(28px, 4vw, 44px)",
-                letterSpacing: -1.5,
-              }}
-            >
-              데이터가 문을 열고,
-              <br />
-              신뢰가 계약을 완성합니다
-            </h2>
-            <p
-              className="relative mb-10 text-base font-light"
-              style={{ color: c.textSecondary }}
-            >
-              아이케미 B2B 도입 상담을 신청하세요.
-            </p>
-            <button
-              className="cta-btn relative rounded-xl border-none px-12 py-4 text-base font-bold"
-              style={{
-                background: c.accent,
-                color: "#0A0A0B",
-                fontFamily: "var(--font-noto), 'Noto Sans KR', sans-serif",
-                cursor: "pointer",
-              }}
-            >
-              도입 상담 신청 <span>→</span>
-            </button>
+            <div className="mb-10 text-center sm:mb-[60px]">
+              <Badge>Contact</Badge>
+              <h2
+                className="mt-5 text-2xl font-extrabold leading-[1.3] sm:text-4xl"
+                style={{ letterSpacing: -1.5 }}
+              >
+                도입 상담 신청
+              </h2>
+              <p
+                className="mt-4 text-sm font-light"
+                style={{ color: c.textSecondary }}
+              >
+                아래 정보를 남겨 주시면 빠르게 연락드리겠습니다.
+              </p>
+            </div>
           </Section>
+
+          <InquiryForm />
         </section>
 
         {/* ══════ FOOTER ══════ */}
