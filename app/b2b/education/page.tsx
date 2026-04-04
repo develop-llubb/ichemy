@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, type ReactNode, type FormEvent } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  type ReactNode,
+  type FormEvent,
+} from "react";
 import { submitInquiry } from "./actions";
 
 // ── CSS Variables & Keyframes (inline style tag) ──
@@ -145,21 +151,40 @@ const inputStyle = {
 };
 
 function InquiryForm() {
-  const [form, setForm] = useState({ company: "", name: "", phone: "", message: "" });
-  const [touched, setTouched] = useState({ company: false, name: false, phone: false });
-  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [form, setForm] = useState({
+    company: "",
+    name: "",
+    phone: "",
+    message: "",
+  });
+  const [touched, setTouched] = useState({
+    company: false,
+    name: false,
+    phone: false,
+  });
+  const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
+    "idle",
+  );
   const [errorMsg, setErrorMsg] = useState("");
 
   const errors = {
-    company: touched.company && !form.company.trim() ? "업체명을 입력해 주세요." : "",
+    company:
+      touched.company && !form.company.trim() ? "업체명을 입력해 주세요." : "",
     name: touched.name && !form.name.trim() ? "담당자명을 입력해 주세요." : "",
-    phone: touched.phone && form.phone.replace(/\D/g, "").length < 10 ? "연락처를 정확히 입력해 주세요." : "",
+    phone:
+      touched.phone && form.phone.replace(/\D/g, "").length < 10
+        ? "연락처를 정확히 입력해 주세요."
+        : "",
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setTouched({ company: true, name: true, phone: true });
-    if (!form.company.trim() || !form.name.trim() || form.phone.replace(/\D/g, "").length < 10) {
+    if (
+      !form.company.trim() ||
+      !form.name.trim() ||
+      form.phone.replace(/\D/g, "").length < 10
+    ) {
       return;
     }
     setStatus("sending");
@@ -197,22 +222,42 @@ function InquiryForm() {
           type="text"
           placeholder="업체명 *"
           value={form.company}
-          onChange={(e) => { setTouched({ ...touched, company: true }); setForm({ ...form, company: e.target.value }); }}
+          onChange={(e) => {
+            setTouched({ ...touched, company: true });
+            setForm({ ...form, company: e.target.value });
+          }}
           className="w-full rounded-xl px-5 py-3.5 text-sm"
-          style={{ ...inputStyle, borderColor: errors.company ? c.coral : c.border }}
+          style={{
+            ...inputStyle,
+            borderColor: errors.company ? c.coral : c.border,
+          }}
         />
-        {errors.company && <p className="mt-1.5 text-xs" style={{ color: c.coral }}>{errors.company}</p>}
+        {errors.company && (
+          <p className="mt-1.5 text-xs" style={{ color: c.coral }}>
+            {errors.company}
+          </p>
+        )}
       </div>
       <div>
         <input
           type="text"
           placeholder="담당자명 *"
           value={form.name}
-          onChange={(e) => { setTouched({ ...touched, name: true }); setForm({ ...form, name: e.target.value }); }}
+          onChange={(e) => {
+            setTouched({ ...touched, name: true });
+            setForm({ ...form, name: e.target.value });
+          }}
           className="w-full rounded-xl px-5 py-3.5 text-sm"
-          style={{ ...inputStyle, borderColor: errors.name ? c.coral : c.border }}
+          style={{
+            ...inputStyle,
+            borderColor: errors.name ? c.coral : c.border,
+          }}
         />
-        {errors.name && <p className="mt-1.5 text-xs" style={{ color: c.coral }}>{errors.name}</p>}
+        {errors.name && (
+          <p className="mt-1.5 text-xs" style={{ color: c.coral }}>
+            {errors.name}
+          </p>
+        )}
       </div>
       <div>
         <input
@@ -231,9 +276,16 @@ function InquiryForm() {
             setForm({ ...form, phone: formatted });
           }}
           className="w-full rounded-xl px-5 py-3.5 text-sm"
-          style={{ ...inputStyle, borderColor: errors.phone ? c.coral : c.border }}
+          style={{
+            ...inputStyle,
+            borderColor: errors.phone ? c.coral : c.border,
+          }}
         />
-        {errors.phone && <p className="mt-1.5 text-xs" style={{ color: c.coral }}>{errors.phone}</p>}
+        {errors.phone && (
+          <p className="mt-1.5 text-xs" style={{ color: c.coral }}>
+            {errors.phone}
+          </p>
+        )}
       </div>
       <textarea
         placeholder="문의 내용 (선택)"
@@ -259,7 +311,13 @@ function InquiryForm() {
           cursor: status === "sending" ? "default" : "pointer",
         }}
       >
-        {status === "sending" ? "전송 중..." : <>제휴 상담 신청하기 <span>→</span></>}
+        {status === "sending" ? (
+          "전송 중..."
+        ) : (
+          <>
+            제휴 상담 신청하기 <span>→</span>
+          </>
+        )}
       </button>
     </form>
   );
@@ -335,7 +393,6 @@ export default function B2BEducationLanding() {
 
         {/* ══════ HERO ══════ */}
         <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-5 pb-16 pt-[100px] text-center sm:px-6 sm:pb-20 sm:pt-[120px]">
-
           <div style={ease(0)}>
             <Badge>Education B2B Data Solution</Badge>
           </div>
@@ -374,7 +431,10 @@ export default function B2BEducationLanding() {
             신규 세일즈 퍼널 구축 및 장기 록인 전략
           </p>
 
-          <div className="mt-10 flex flex-col gap-3 sm:flex-row" style={ease(0.24)}>
+          <div
+            className="mt-10 flex flex-col gap-3 sm:flex-row"
+            style={ease(0.24)}
+          >
             <a
               href="#inquiry"
               className="cta-btn rounded-[10px] border-none px-8 py-3.5 text-[15px] font-bold no-underline"
@@ -390,35 +450,38 @@ export default function B2BEducationLanding() {
           </div>
 
           {/* Stats */}
-          <div className="mt-16 grid w-full max-w-[600px] grid-cols-3 sm:mt-20" style={ease(0.32)}>
+          <div
+            className="mt-16 grid w-full max-w-[600px] grid-cols-3 sm:mt-20"
+            style={ease(0.32)}
+          >
             <Stat value="4분" label="설문 소요 시간" />
             <Stat value="4-in-1" label="통합 진단 리포트" />
             <Stat value="10년" label="장기 구독 파이프라인" />
           </div>
 
-          {/* As seen in */}
-          <div
-            className="mt-14 flex items-center justify-center gap-2 sm:mt-20"
-            style={ease(0.4)}
+          {/* Press */}
+          <a
+            href="https://www.ibabynews.com/news/articleView.html?idxno=149846"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-14 flex items-center gap-4 rounded-full px-5 py-2.5 no-underline sm:mt-20"
+            style={{
+              background: c.bgCard,
+              border: `1px solid ${c.border}`,
+              ...ease(0.4),
+            }}
           >
-            <span className="text-[11px] tracking-wide" style={{ color: c.textMuted }}>
-              AS SEEN IN
-            </span>
-            <span className="text-[11px]" style={{ color: c.textMuted }}>—</span>
-            <a
-              href="https://www.ibabynews.com/news/articleView.html?idxno=149846"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-medium no-underline transition-colors hover:underline"
-              style={{ color: c.textSecondary }}
+            <span
+              className="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wider"
+              style={{ background: c.accentDim, color: c.accent }}
             >
-              베이비뉴스
-            </a>
-            <span className="text-[10px]" style={{ color: c.textMuted }}>|</span>
-            <span className="text-[11px]" style={{ color: c.textMuted }}>
-              베페 베이비페어 2026
+              PRESS
             </span>
-          </div>
+            <span className="truncate text-xs" style={{ color: c.textSecondary }}>
+              <span style={{ color: c.textMuted }}>베이비뉴스</span> · 베페 베이비페어서 정밀 육아 솔루션 &apos;케미스트리&apos; 첫선
+            </span>
+            <span className="shrink-0 text-xs" style={{ color: c.textMuted }}>→</span>
+          </a>
         </section>
 
         {/* ══════ PAIN POINTS ══════ */}
@@ -426,10 +489,15 @@ export default function B2BEducationLanding() {
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Problem</Badge>
-              <h2 className="mt-5 text-2xl font-extrabold leading-[1.3] sm:text-4xl" style={{ letterSpacing: -1.5 }}>
+              <h2
+                className="mt-5 text-2xl font-extrabold leading-[1.3] sm:text-4xl"
+                style={{ letterSpacing: -1.5 }}
+              >
                 교재 샘플에 의존하는 콜드 세일즈는
                 <br />
-                <span style={{ color: c.textMuted }}>구조적 한계에 직면했습니다</span>
+                <span style={{ color: c.textMuted }}>
+                  구조적 한계에 직면했습니다
+                </span>
               </h2>
             </div>
           </Section>
@@ -496,7 +564,8 @@ export default function B2BEducationLanding() {
                 color: c.coral,
               }}
             >
-              학부모는 &apos;단순 교재 배달부&apos;가 아닌, &apos;데이터 기반 에듀케어 전문가&apos;를 원합니다.
+              학부모는 &apos;단순 교재 배달부&apos;가 아닌, &apos;데이터 기반
+              에듀케어 전문가&apos;를 원합니다.
             </div>
           </Section>
         </section>
@@ -506,7 +575,10 @@ export default function B2BEducationLanding() {
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Solution</Badge>
-              <h2 className="mt-5 text-2xl font-extrabold leading-[1.3] sm:text-4xl" style={{ letterSpacing: -1.5 }}>
+              <h2
+                className="mt-5 text-2xl font-extrabold leading-[1.3] sm:text-4xl"
+                style={{ letterSpacing: -1.5 }}
+              >
                 세일즈의 격과 전환율이
                 <br />
                 <span
@@ -577,7 +649,10 @@ export default function B2BEducationLanding() {
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>4-in-1 System</Badge>
-              <h2 className="mt-5 text-2xl font-extrabold leading-[1.3] sm:text-4xl" style={{ letterSpacing: -1.5 }}>
+              <h2
+                className="mt-5 text-2xl font-extrabold leading-[1.3] sm:text-4xl"
+                style={{ letterSpacing: -1.5 }}
+              >
                 아이의 강점부터 양육 환경까지
                 <br />
                 <span style={{ color: c.accent }}>4-in-1</span> 통합 진단
@@ -644,9 +719,7 @@ export default function B2BEducationLanding() {
                     >
                       MODULE {item.module}
                     </span>
-                    <h3 className="mt-2 text-xl font-bold">
-                      {item.title}
-                    </h3>
+                    <h3 className="mt-2 text-xl font-bold">{item.title}</h3>
                   </div>
                   <div
                     className="mb-4 h-px w-full"
@@ -678,7 +751,10 @@ export default function B2BEducationLanding() {
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Lifetime Pipeline</Badge>
-              <h2 className="mt-5 text-2xl font-extrabold sm:text-4xl" style={{ letterSpacing: -1.5 }}>
+              <h2
+                className="mt-5 text-2xl font-extrabold sm:text-4xl"
+                style={{ letterSpacing: -1.5 }}
+              >
                 5세 진입으로
                 <br />
                 10년의 장기 구독을 구조화합니다
@@ -699,14 +775,16 @@ export default function B2BEducationLanding() {
                 age: "8~13세",
                 stage: "초등부",
                 action: "프레이밍: '학습·학교생활'",
-                sales: "국/영/수 심화 프로그램. 6개월 단위 재검사로 재방문 명분 창출",
+                sales:
+                  "국/영/수 심화 프로그램. 6개월 단위 재검사로 재방문 명분 창출",
                 active: false,
               },
               {
                 age: "14~16세",
                 stage: "중등부",
                 action: "프레이밍: '학업·진로'",
-                sales: "자기주도학습 및 고등 대비 장기 수강 전환 (6과목 진로 연결)",
+                sales:
+                  "자기주도학습 및 고등 대비 장기 수강 전환 (6과목 진로 연결)",
                 active: false,
               },
             ].map((item, i, arr) => (
@@ -783,7 +861,8 @@ export default function B2BEducationLanding() {
                 color: c.accent,
               }}
             >
-              단 한 번의 가족 진입으로, 자녀의 성장 단계마다 새로운 세일즈 터치포인트가 자동 생성됩니다.
+              단 한 번의 가족 진입으로, 자녀의 성장 단계마다 새로운 세일즈
+              터치포인트가 자동 생성됩니다.
             </div>
           </Section>
         </section>
@@ -793,7 +872,10 @@ export default function B2BEducationLanding() {
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Sales Engine</Badge>
-              <h2 className="mt-5 text-2xl font-extrabold sm:text-4xl" style={{ letterSpacing: -1.5 }}>
+              <h2
+                className="mt-5 text-2xl font-extrabold sm:text-4xl"
+                style={{ letterSpacing: -1.5 }}
+              >
                 단 4분, 방문교사가 교육 컨설턴트로
               </h2>
             </div>
@@ -851,8 +933,7 @@ export default function B2BEducationLanding() {
                     <span
                       className="text-sm font-bold"
                       style={{
-                        fontFamily:
-                          "var(--font-outfit), 'Outfit', sans-serif",
+                        fontFamily: "var(--font-outfit), 'Outfit', sans-serif",
                         color: item.color,
                       }}
                     >
@@ -881,7 +962,7 @@ export default function B2BEducationLanding() {
         </section>
 
         {/* ══════ ROI ══════ */}
-        <section className="mx-auto flex min-h-[70vh] max-w-[960px] flex-col justify-center px-5 py-16 sm:px-6 sm:py-[100px]">
+        {/* <section className="mx-auto flex min-h-[70vh] max-w-[960px] flex-col justify-center px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>ROI</Badge>
@@ -962,14 +1043,17 @@ export default function B2BEducationLanding() {
               </Section>
             ))}
           </div>
-        </section>
+        </section> */}
 
         {/* ══════ ONBOARDING ══════ */}
         <section className="mx-auto flex min-h-[70vh] max-w-[960px] flex-col justify-center px-5 py-16 sm:px-6 sm:py-[100px]">
           <Section>
             <div className="mb-10 text-center sm:mb-[60px]">
               <Badge>Quick Start</Badge>
-              <h2 className="mt-5 text-2xl font-extrabold sm:text-4xl" style={{ letterSpacing: -1.5 }}>
+              <h2
+                className="mt-5 text-2xl font-extrabold sm:text-4xl"
+                style={{ letterSpacing: -1.5 }}
+              >
                 IT 개발 불필요, 단 5일 후면
                 <br />
                 전국 영업 현장에 즉시 가동됩니다
@@ -985,7 +1069,13 @@ export default function B2BEducationLanding() {
               { day: "4", desc: "교사 교육 및 검수" },
               { day: "5", desc: "전국 정식 운영" },
             ].map((item, i, arr) => (
-              <Section key={i} delay={i * 0.06} className={i === arr.length - 1 ? "col-span-2 sm:col-span-1" : ""}>
+              <Section
+                key={i}
+                delay={i * 0.06}
+                className={
+                  i === arr.length - 1 ? "col-span-2 sm:col-span-1" : ""
+                }
+              >
                 <div
                   className="h-full rounded-xl px-4 py-5 text-center sm:px-5 sm:py-6"
                   style={{
@@ -1022,7 +1112,8 @@ export default function B2BEducationLanding() {
                 color: c.accent,
               }}
             >
-              SaaS 플랫폼을 통해 별도 앱 구축이나 복잡한 서버 연동 없이 계약 즉시 운영이 가능합니다.
+              SaaS 플랫폼을 통해 별도 앱 구축이나 복잡한 서버 연동 없이 계약
+              즉시 운영이 가능합니다.
             </div>
           </Section>
         </section>
@@ -1061,16 +1152,31 @@ export default function B2BEducationLanding() {
           className="mx-auto max-w-[960px] px-5 py-8 sm:px-8 sm:py-10"
           style={{ borderTop: `1px solid ${c.border}` }}
         >
-          <div className="space-y-0.5 text-center text-[10px] leading-[1.6]" style={{ color: c.textMuted }}>
+          <div
+            className="space-y-0.5 text-center text-[10px] leading-[1.6]"
+            style={{ color: c.textMuted }}
+          >
             <div>주식회사 LLUBB · 대표 김유승</div>
             <div>사업자등록번호 880-87-03398</div>
             <div>통신판매업 제2025-용인기흥-0000호</div>
             <div>경기도 용인시 기흥구 덕영대로2077번길 8, 103동 1201호</div>
             <div>010-3082-3241 · yskim@llubb.com</div>
             <div className="flex items-center justify-center gap-2 pt-2">
-              <a href="/terms" className="underline" style={{ color: c.textMuted }}>이용약관</a>
+              <a
+                href="/terms"
+                className="underline"
+                style={{ color: c.textMuted }}
+              >
+                이용약관
+              </a>
               <span>·</span>
-              <a href="/privacy" className="underline" style={{ color: c.textMuted }}>개인정보처리방침</a>
+              <a
+                href="/privacy"
+                className="underline"
+                style={{ color: c.textMuted }}
+              >
+                개인정보처리방침
+              </a>
             </div>
             <div className="pt-1">© 2025 LLUBB</div>
           </div>

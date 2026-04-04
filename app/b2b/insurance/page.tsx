@@ -396,29 +396,29 @@ export default function B2BLanding() {
             <Stat value="10년" label="고객 터치포인트" />
           </div>
 
-          {/* As seen in */}
-          <div
-            className="mt-14 flex items-center justify-center gap-2 sm:mt-20"
-            style={ease(0.4)}
+          {/* Press */}
+          <a
+            href="https://www.ibabynews.com/news/articleView.html?idxno=149846"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-14 flex items-center gap-4 rounded-full px-5 py-2.5 no-underline sm:mt-20"
+            style={{
+              background: c.bgCard,
+              border: `1px solid ${c.border}`,
+              ...ease(0.4),
+            }}
           >
-            <span className="text-[11px] tracking-wide" style={{ color: c.textMuted }}>
-              AS SEEN IN
-            </span>
-            <span className="text-[11px]" style={{ color: c.textMuted }}>—</span>
-            <a
-              href="https://www.ibabynews.com/news/articleView.html?idxno=149846"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-medium no-underline transition-colors hover:underline"
-              style={{ color: c.textSecondary }}
+            <span
+              className="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wider"
+              style={{ background: c.accentDim, color: c.accent }}
             >
-              베이비뉴스
-            </a>
-            <span className="text-[10px]" style={{ color: c.textMuted }}>|</span>
-            <span className="text-[11px]" style={{ color: c.textMuted }}>
-              베페 베이비페어 2026
+              PRESS
             </span>
-          </div>
+            <span className="truncate text-xs" style={{ color: c.textSecondary }}>
+              <span style={{ color: c.textMuted }}>베이비뉴스</span> · 베페 베이비페어서 정밀 육아 솔루션 &apos;케미스트리&apos; 첫선
+            </span>
+            <span className="shrink-0 text-xs" style={{ color: c.textMuted }}>→</span>
+          </a>
         </section>
 
         {/* ══════ PAIN POINTS ══════ */}
