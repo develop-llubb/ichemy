@@ -28,6 +28,23 @@ const CSS = `
   .cta-btn:hover { transform: scale(1.04); }
   .cta-btn span { display: inline-block; transition: transform 0.2s ease; }
   .cta-btn:hover span { transform: translateX(4px); }
+  @keyframes glowPulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(110,231,183,0.06); }
+    50% { box-shadow: 0 0 16px rgba(110,231,183,0.12); }
+  }
+  .press-pill {
+    transition: all 0.3s cubic-bezier(0.22,1,0.36,1);
+    position: relative;
+    border-color: rgba(110,231,183,0.15) !important;
+    animation: glowPulse 4s ease-in-out infinite;
+  }
+  .press-pill:hover {
+    transform: scale(1.02);
+    border-color: rgba(110,231,183,0.3) !important;
+    box-shadow: 0 4px 20px rgba(110,231,183,0.15);
+  }
+  .press-pill .press-arrow { transition: all 0.3s ease; }
+  .press-pill:hover .press-arrow { transform: translateX(3px); color: #6EE7B7 !important; }
   @media (max-width: 639px) {
     .funnel-step { width: 100% !important; }
   }
@@ -401,23 +418,28 @@ export default function B2BLanding() {
             href="https://www.ibabynews.com/news/articleView.html?idxno=149846"
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-14 flex items-center gap-4 rounded-full px-5 py-2.5 no-underline sm:mt-20"
+            className="press-pill mt-10 flex max-w-full items-center gap-2.5 rounded-full px-4 py-2 no-underline sm:mt-20 sm:gap-4 sm:px-5 sm:py-2.5"
             style={{
               background: c.bgCard,
               border: `1px solid ${c.border}`,
-              ...ease(0.4),
+              opacity: ready ? 1 : 0,
+              transform: ready ? "translateY(0)" : "translateY(24px)",
+              transition: "opacity 0.7s cubic-bezier(0.22,1,0.36,1) 0.4s, transform 0.7s cubic-bezier(0.22,1,0.36,1) 0.4s",
             }}
           >
-            <span
-              className="shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold tracking-wider"
-              style={{ background: c.accentDim, color: c.accent }}
-            >
-              PRESS
+            <span className="flex shrink-0 items-center gap-2">
+              <span
+                className="rounded-full px-2 py-0.5 text-[9px] font-bold tracking-wider sm:px-2.5 sm:py-1 sm:text-[10px]"
+                style={{ background: c.accentDim, color: c.accent }}
+              >
+                PRESS
+              </span>
+              <span className="text-[11px] font-medium" style={{ color: c.textMuted }}>베이비뉴스</span>
             </span>
-            <span className="truncate text-xs" style={{ color: c.textSecondary }}>
-              <span style={{ color: c.textMuted }}>베이비뉴스</span> · 베페 베이비페어서 정밀 육아 솔루션 &apos;케미스트리&apos; 첫선
+            <span className="min-w-0 text-left text-[11px] leading-snug sm:text-xs" style={{ color: c.textSecondary }}>
+              베페 베이비페어서 정밀 육아 솔루션 &apos;케미스트리&apos; 첫선
             </span>
-            <span className="shrink-0 text-xs" style={{ color: c.textMuted }}>→</span>
+            <span className="press-arrow shrink-0 text-xs" style={{ color: c.textMuted }}>→</span>
           </a>
         </section>
 
