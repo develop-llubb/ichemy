@@ -241,9 +241,11 @@ export function ReportListClient({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="truncate text-[15px] font-semibold text-foreground">
-                      {report.child_name
-                        ? `${report.child_name}의 육아 케어 리포트`
-                        : "예비 부모 육아 케어 리포트"}
+                      {report.report_type === "no_child"
+                        ? "예비 부모 육아 케어 리포트"
+                        : report.child_name
+                          ? `${report.child_name}의 육아 케어 리포트`
+                          : "자녀 양육 케어 리포트"}
                     </span>
                   </div>
                   <div className="mt-1 flex items-center gap-1.5">

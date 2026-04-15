@@ -362,7 +362,11 @@ export function ReportResultClient({
           <ChevronLeft size={24} className="text-foreground" />
         </button>
         <span className="text-center text-[15px] font-semibold text-foreground">
-          {childName ? `${childName}의 육아 케어 리포트` : "예비 부모 육아 케어 리포트"}
+          {reportType === "no_child"
+            ? "예비 부모 육아 케어 리포트"
+            : childName
+              ? `${childName}의 육아 케어 리포트`
+              : "자녀 양육 케어 리포트"}
         </span>
         <div />
       </div>
