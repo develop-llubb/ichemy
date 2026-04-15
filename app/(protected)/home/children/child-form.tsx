@@ -1,11 +1,19 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { Camera, X, Loader2 } from "lucide-react";
+import { Camera, X, Loader2, CalendarIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { format } from "date-fns";
+import { ko } from "date-fns/locale";
 
 interface ChildFormProps {
-  coupleId: string;
+  coupleId?: string;
   initial?: {
     id: string;
     name: string;
@@ -92,47 +100,49 @@ export function ChildForm({
 
   return (
     <div className="w-full rounded-2xl border-[1.5px] border-[#ECE8E3] bg-white p-5">
-      {/* 사진 */}
-      <div className="mb-5 flex justify-center">
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-[#D4CFC8] bg-[#F8F6F3] transition-colors hover:border-primary"
-        >
-          {photoPreview ? (
-            <>
-              <img
-                src={photoPreview}
-                alt="미리보기"
-                className="h-full w-full object-cover"
-              />
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setPhotoPreview(null);
-                  setPhotoFile(null);
-                }}
-                className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#6B6360] text-white"
-              >
-                <X size={12} />
-              </button>
-            </>
-          ) : (
-            <div className="flex flex-col items-center gap-1">
-              <Camera size={20} className="text-[#B8A898]" />
-              <span className="text-[10px] text-[#B8A898]">사진</span>
-            </div>
-          )}
-        </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          onChange={handleFileChange}
-          className="hidden"
-        />
-      </div>
+      {/* 사진 (coupleId가 있을 때만) */}
+      {coupleId && (
+        <div className="mb-5 flex justify-center">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-[#D4CFC8] bg-[#F8F6F3] transition-colors hover:border-primary"
+          >
+            {photoPreview ? (
+              <>
+                <img
+                  src={photoPreview}
+                  alt="미리보기"
+                  className="h-full w-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPhotoPreview(null);
+                    setPhotoFile(null);
+                  }}
+                  className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-[#6B6360] text-white"
+                >
+                  <X size={12} />
+                </button>
+              </>
+            ) : (
+              <div className="flex flex-col items-center gap-1">
+                <Camera size={20} className="text-[#B8A898]" />
+                <span className="text-[10px] text-[#B8A898]">사진</span>
+              </div>
+            )}
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </div>
+      )}
 
       {/* 이름 */}
       <div className="mb-3">
@@ -183,12 +193,35 @@ export function ChildForm({
         <label className="mb-1.5 block text-xs font-semibold text-[#6B6360]">
           생년월일
         </label>
-        <input
-          type="date"
-          value={birthDate}
-          onChange={(e) => setBirthDate(e.target.value)}
-          className="h-11 w-full rounded-xl border-[1.5px] border-[#ECE8E3] bg-[#FEFCF9] px-3.5 text-sm text-foreground outline-none transition-colors focus:border-primary"
-        />
+        <Popover>
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className={`flex h-11 w-full items-center justify-between rounded-xl border-[1.5px] border-[#ECE8E3] bg-[#FEFCF9] px-3.5 text-sm transition-colors focus:border-primary ${
+                birthDate ? "text-foreground" : "text-[#C4BEB8]"
+              }`}
+            >
+              {birthDate
+                ? format(new Date(birthDate), "yyyy년 M월 d일", { locale: ko })
+                : "생년월일 선택"}
+              <CalendarIcon size={16} className="text-[#B8A898]" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={birthDate ? new Date(birthDate) : undefined}
+              onSelect={(date) => {
+                if (date) setBirthDate(format(date, "yyyy-MM-dd"));
+              }}
+              locale={ko}
+              captionLayout="dropdown"
+              fromYear={2010}
+              toYear={new Date().getFullYear()}
+              defaultMonth={birthDate ? new Date(birthDate) : new Date()}
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* 버튼 */}

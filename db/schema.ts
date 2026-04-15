@@ -46,6 +46,11 @@ export const reportStatusEnum = pgEnum("befe_report_status", [
   "completed",
   "failed",
 ]);
+export const parentingStatusEnum = pgEnum("befe_parenting_status", [
+  "has_children",
+  "pregnant",
+  "none",
+]);
 export const reportTypeEnum = pgEnum("befe_report_type", [
   "no_child",
   "infant",
@@ -166,6 +171,10 @@ export const befeProfiles = pgTable("befe_profiles", {
   }).defaultNow(),
 
   third_party_agreed: boolean("third_party_agreed").default(false).notNull(),
+
+  // 자녀/임신 상태
+  parenting_status: parentingStatusEnum("parenting_status"),
+  pregnancy_weeks: smallint("pregnancy_weeks"),
 
   // 테스트 진행
   test_index: integer("test_index").default(0).notNull(),

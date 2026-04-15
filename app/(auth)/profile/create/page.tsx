@@ -26,7 +26,7 @@ export default async function ProfileCreatePage({
   }
 
   return (
-    <div className="relative mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background px-6">
+    <div className="relative mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background px-6 pb-12 pt-12">
       <main className="flex flex-1 flex-col justify-center">
         <h1
           className="animate-fade-up font-display text-3xl text-primary"
