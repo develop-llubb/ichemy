@@ -46,6 +46,18 @@ export const reportStatusEnum = pgEnum("befe_report_status", [
   "completed",
   "failed",
 ]);
+export const parentingStatusEnum = pgEnum("befe_parenting_status", [
+  "has_children",
+  "pregnant",
+  "none",
+]);
+export const reportTypeEnum = pgEnum("befe_report_type", [
+  "no_child",
+  "infant",
+  "toddler",
+  "elementary",
+  "middle_school",
+]);
 
 // ─── 공유 테이블 (읽기 전용, chemistry-rn과 동일) ───
 
@@ -160,6 +172,10 @@ export const befeProfiles = pgTable("befe_profiles", {
 
   third_party_agreed: boolean("third_party_agreed").default(false).notNull(),
 
+  // 자녀/임신 상태
+  parenting_status: parentingStatusEnum("parenting_status"),
+  pregnancy_weeks: smallint("pregnancy_weeks"),
+
   // 테스트 진행
   test_index: integer("test_index").default(0).notNull(),
   test_completed: boolean("test_completed").default(false).notNull(),
@@ -206,7 +222,7 @@ export const befeProfiles = pgTable("befe_profiles", {
 
   // 회원탈퇴 (soft delete)
   deleted_at: timestamp("deleted_at", { withTimezone: true, mode: "string" }),
-});
+}).enableRLS();
 
 // ─── befe_answers ───
 
@@ -231,7 +247,7 @@ export const befeAnswers = pgTable(
       table.question_id,
     ),
   ],
-);
+).enableRLS();
 
 // ─── befe_couples ───
 
@@ -284,7 +300,37 @@ export const befeCouples = pgTable(
     index("idx_befe_couples_inviter").on(table.inviter_profile_id),
     index("idx_befe_couples_invitee").on(table.invitee_profile_id),
   ],
-);
+).enableRLS();
+
+// ─── befe_children ───
+
+export const befeChildren = pgTable(
+  "befe_children",
+  {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    couple_id: uuid("couple_id")
+      .notNull()
+      .references(() => befeCouples.id, { onDelete: "cascade" }),
+    name: text("name").notNull(),
+    gender: text("gender").notNull(), // "boy" | "girl"
+    birth_date: text("birth_date").notNull(), // "YYYY-MM-DD"
+    photo_url: text("photo_url"),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+    updated_at: timestamp("updated_at", {
+      withTimezone: true,
+      mode: "string",
+    }).defaultNow(),
+    deleted_at: timestamp("deleted_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+  },
+  (table) => [
+    index("idx_befe_children_couple").on(table.couple_id),
+  ],
+).enableRLS();
 
 // ─── befe_invitations ───
 
@@ -314,7 +360,7 @@ export const befeInvitations = pgTable(
     ),
     index("idx_befe_invitations_invitee").on(table.invitee_profile_id),
   ],
-);
+).enableRLS();
 
 // ─── befe_report_templates (등급 조합별 리포트 캐시) ───
 
@@ -326,7 +372,7 @@ export const befeReportTemplates = pgTable(
     csp_grade: gradeEnum("csp_grade").notNull(),
     pci_grade: gradeEnum("pci_grade").notNull(),
     stb_grade: gradeEnum("stb_grade").notNull(),
-    has_children: boolean("has_children").notNull(),
+    report_type: reportTypeEnum("report_type").notNull(),
     content: jsonb("content").$type<CareReport>().notNull(),
     model_version: text("model_version"),
     prompt_version: text("prompt_version"),
@@ -340,10 +386,10 @@ export const befeReportTemplates = pgTable(
       table.csp_grade,
       table.pci_grade,
       table.stb_grade,
-      table.has_children,
+      table.report_type,
     ),
   ],
-);
+).enableRLS();
 
 // ─── befe_reports (커플별 리포트 접근 기록) ───
 
@@ -354,7 +400,14 @@ export const befeReports = pgTable(
     couple_id: uuid("couple_id")
       .notNull()
       .references(() => befeCouples.id, { onDelete: "cascade" }),
-    has_children: boolean("has_children").notNull(),
+    report_type: reportTypeEnum("report_type").notNull(),
+    child_id: uuid("child_id").references(() => befeChildren.id, {
+      onDelete: "set null",
+    }),
+    child_name: text("child_name"),
+    child_gender: text("child_gender"),
+    child_birth_date: text("child_birth_date"),
+    child_age: smallint("child_age"),
     status: reportStatusEnum("status").default("generating").notNull(),
     content: jsonb("content").$type<CareReport>(),
     model_version: text("model_version"),
@@ -362,14 +415,19 @@ export const befeReports = pgTable(
     created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
       .defaultNow()
       .notNull(),
+    deleted_at: timestamp("deleted_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
   },
   (table) => [
-    unique("befe_reports_couple_type_key").on(
+    unique("befe_reports_couple_child_type_key").on(
       table.couple_id,
-      table.has_children,
+      table.child_id,
+      table.report_type,
     ),
   ],
-);
+).enableRLS();
 
 // ─── befe_personality_reports (AI 성향 리포트) ───
 
@@ -391,7 +449,7 @@ export const befePersonalityReports = pgTable(
   (table) => [
     unique("befe_personality_reports_profile_key").on(table.profile_id),
   ],
-);
+).enableRLS();
 
 // ─── befe_orders (결제 주문) ───
 
@@ -410,11 +468,14 @@ export const befeOrders = pgTable("befe_orders", {
   amount: integer("amount").notNull(),
   status: orderStatusEnum("status").default("pending").notNull(),
   payment_key: text("payment_key"),
-  has_children: boolean("has_children").notNull(),
+  report_type: reportTypeEnum("report_type").notNull(),
+  child_id: uuid("child_id").references(() => befeChildren.id, {
+    onDelete: "set null",
+  }),
   created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),
-});
+}).enableRLS();
 
 // ─── befe_coupons ───
 
@@ -435,7 +496,69 @@ export const befeCoupons = pgTable("befe_coupons", {
   created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),
-});
+}).enableRLS();
+
+// ─── befe_criterion_responses (준거타당도 검증설문 응답) ───
+
+export const befeCriterionResponses = pgTable(
+  "befe_criterion_responses",
+  {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    couple_id: uuid("couple_id")
+      .notNull()
+      .references(() => befeCouples.id, { onDelete: "cascade" }),
+    profile_id: uuid("profile_id")
+      .notNull()
+      .references(() => befeProfiles.id, { onDelete: "cascade" }),
+    report_type: reportTypeEnum("report_type").notNull(),
+    cv1: smallint("cv1"),
+    cv2: smallint("cv2"),
+    cv3: smallint("cv3"),
+    cv4: smallint("cv4"),
+    cv5: smallint("cv5"),
+    cv6: smallint("cv6"),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    unique("befe_criterion_responses_unique").on(
+      table.couple_id,
+      table.profile_id,
+      table.report_type,
+    ),
+  ],
+).enableRLS();
+
+// ─── befe_report_reviews (리포트 리뷰) ───
+
+export const befeReportReviews = pgTable(
+  "befe_report_reviews",
+  {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    report_id: uuid("report_id")
+      .notNull()
+      .references(() => befeReports.id, { onDelete: "cascade" }),
+    profile_id: uuid("profile_id")
+      .notNull()
+      .references(() => befeProfiles.id, { onDelete: "cascade" }),
+    r1_accuracy: smallint("r1_accuracy").notNull(),
+    r2_usefulness: smallint("r2_usefulness").notNull(),
+    r3_confidence: smallint("r3_confidence").notNull(),
+    r4_feedback: text("r4_feedback"),
+    r5_practice: smallint("r5_practice"),
+    r5_answered_at: timestamp("r5_answered_at", {
+      withTimezone: true,
+      mode: "string",
+    }),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    unique("befe_report_reviews_report_key").on(table.report_id),
+  ],
+).enableRLS();
 
 // ─── 타입 추론 ───
 
@@ -448,6 +571,9 @@ export type NewBefeAnswer = typeof befeAnswers.$inferInsert;
 export type BefeCouple = typeof befeCouples.$inferSelect;
 export type NewBefeCouple = typeof befeCouples.$inferInsert;
 
+export type BefeChild = typeof befeChildren.$inferSelect;
+export type NewBefeChild = typeof befeChildren.$inferInsert;
+
 export type BefeInvitation = typeof befeInvitations.$inferSelect;
 export type NewBefeInvitation = typeof befeInvitations.$inferInsert;
 
@@ -459,6 +585,12 @@ export type NewBefeOrder = typeof befeOrders.$inferInsert;
 
 export type BefeCoupon = typeof befeCoupons.$inferSelect;
 export type NewBefeCoupon = typeof befeCoupons.$inferInsert;
+
+export type BefeCriterionResponse = typeof befeCriterionResponses.$inferSelect;
+export type NewBefeCriterionResponse = typeof befeCriterionResponses.$inferInsert;
+
+export type BefeReportReview = typeof befeReportReviews.$inferSelect;
+export type NewBefeReportReview = typeof befeReportReviews.$inferInsert;
 
 export type Question = typeof questions.$inferSelect;
 export type Test = typeof tests.$inferSelect;

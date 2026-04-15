@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { befeProfiles, befeCouples, befeReports } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { befeProfiles, befeCouples, befeReports, befeChildren } from "@/db/schema";
+import { eq, or, and, isNull } from "drizzle-orm";
 import { ReportIntroClient } from "./report-intro-client";
 
 export default async function ReportPage({
@@ -59,17 +59,41 @@ export default async function ReportPage({
 
   const hasCoupon = !!(profile.coupon_id || partner?.coupon_id);
 
-  const existingReports = await db
-    .select({ has_children: befeReports.has_children })
-    .from(befeReports)
-    .where(eq(befeReports.couple_id, couple.id));
+  // 자녀 목록 조회
+  const childrenRaw = await db
+    .select({
+      id: befeChildren.id,
+      name: befeChildren.name,
+      gender: befeChildren.gender,
+      birth_date: befeChildren.birth_date,
+      photo_url: befeChildren.photo_url,
+    })
+    .from(befeChildren)
+    .where(and(eq(befeChildren.couple_id, couple.id), isNull(befeChildren.deleted_at)));
 
-  const existingTypes = existingReports.map((r) => r.has_children);
+  const children = childrenRaw.map((c) => ({
+    ...c,
+    photo_url: c.photo_url
+      ? supabase.storage.from("images").getPublicUrl(c.photo_url).data.publicUrl
+      : null,
+  }));
+
+  // 기존 리포트 조회 (child_id 포함)
+  const existingReports = await db
+    .select({ report_type: befeReports.report_type, child_id: befeReports.child_id })
+    .from(befeReports)
+    .where(and(eq(befeReports.couple_id, couple.id), isNull(befeReports.deleted_at)));
+
+  const hasNoChildReport = existingReports.some((r) => r.report_type === "no_child");
+  const hasChildReport = existingReports.some((r) => r.report_type !== "no_child");
+  const childReportKeys = existingReports
+    .filter((r) => r.child_id !== null)
+    .map((r) => `${r.child_id}:${r.report_type}`);
 
   let lockedHasChildren: boolean | null = null;
-  if (type === "with" && !existingTypes.includes(true)) {
+  if (type === "with" && !hasChildReport) {
     lockedHasChildren = true;
-  } else if (type === "without" && !existingTypes.includes(false)) {
+  } else if (type === "without" && !hasNoChildReport) {
     lockedHasChildren = false;
   }
 
@@ -82,6 +106,9 @@ export default async function ReportPage({
       pcqScore={couple.pcq_score}
       hasCoupon={hasCoupon}
       lockedHasChildren={lockedHasChildren}
+      children={children}
+      childReportKeys={childReportKeys}
+      hasNoChildReport={hasNoChildReport}
     />
   );
 }

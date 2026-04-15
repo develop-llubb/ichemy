@@ -36,7 +36,7 @@ export function InviteClient({
         if (data.coupled) {
           clearInterval(interval);
           if (data.hasScores) {
-            router.push("/report");
+            router.push("/report?from=/home");
           } else {
             router.push("/home/waiting");
           }

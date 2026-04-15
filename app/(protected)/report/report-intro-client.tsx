@@ -7,9 +7,28 @@ import { ChevronLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { saveHasChildren, requestReport } from "./actions";
+import { addChild, updateChild, getUploadUrl } from "@/app/(protected)/home/children/actions";
 import { createOrder } from "@/app/payment/actions";
+import type { ReportType } from "@/lib/care-report";
 import { JOURNEY_STEPS } from "@/lib/steps";
 import { CouponTicket } from "@/components/coupon-ticket";
+import { Camera, X, Plus, Pencil } from "lucide-react";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/drawer";
+
+
+interface ChildInfo {
+  id: string;
+  name: string;
+  gender: string;
+  birth_date: string;
+  photo_url: string | null;
+}
 
 interface ReportIntroClientProps {
   nickname: string;
@@ -19,6 +38,31 @@ interface ReportIntroClientProps {
   pcqScore: number;
   hasCoupon: boolean;
   lockedHasChildren?: boolean | null;
+  children: ChildInfo[];
+  childReportKeys: string[];
+  hasNoChildReport: boolean;
+}
+
+const REPORT_TYPE_LABEL: Record<ReportType, string> = {
+  no_child: "예비 부모",
+  infant: "영아기 (출생~만2세)",
+  toddler: "유아기 (만2세~만6세)",
+  elementary: "초등학생",
+  middle_school: "중학생",
+};
+
+function getReportTypeFromBirthDate(birthDate: string): ReportType {
+  const birth = new Date(birthDate);
+  const now = new Date();
+  let ageYears = now.getFullYear() - birth.getFullYear();
+  const monthDiff = now.getMonth() - birth.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birth.getDate())) {
+    ageYears--;
+  }
+  if (ageYears < 2) return "infant";
+  if (ageYears < 6) return "toddler";
+  if (ageYears < 13) return "elementary";
+  return "middle_school";
 }
 
 export function ReportIntroClient({
@@ -29,15 +73,57 @@ export function ReportIntroClient({
   pcqScore,
   hasCoupon,
   lockedHasChildren = null,
+  children,
+  childReportKeys,
+  hasNoChildReport,
 }: ReportIntroClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
   const [hasChildren, setHasChildren] = useState<boolean | null>(
-    initialHasChildren,
+    children.length > 0 ? initialHasChildren : null,
   );
   const [saving, setSaving] = useState(false);
   const [requesting, startRequesting] = useTransition();
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
+  const [preparingNewChild, setPreparingNewChild] = useState(false);
+  const [showChildForm, setShowChildForm] = useState(false);
+  const [localChildren, setLocalChildren] = useState<ChildInfo[]>(children);
+  const [childName, setChildName] = useState("");
+  const [childGender, setChildGender] = useState("");
+  const [childBirthDate, setChildBirthDate] = useState("");
+  const [childPhotoFile, setChildPhotoFile] = useState<File | null>(null);
+  const [childPhotoPreview, setChildPhotoPreview] = useState<string | null>(null);
+  const [addingChild, setAddingChild] = useState(false);
+  const [editingChildId, setEditingChildId] = useState<string | null>(null);
+
+  const hasRegisteredChildren = localChildren.length > 0;
+
+  const resetForm = () => {
+    setEditingChildId(null);
+    setChildName("");
+    setChildGender("");
+    setChildBirthDate("");
+    setChildPhotoFile(null);
+    setChildPhotoPreview(null);
+  };
+
+  const openAddForm = () => {
+    resetForm();
+    setShowChildForm(true);
+  };
+
+  const openEditForm = (child: ChildInfo) => {
+    setEditingChildId(child.id);
+    setChildName(child.name);
+    setChildGender(child.gender);
+    setChildBirthDate(child.birth_date);
+    setChildPhotoPreview(child.photo_url);
+    setChildPhotoFile(null);
+    setShowChildForm(true);
+  };
+
+  const backPath = searchParams.get("from") || "/home";
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 80);
@@ -80,8 +166,9 @@ export function ReportIntroClient({
     [coupleId],
   );
 
-  // Step 3 완료 조건: hasChildren이 선택됨
-  const step3Done = hasChildren !== null;
+  // Step 3 완료 조건: 자녀 선택 또는 "새 아이 준비 중" 선택
+  const canProceed = selectedChildId !== null || preparingNewChild;
+  const step3Done = canProceed;
   // 현재 활성 스텝
   const activeIdx = step3Done ? 3 : 2;
 
@@ -104,7 +191,7 @@ export function ReportIntroClient({
         {/* Header */}
         <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
           <button
-            onClick={() => router.push("/home")}
+            onClick={() => router.push(backPath)}
             className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
           >
             <ChevronLeft size={24} className="text-foreground" />
@@ -151,9 +238,9 @@ export function ReportIntroClient({
             className="mt-2 text-center text-[13px] leading-[1.7] text-muted"
             style={ease(0.15)}
           >
-            두 분의 검사 결과를 바탕으로
+            두 분의 검사 결과와 자녀의 나이에 맞는
             <br />
-            맞춤형 부부 육아 리포트를 생성해 드려요.
+            맞춤형 육아 케어 리포트를 생성해 드려요.
           </p>
 
           {/* PCQ Score preview */}
@@ -169,76 +256,368 @@ export function ReportIntroClient({
             </span>
           </div>
 
-          {/* Children question */}
+          {/* Children selection */}
           <div
             className="mt-7 w-full rounded-2xl border-[1.5px] border-[#ECE8E3] bg-white p-5"
             style={ease(0.25)}
           >
             <div className="mb-1.5 text-sm font-semibold text-foreground">
-              현재 자녀가 있으신가요?
+              리포트를 받을 아이를 선택해주세요
             </div>
             <p className="mb-4 text-xs leading-[1.5] text-[#9A918A]">
-              자녀 유무에 따라 리포트 내용이 달라져요.
+              자녀의 나이에 따라 맞춤 리포트가 생성돼요.
             </p>
 
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleSelect(true)}
-                disabled={saving || lockedHasChildren !== null}
-                className="flex flex-1 flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
-                style={{
-                  borderColor: hasChildren === true ? "#D4735C" : "#ECE8E3",
-                  background:
-                    hasChildren === true
-                      ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
-                      : "#fff",
-                  opacity:
-                    lockedHasChildren !== null && lockedHasChildren !== true
-                      ? 0.4
-                      : 1,
-                  cursor: lockedHasChildren !== null ? "default" : "pointer",
-                }}
-              >
-                <span className="text-3xl">👶</span>
-                <span
-                  className="text-sm font-semibold"
-                  style={{
-                    color: hasChildren === true ? "#D4735C" : "#6B6360",
-                  }}
-                >
-                  네, 있어요
-                </span>
-              </button>
+            <div className="flex flex-col gap-2.5">
+                {localChildren.map((child) => {
+                  const childReportType = getReportTypeFromBirthDate(child.birth_date);
+                  const hasReport = childReportKeys.includes(`${child.id}:${childReportType}`);
+                  const isSelected = selectedChildId === child.id;
+                  return (
+                    <button
+                      key={child.id}
+                      onClick={() => {
+                        if (hasReport) {
+                          router.push("/report/list");
+                        } else {
+                          setSelectedChildId(isSelected ? null : child.id);
+                          setPreparingNewChild(false);
+                          setHasChildren(true);
+                        }
+                      }}
+                      className="flex items-center gap-3.5 rounded-2xl border-2 px-4 py-3.5 transition-all duration-200"
+                      style={{
+                        borderColor: isSelected ? "#D4735C" : hasReport ? "#E8E2DC" : "#ECE8E3",
+                        background: isSelected ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)" : "#fff",
+                        opacity: hasReport ? 0.6 : 1,
+                      }}
+                    >
+                      <div
+                        className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-lg"
+                        style={{ background: "linear-gradient(145deg, #FFE8D6, #FFF0E6)" }}
+                      >
+                        {child.photo_url ? (
+                          <img src={child.photo_url} alt={child.name} className="h-full w-full object-cover" />
+                        ) : child.gender === "girl" ? "👧" : "👦"}
+                      </div>
+                      <div className="flex-1 text-left">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold" style={{ color: isSelected ? "#D4735C" : "#3A3A3A" }}>
+                            {child.name}
+                          </span>
+                          {!hasReport && (
+                            <span
+                              className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                              style={{
+                                background: isSelected ? "rgba(212,115,92,0.12)" : "#F0EDE9",
+                                color: isSelected ? "#D4735C" : "#9A918A",
+                              }}
+                            >
+                              {REPORT_TYPE_LABEL[childReportType]}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-[#9A918A]">
+                          {hasReport ? "리포트 보기 →" : `${child.gender === "girl" ? "♀" : "♂"} ${child.birth_date}`}
+                        </div>
+                      </div>
+                      {!hasReport && (
+                        <div className="flex items-center gap-2">
+                          <span
+                            role="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openEditForm(child);
+                            }}
+                            className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full text-[#B8A898] transition-colors hover:bg-[#F0EDE9] hover:text-primary"
+                          >
+                            <Pencil size={13} />
+                          </span>
+                          <div
+                            className="flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all"
+                            style={{
+                              borderColor: isSelected ? "#D4735C" : "#D4CFC8",
+                              background: isSelected ? "#D4735C" : "transparent",
+                            }}
+                          >
+                            {isSelected && <div className="h-2 w-2 rounded-full bg-white" />}
+                          </div>
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
 
-              <button
-                onClick={() => handleSelect(false)}
-                disabled={saving || lockedHasChildren !== null}
-                className="flex flex-1 flex-col items-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all duration-200"
-                style={{
-                  borderColor: hasChildren === false ? "#D4735C" : "#ECE8E3",
-                  background:
-                    hasChildren === false
-                      ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
-                      : "#fff",
-                  opacity:
-                    lockedHasChildren !== null && lockedHasChildren !== false
-                      ? 0.4
-                      : 1,
-                  cursor: lockedHasChildren !== null ? "default" : "pointer",
-                }}
-              >
-                <span className="text-3xl">🤰</span>
-                <span
-                  className="text-sm font-semibold"
+                {/* 새 아이 준비 중 버튼 */}
+                <button
+                  onClick={() => {
+                    if (hasNoChildReport) {
+                      router.push("/report/list");
+                    } else {
+                      setPreparingNewChild(!preparingNewChild);
+                      setSelectedChildId(null);
+                    }
+                  }}
+                  className="flex items-center gap-3.5 rounded-2xl border-2 px-4 py-3.5 transition-all duration-200"
                   style={{
-                    color: hasChildren === false ? "#D4735C" : "#6B6360",
+                    borderColor: preparingNewChild ? "#D4735C" : hasNoChildReport ? "#E8E2DC" : "#ECE8E3",
+                    background: preparingNewChild ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)" : "#fff",
+                    opacity: hasNoChildReport ? 0.6 : 1,
                   }}
                 >
-                  아직 없어요
-                </span>
-              </button>
+                  <div
+                    className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full text-lg"
+                    style={{ background: "linear-gradient(145deg, #E8F0E6, #F0F7EE)" }}
+                  >
+                    🤰
+                  </div>
+                  <div className="flex-1 text-left">
+                    <span className="text-sm font-semibold" style={{ color: preparingNewChild ? "#D4735C" : "#3A3A3A" }}>
+                      새 아이 준비 중이에요
+                    </span>
+                    <div className="text-[11px] text-[#9A918A]">
+                      {hasNoChildReport ? "리포트 보기 →" : "출산 전 태교 리포트를 받을 수 있어요"}
+                    </div>
+                  </div>
+                  {!hasNoChildReport && (
+                    <div
+                      className="flex h-5 w-5 items-center justify-center rounded-full border-2 transition-all"
+                      style={{
+                        borderColor: preparingNewChild ? "#D4735C" : "#D4CFC8",
+                        background: preparingNewChild ? "#D4735C" : "transparent",
+                      }}
+                    >
+                      {preparingNewChild && <div className="h-2 w-2 rounded-full bg-white" />}
+                    </div>
+                  )}
+                </button>
+
+                {/* 아이 추가 버튼 (폼 열기) */}
+                <button
+                  onClick={openAddForm}
+                  className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border-[1.5px] border-dashed border-[#D4CFC8] text-[12px] font-medium text-[#9A918A] transition-colors hover:border-primary hover:text-primary"
+                >
+                  <Plus size={14} /> 아이 추가하기
+                </button>
             </div>
+
           </div>
+
+          {/* 선택된 아이의 리포트 타입 안내 */}
+          {selectedChildId && !preparingNewChild && (() => {
+            const selectedChild = localChildren.find((c) => c.id === selectedChildId);
+            if (!selectedChild) return null;
+            const reportType = getReportTypeFromBirthDate(selectedChild.birth_date);
+            return (
+              <div
+                className="mt-3 flex items-start gap-2.5 rounded-xl border border-[#ECE8E3] bg-[#FFFBF9] px-4 py-3"
+                style={ease(0.28)}
+              >
+                <span className="mt-0.5 text-sm">📋</span>
+                <p className="text-[12px] leading-[1.6] text-[#6B6360]">
+                  <strong className="text-primary">{selectedChild.name}</strong> 아이의 나이에 맞는{" "}
+                  <strong className="text-primary">{REPORT_TYPE_LABEL[reportType]}</strong>{" "}
+                  리포트가 생성됩니다.
+                </p>
+              </div>
+            );
+          })()}
+          {preparingNewChild && (
+            <div
+              className="mt-3 flex items-start gap-2.5 rounded-xl border border-[#ECE8E3] bg-[#FFFBF9] px-4 py-3"
+              style={ease(0.28)}
+            >
+              <span className="mt-0.5 text-sm">🤰</span>
+              <p className="text-[12px] leading-[1.6] text-[#6B6360]">
+                <strong className="text-primary">예비 부모</strong> 리포트와 함께{" "}
+                <strong className="text-primary">태교 커뮤니케이션 가이드</strong>가 포함됩니다.
+              </p>
+            </div>
+          )}
+
+          {/* 자녀 등록/수정 Drawer */}
+          <Drawer
+            open={showChildForm}
+            onOpenChange={(open) => {
+              if (!open) {
+                setShowChildForm(false);
+                resetForm();
+                if (!hasRegisteredChildren) setHasChildren(null);
+              }
+            }}
+          >
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle>{editingChildId ? "아이 정보 수정" : "아이 추가하기"}</DrawerTitle>
+                <DrawerDescription>
+                  {editingChildId ? "아이 정보를 수정해주세요." : "아이 정보를 입력해주세요."}
+                </DrawerDescription>
+              </DrawerHeader>
+              <div className="px-5 pb-6">
+                {/* 사진 */}
+                <div className="mb-4 flex justify-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const input = document.createElement("input");
+                      input.type = "file";
+                      input.accept = "image/*";
+                      input.onchange = (e) => {
+                        const file = (e.target as HTMLInputElement).files?.[0];
+                        if (!file) return;
+                        setChildPhotoFile(file);
+                        setChildPhotoPreview(URL.createObjectURL(file));
+                      };
+                      input.click();
+                    }}
+                    className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-full border-2 border-dashed border-[#D4CFC8] bg-[#F8F6F3] transition-colors hover:border-primary"
+                  >
+                    {childPhotoPreview ? (
+                      <>
+                        <img src={childPhotoPreview} alt="" className="h-full w-full object-cover" />
+                        <span
+                          role="button"
+                          onClick={(e) => { e.stopPropagation(); setChildPhotoPreview(null); setChildPhotoFile(null); }}
+                          className="absolute -top-1 -right-1 flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-[#6B6360] text-white"
+                        >
+                          <X size={10} />
+                        </span>
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center gap-0.5">
+                        <Camera size={16} className="text-[#B8A898]" />
+                        <span className="text-[9px] text-[#B8A898]">선택</span>
+                      </div>
+                    )}
+                  </button>
+                </div>
+
+                {/* 이름 */}
+                <input
+                  type="text"
+                  value={childName}
+                  onChange={(e) => setChildName(e.target.value)}
+                  placeholder="아이 이름"
+                  className="mb-2 h-11 w-full rounded-lg border-[1.5px] border-[#ECE8E3] bg-white px-3 text-sm text-foreground outline-none placeholder:text-[#C4BEB8] focus:border-primary"
+                />
+
+                {/* 성별 */}
+                <div className="mb-2 flex gap-2">
+                  {([
+                    { value: "boy", label: "남아", emoji: "👦" },
+                    { value: "girl", label: "여아", emoji: "👧" },
+                  ] as const).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setChildGender(opt.value)}
+                      className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border-2 py-2.5 text-sm font-semibold transition-all"
+                      style={{
+                        borderColor: childGender === opt.value ? "#D4735C" : "#ECE8E3",
+                        background: childGender === opt.value
+                          ? "linear-gradient(160deg, #FFF6F2, #FFF0EB)"
+                          : "#fff",
+                        color: childGender === opt.value ? "#D4735C" : "#6B6360",
+                      }}
+                    >
+                      <span className="text-lg">{opt.emoji}</span>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* 생년월일 */}
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={childBirthDate}
+                  onChange={(e) => {
+                    const digits = e.target.value.replace(/\D/g, "").slice(0, 8);
+                    let formatted = digits;
+                    if (digits.length > 4) formatted = digits.slice(0, 4) + "-" + digits.slice(4);
+                    if (digits.length > 6) formatted = digits.slice(0, 4) + "-" + digits.slice(4, 6) + "-" + digits.slice(6);
+                    setChildBirthDate(formatted);
+                  }}
+                  placeholder="2024-01-15"
+                  maxLength={10}
+                  className="mb-4 h-11 w-full rounded-lg border-[1.5px] border-[#ECE8E3] bg-white px-3 text-sm text-foreground outline-none placeholder:text-[#C4BEB8] focus:border-primary"
+                />
+
+                {/* 버튼 */}
+                <button
+                  type="button"
+                  disabled={!childName.trim() || !childGender || !childBirthDate || addingChild}
+                  onClick={async () => {
+                    setAddingChild(true);
+                    try {
+                      let photoPath: string | undefined;
+                      let photoDisplayUrl: string | undefined;
+                      if (childPhotoFile) {
+                        const ext = childPhotoFile.name.split(".").pop() ?? "jpg";
+                        const { signedUrl, path } = await getUploadUrl(coupleId, ext);
+                        const res = await fetch(signedUrl, {
+                          method: "PUT",
+                          headers: { "Content-Type": childPhotoFile.type },
+                          body: childPhotoFile,
+                        });
+                        if (!res.ok) {
+                          toast("사진 업로드에 실패했어요. 다시 시도해주세요.");
+                          setAddingChild(false);
+                          return;
+                        }
+                        photoPath = path;
+                        photoDisplayUrl = URL.createObjectURL(childPhotoFile);
+                      }
+
+                      if (editingChildId) {
+                        const existing = localChildren.find((c) => c.id === editingChildId);
+                        await updateChild(editingChildId, {
+                          name: childName.trim(),
+                          gender: childGender,
+                          birthDate: childBirthDate,
+                          ...(photoPath !== undefined ? { photoUrl: photoPath } : childPhotoPreview === null && existing?.photo_url ? { photoUrl: null } : {}),
+                        });
+                        setLocalChildren((prev) =>
+                          prev.map((c) =>
+                            c.id === editingChildId
+                              ? { ...c, name: childName.trim(), gender: childGender, birth_date: childBirthDate, photo_url: photoDisplayUrl ?? (childPhotoPreview === null ? null : c.photo_url) }
+                              : c,
+                          ),
+                        );
+                        toast("아이 정보가 수정되었어요!");
+                      } else {
+                        const result = await addChild(coupleId, {
+                          name: childName.trim(),
+                          gender: childGender,
+                          birthDate: childBirthDate,
+                          photoUrl: photoPath,
+                        });
+                        setLocalChildren((prev) => [
+                          ...prev,
+                          { id: result.id, name: childName.trim(), gender: childGender, birth_date: childBirthDate, photo_url: photoDisplayUrl ?? null },
+                        ]);
+                        setSelectedChildId(result.id);
+                        toast("아이가 등록되었어요!");
+                      }
+
+                      setShowChildForm(false);
+                      resetForm();
+                    } finally {
+                      setAddingChild(false);
+                    }
+                  }}
+                  className="flex h-12 w-full items-center justify-center rounded-lg border-none text-sm font-semibold text-white transition-all disabled:opacity-50"
+                  style={{
+                    background: childName.trim() && childGender && childBirthDate
+                      ? "linear-gradient(135deg, #D4735C, #C0614A)"
+                      : "#D4CFC8",
+                  }}
+                >
+                  {addingChild ? <Loader2 size={16} className="animate-spin" /> : editingChildId ? "수정하기" : "등록하기"}
+                </button>
+              </div>
+            </DrawerContent>
+          </Drawer>
 
           {/* Journey tracker */}
           <div
@@ -368,23 +747,31 @@ export function ReportIntroClient({
           style={ease(0.4)}
         >
           <button
-            disabled={hasChildren === null || requesting}
+            disabled={!canProceed || requesting}
             onClick={() => {
+              const childId = preparingNewChild ? undefined : (selectedChildId ?? undefined);
+              const selectedChild = selectedChildId && !preparingNewChild
+                ? localChildren.find((c) => c.id === selectedChildId)
+                : null;
+              const reportType: ReportType = selectedChild
+                ? getReportTypeFromBirthDate(selectedChild.birth_date)
+                : "no_child";
+
               if (hasCoupon) {
                 // 쿠폰 사용자: 바로 리포트 생성
                 startRequesting(async () => {
-                  const result = await requestReport(coupleId, hasChildren!);
+                  const result = await requestReport(coupleId, reportType, childId);
                   if ("error" in result) {
                     toast(result.error);
                     return;
                   }
-                  router.replace(`/report/${result.reportId}`);
+                  router.replace(`/report/${result.reportId}/criterion`);
                 });
               } else {
                 // 결제 사용자: 토스 결제창 띄우기
                 startRequesting(async () => {
                   try {
-                    const order = await createOrder(coupleId, hasChildren!);
+                    const order = await createOrder(coupleId, reportType, childId);
                     const tossPayments = await loadTossPayments(
                       process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!,
                     );
@@ -412,15 +799,13 @@ export function ReportIntroClient({
             }}
             className="flex h-[54px] w-full items-center justify-center rounded-2xl border-none text-base font-bold text-white transition-all duration-200"
             style={{
-              background:
-                hasChildren !== null
-                  ? "linear-gradient(135deg, #D4735C, #C0614A)"
-                  : "#D4CFC8",
-              boxShadow:
-                hasChildren !== null
-                  ? "0 4px 16px rgba(212,115,92,0.25)"
-                  : "none",
-              cursor: hasChildren !== null ? "pointer" : "not-allowed",
+              background: canProceed
+                ? "linear-gradient(135deg, #D4735C, #C0614A)"
+                : "#D4CFC8",
+              boxShadow: canProceed
+                ? "0 4px 16px rgba(212,115,92,0.25)"
+                : "none",
+              cursor: canProceed ? "pointer" : "not-allowed",
             }}
           >
             {requesting ? (

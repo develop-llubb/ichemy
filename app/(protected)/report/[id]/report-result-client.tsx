@@ -4,19 +4,25 @@ import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { retryReport } from "../actions";
+import { submitReportReview } from "./actions";
 import { handleDownloadPdf } from "@/lib/report-pdf";
+import { toast } from "sonner";
 import type {
   CareReport,
   Grade,
+  ReportType,
   TheoryReference,
   IndicatorAnalysis,
 } from "@/lib/care-report";
 
 interface ReportResultClientProps {
   reportId: string;
-  hasChildren: boolean;
+  reportType: ReportType;
+  childName: string | null;
   status: "generating" | "completed" | "failed";
   content: CareReport | null;
+  profileId: string;
+  hasReview: boolean;
 }
 
 // ── Grade config ──
@@ -71,6 +77,69 @@ const INDICATOR_META: Record<string, { emoji: string; gradient: string }> = {
 };
 
 // ── Theory box ──
+
+function RoundStar({ color }: { color: string }) {
+  return (
+    <svg width="30" height="30" viewBox="0 0 24 24" fill={color}>
+      <path d="M12 2.5c.4 0 .8.3 1 .7l2.3 4.7 5.2.8c.8.1 1.1 1.1.5 1.6l-3.8 3.7.9 5.1c.1.8-.7 1.4-1.4 1l-4.7-2.5-4.7 2.5c-.7.4-1.5-.2-1.4-1l.9-5.1L3 9.3c-.6-.5-.3-1.5.5-1.6l5.2-.8L11 2.2c.2-.4.6-.7 1-.7z" />
+    </svg>
+  );
+}
+
+function ReviewStars({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  const handleClick = (starIdx: number, isRight: boolean) => {
+    const v = starIdx + (isRight ? 1 : 0.5);
+    onChange(value === v ? 0 : v);
+  };
+
+  return (
+    <div>
+      <p className="mb-2 text-[13px] font-medium text-foreground">{label}</p>
+      <div className="flex gap-0">
+        {[0, 1, 2, 3, 4].map((starIdx) => {
+          const full = value >= starIdx + 1;
+          const half = !full && value >= starIdx + 0.5;
+
+          return (
+            <div key={starIdx} className="relative h-10 w-10 cursor-pointer select-none">
+              {/* 빈 별 */}
+              <span className="absolute inset-0 flex items-center justify-center">
+                <RoundStar color="#E8E2DC" />
+              </span>
+              {/* 채워진 별 */}
+              {(full || half) && (
+                <span
+                  className="absolute inset-0 flex items-center justify-center overflow-hidden"
+                  style={{ clipPath: full ? undefined : "inset(0 50% 0 0)" }}
+                >
+                  <RoundStar color="#D4735C" />
+                </span>
+              )}
+              {/* 왼쪽 반 클릭 */}
+              <span
+                className="absolute inset-0 w-1/2"
+                onClick={() => handleClick(starIdx, false)}
+              />
+              {/* 오른쪽 반 클릭 */}
+              <span
+                className="absolute right-0 top-0 h-full w-1/2"
+                onClick={() => handleClick(starIdx, true)}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function TheoryBox({ theory }: { theory: TheoryReference }) {
   return (
@@ -227,9 +296,12 @@ function IndicatorSection({
 
 export function ReportResultClient({
   reportId,
-  hasChildren,
+  reportType,
+  childName,
   status: initialStatus,
   content: initialContent,
+  profileId,
+  hasReview: initialHasReview,
 }: ReportResultClientProps) {
   const router = useRouter();
   const [status, setStatus] = useState(initialStatus);
@@ -237,6 +309,14 @@ export function ReportResultClient({
   const [retrying, startRetry] = useTransition();
   const [downloading, setDownloading] = useState(false);
   const [ready, setReady] = useState(false);
+
+  // Review state
+  const [hasReview, setHasReview] = useState(initialHasReview);
+  const [reviewR1, setReviewR1] = useState(0);
+  const [reviewR2, setReviewR2] = useState(0);
+  const [reviewR3, setReviewR3] = useState(0);
+  const [reviewR4, setReviewR4] = useState("");
+  const [submittingReview, startSubmittingReview] = useTransition();
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 80);
@@ -282,7 +362,7 @@ export function ReportResultClient({
           <ChevronLeft size={24} className="text-foreground" />
         </button>
         <span className="text-center text-[15px] font-semibold text-foreground">
-          {hasChildren ? "자녀 양육 케어 리포트" : "예비 부모 육아 케어 리포트"}
+          {childName ? `${childName}의 육아 케어 리포트` : "예비 부모 육아 케어 리포트"}
         </span>
         <div />
       </div>
@@ -505,17 +585,193 @@ export function ReportResultClient({
             </div>
           </div>
 
+          {/* ── Prenatal Guide (예비 부모 전용) ── */}
+          {content.prenatal && (
+            <div
+              className="mt-5 rounded-[20px] border border-black/[0.03] bg-white px-5 py-6"
+              style={ease(0.58)}
+            >
+              <div className="mb-5 flex items-center gap-2.5">
+                <div className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-[#FFF0EB] text-base">
+                  🤰
+                </div>
+                <div className="text-[15px] font-bold text-foreground">
+                  태교 커뮤니케이션 가이드
+                </div>
+              </div>
+
+              {/* 소통 스타일 */}
+              <div className="mb-5">
+                <div className="mb-2 text-[13px] font-bold text-primary">
+                  💬 두 분의 소통 스타일
+                </div>
+                <p className="text-[13px] leading-[1.85] text-[#555]">
+                  {content.prenatal.communication_style}
+                </p>
+              </div>
+
+              {/* 태교 활동 */}
+              <div className="mb-5">
+                <div className="mb-3 text-[13px] font-bold text-primary">
+                  🎯 맞춤 태교 활동
+                </div>
+                <div className="flex flex-col gap-3">
+                  {content.prenatal.activities.map((activity, i) => (
+                    <div
+                      key={i}
+                      className="rounded-xl border border-[#ECE8E3] bg-[#FEFCF9] px-4 py-3.5"
+                    >
+                      <div className="text-[13px] font-bold text-foreground">
+                        {activity.type_name}
+                      </div>
+                      <div className="mt-1 text-[11px] text-[#9A918A]">
+                        {activity.reason}
+                      </div>
+                      <ul className="mt-2 flex flex-col gap-1">
+                        {activity.activities.map((act, j) => (
+                          <li key={j} className="flex items-start gap-1.5 text-[12px] leading-[1.6] text-[#555]">
+                            <span className="mt-0.5 text-primary">•</span>
+                            {act}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="mt-2 text-[11px] leading-[1.6] text-[#9A918A]">
+                        {activity.how_to_start} · {activity.together}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* 매일 태교 대화법 */}
+              <div className="mb-5">
+                <div className="mb-2 text-[13px] font-bold text-primary">
+                  🗓️ 매일 태교 대화법
+                </div>
+                <p className="text-[13px] leading-[1.85] text-[#555]">
+                  {content.prenatal.daily_conversation}
+                </p>
+              </div>
+
+              {/* 대화 스크립트 */}
+              <div
+                className="mb-5 rounded-xl px-4 py-3.5"
+                style={{ background: "linear-gradient(160deg, #FFF6F2, #FFF0EB)" }}
+              >
+                <div className="mb-2 text-[12px] font-bold text-primary">
+                  💌 오늘의 태교 대화 스크립트
+                </div>
+                <p className="whitespace-pre-line text-[13px] leading-[1.85] text-[#555]">
+                  {content.prenatal.script}
+                </p>
+              </div>
+
+              {/* 한줄 메시지 */}
+              <div className="rounded-xl bg-[#F8F6F3] px-4 py-3 text-center">
+                <p className="text-[13px] font-semibold leading-[1.6] text-foreground">
+                  {content.prenatal.one_line_message}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Report Review ── */}
+          <div className="mt-7" style={ease(0.6)}>
+            {hasReview ? (
+              <div className="flex flex-col items-center gap-2 rounded-[18px] border border-[#ECE8E3] bg-white py-6">
+                <span className="text-2xl">💌</span>
+                <p className="text-[13px] font-semibold text-foreground">
+                  소중한 의견을 남겨 주셨어요!
+                </p>
+                <p className="text-[11px] text-[#9A918A]">
+                  두 분의 이야기가 더 나은 리포트를 만드는 데 큰 도움이 돼요
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-[18px] border border-[#ECE8E3] bg-white px-5 py-6">
+                <div className="mb-1 text-center text-[15px] font-bold text-foreground">
+                  이 리포트는 어떠셨나요?
+                </div>
+                <p className="mb-5 text-center text-[11px] text-[#9A918A]">
+                  두 분의 소중한 의견이 더 나은 리포트를 만듭니다.
+                </p>
+
+                <div className="flex flex-col gap-4">
+                  <ReviewStars
+                    label="우리 부부의 모습을 잘 묘사했나요?"
+                    value={reviewR1}
+                    onChange={setReviewR1}
+                  />
+                  <ReviewStars
+                    label="제안한 조언이 도움이 될 것 같나요?"
+                    value={reviewR2}
+                    onChange={setReviewR2}
+                  />
+                  <ReviewStars
+                    label="양육에 대한 자신감이 생겼나요?"
+                    value={reviewR3}
+                    onChange={setReviewR3}
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <label className="mb-1.5 block text-[12px] text-[#9A918A]">
+                    인상 깊은 부분이나 아쉬운 점 (선택)
+                  </label>
+                  <textarea
+                    value={reviewR4}
+                    onChange={(e) => setReviewR4(e.target.value)}
+                    placeholder="자유롭게 적어주세요."
+                    rows={3}
+                    className="w-full resize-none rounded-xl border-[1.5px] border-[#ECE8E3] bg-[#FEFCF9] px-3.5 py-3 text-[13px] text-foreground outline-none placeholder:text-[#C4BEB8] focus:border-primary"
+                  />
+                </div>
+
+                <button
+                  disabled={!reviewR1 || !reviewR2 || !reviewR3 || submittingReview}
+                  onClick={() => {
+                    startSubmittingReview(async () => {
+                      await submitReportReview(
+                        reportId,
+                        profileId,
+                        reviewR1 * 2,
+                        reviewR2 * 2,
+                        reviewR3 * 2,
+                        reviewR4.trim() || undefined,
+                      );
+                      setHasReview(true);
+                      toast("소중한 의견 감사합니다!");
+                    });
+                  }}
+                  className="mt-4 flex h-11 w-full items-center justify-center rounded-xl border-none text-[13px] font-semibold text-white transition-all disabled:opacity-40"
+                  style={{
+                    background:
+                      reviewR1 && reviewR2 && reviewR3
+                        ? "linear-gradient(135deg, #D4735C, #C0614A)"
+                        : "#D4CFC8",
+                  }}
+                >
+                  {submittingReview ? (
+                    <Loader2 size={16} className="animate-spin" />
+                  ) : (
+                    "제출하기"
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* ── Actions ── */}
-          <div className="mt-7 flex flex-col gap-2" style={ease(0.6)}>
+          <div className="mt-7 flex flex-col gap-2" style={ease(0.65)}>
             <button
-              onClick={() => router.push("/home")}
+              onClick={() => router.push("/report/list")}
               className="h-12 w-full cursor-pointer rounded-[14px] border-none text-sm font-bold text-white"
               style={{
                 background: "linear-gradient(135deg, #D4735C, #C0614A)",
                 boxShadow: "0 4px 14px rgba(212,115,92,0.25)",
               }}
             >
-              홈으로 돌아가기
+              목록으로 돌아가기
             </button>
             <button
               disabled={downloading}
@@ -530,7 +786,7 @@ export function ReportResultClient({
                   setDownloading(false);
                 }
               }}
-              className="flex h-11 w-full cursor-pointer items-center justify-center rounded-[14px] border-[1.5px] border-[#ECE8E3] bg-transparent text-[13px] font-medium text-[#6B6360] disabled:opacity-50"
+              className="flex h-11 w-full cursor-pointer items-center justify-center rounded-[14px] border-[1.5px] border-[#ECE8E3] bg-white text-[13px] font-medium text-[#6B6360] disabled:opacity-50"
             >
               {downloading ? (
                 <Loader2 size={16} className="animate-spin text-[#6B6360]" />

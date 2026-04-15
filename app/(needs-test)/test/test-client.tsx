@@ -178,14 +178,16 @@ export function TestClient({
 
   const goTo = useCallback((nextIdx: number, dir: number) => {
     setDirection(dir);
+    setFlashingValue(null);
     setPhase("exit");
     setTimeout(() => {
       setIdx(nextIdx);
-      setFlashingValue(null);
       setLocked(false);
       setPhase("enter");
-      setTimeout(() => setPhase("visible"), 30);
-    }, 250);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setPhase("visible"));
+      });
+    }, 350);
   }, []);
 
   const handleSelect = useCallback(
@@ -205,7 +207,7 @@ export function TestClient({
         } else {
           setIdx(total);
         }
-      }, 600);
+      }, 550);
     },
     [locked, done, idx, total, questions, profile.id, goTo],
   );
@@ -348,16 +350,19 @@ export function TestClient({
 
       {/* ── Question + Options ── */}
       <div
-        className="flex flex-col px-5 pb-6 pt-8 transition-all duration-250"
+        key={q.id}
+        className="flex flex-col px-5 pb-6 pt-8"
         style={{
           opacity: phase === "visible" ? 1 : 0,
           transform:
             phase === "exit"
-              ? `translateY(${direction * 40}px)`
+              ? `translateY(${direction * 10}px) scale(0.98)`
               : phase === "enter"
-                ? `translateY(${-direction * 30}px)`
-                : "translateY(0)",
-          transitionTimingFunction: "cubic-bezier(0.22,1,0.36,1)",
+                ? `translateY(${-direction * 8}px)`
+                : "translateY(0) scale(1)",
+          transition: phase === "enter"
+            ? "none"
+            : "opacity 0.45s cubic-bezier(0.16,1,0.3,1), transform 0.45s cubic-bezier(0.16,1,0.3,1)",
         }}
       >
         {/* Question text */}

@@ -34,9 +34,9 @@ export default async function PaymentSuccessPage({
 
   if (order.status === "paid") {
     // 이미 결제 완료된 주문 → 리포트 페이지로
-    const result = await requestReport(order.couple_id, order.has_children);
+    const result = await requestReport(order.couple_id, order.report_type, order.child_id ?? undefined);
     if ("reportId" in result) {
-      redirect(`/report/${result.reportId}`);
+      redirect(`/report/${result.reportId}/criterion`);
     }
     redirect("/home");
   }
@@ -75,9 +75,9 @@ export default async function PaymentSuccessPage({
     .where(eq(befeOrders.id, order.id));
 
   // 4. 리포트 생성
-  const result = await requestReport(order.couple_id, order.has_children);
+  const result = await requestReport(order.couple_id, order.report_type, order.child_id ?? undefined);
   if ("reportId" in result) {
-    redirect(`/report/${result.reportId}`);
+    redirect(`/report/${result.reportId}/criterion`);
   }
 
   redirect("/home");

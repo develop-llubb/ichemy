@@ -88,7 +88,7 @@ export function TestIntroClient() {
       </header>
 
       {/* Scroll content */}
-      <main className="flex-1 overflow-y-auto px-6">
+      <main className="flex-1 px-6">
         {/* Hero */}
         <div className="pt-5 text-center" style={ease(0)}>
           <div

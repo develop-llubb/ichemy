@@ -75,7 +75,7 @@ export function HomeClient({
     if (reportCount >= 1) {
       router.push("/report/list");
     } else if (hasCouple && status === "both_complete") {
-      router.push("/report");
+      router.push("/report?from=/home");
     } else if (status === "waiting_partner") {
       router.push("/home/waiting");
     } else {
@@ -108,7 +108,7 @@ export function HomeClient({
         }}
         direction="right"
       >
-        <DrawerContent direction="right">
+        <DrawerContent>
           <DrawerTitle className="sr-only">메뉴</DrawerTitle>
           {/* Close button */}
           <div className="flex items-center justify-end px-5 pt-4">

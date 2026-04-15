@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { befeProfiles, befeCouples, befeReports } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { befeProfiles, befeCouples, befeReports, befeChildren, befeCriterionResponses } from "@/db/schema";
+import { eq, or, and, isNull } from "drizzle-orm";
 import { ReportListClient } from "./report-list-client";
 
 export default async function ReportListPage() {
@@ -46,18 +46,69 @@ export default async function ReportListPage() {
     .where(eq(befeProfiles.id, partnerId))
     .limit(1);
 
-  const reports = await db
+  const reportsRaw = await db
     .select({
       id: befeReports.id,
-      has_children: befeReports.has_children,
+      report_type: befeReports.report_type,
+      child_id: befeReports.child_id,
+      child_name: befeReports.child_name,
+      child_gender: befeReports.child_gender,
+      child_birth_date: befeReports.child_birth_date,
+      child_age: befeReports.child_age,
       status: befeReports.status,
       created_at: befeReports.created_at,
     })
     .from(befeReports)
-    .where(eq(befeReports.couple_id, couple.id));
+    .where(and(eq(befeReports.couple_id, couple.id), isNull(befeReports.deleted_at)));
+
+  // 자녀 사진 조회 (사진은 스냅샷이 아니므로 최신 값 사용)
+  const childIds = reportsRaw.filter((r) => r.child_id).map((r) => r.child_id!);
+  let photoMap: Record<string, string | null> = {};
+  if (childIds.length > 0) {
+    const childrenData = await db
+      .select({ id: befeChildren.id, photo_url: befeChildren.photo_url })
+      .from(befeChildren)
+      .where(eq(befeChildren.couple_id, couple.id));
+    photoMap = Object.fromEntries(childrenData.map((c) => [c.id,
+      c.photo_url
+        ? supabase.storage.from("images").getPublicUrl(c.photo_url).data.publicUrl
+        : null,
+    ]));
+  }
+
+  // 준거 설문 완료 여부 조회
+  const criterionRows = await db
+    .select({
+      report_type: befeCriterionResponses.report_type,
+      cv1: befeCriterionResponses.cv1,
+      cv2: befeCriterionResponses.cv2,
+      cv3: befeCriterionResponses.cv3,
+      cv4: befeCriterionResponses.cv4,
+      cv5: befeCriterionResponses.cv5,
+      cv6: befeCriterionResponses.cv6,
+    })
+    .from(befeCriterionResponses)
+    .where(
+      and(
+        eq(befeCriterionResponses.couple_id, couple.id),
+        eq(befeCriterionResponses.profile_id, profile.id),
+      ),
+    );
+
+  const criterionCompleteTypes = new Set(
+    criterionRows
+      .filter((r) => [r.cv1, r.cv2, r.cv3, r.cv4, r.cv5, r.cv6].every((v) => v !== null))
+      .map((r) => r.report_type),
+  );
+
+  const reports = reportsRaw.map((r) => ({
+    ...r,
+    childPhotoUrl: r.child_id ? photoMap[r.child_id] ?? null : null,
+    criterionComplete: criterionCompleteTypes.has(r.report_type),
+  }));
 
   if (reports.length === 0) {
-    redirect("/report");
+    redirect("/report?from=/home");
   }
 
   return (

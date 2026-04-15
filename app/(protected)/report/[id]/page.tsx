@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { befeProfiles, befeCouples, befeReports } from "@/db/schema";
+import { befeProfiles, befeCouples, befeReports, befeReportReviews, befeCriterionResponses } from "@/db/schema";
 import { eq, or, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { ReportResultClient } from "./report-result-client";
@@ -42,7 +42,8 @@ export default async function ReportResultPage({
   const [report] = await db
     .select({
       id: befeReports.id,
-      has_children: befeReports.has_children,
+      report_type: befeReports.report_type,
+      child_name: befeReports.child_name,
       status: befeReports.status,
       content: befeReports.content,
     })
@@ -59,12 +60,49 @@ export default async function ReportResultPage({
     notFound();
   }
 
+  // 준거 설문 미완료 시 criterion 페이지로 리다이렉트
+  const [criterionResponse] = await db
+    .select({
+      cv1: befeCriterionResponses.cv1,
+      cv2: befeCriterionResponses.cv2,
+      cv3: befeCriterionResponses.cv3,
+      cv4: befeCriterionResponses.cv4,
+      cv5: befeCriterionResponses.cv5,
+      cv6: befeCriterionResponses.cv6,
+    })
+    .from(befeCriterionResponses)
+    .where(
+      and(
+        eq(befeCriterionResponses.couple_id, myCouple.id),
+        eq(befeCriterionResponses.profile_id, profile.id),
+        eq(befeCriterionResponses.report_type, report.report_type),
+      ),
+    )
+    .limit(1);
+
+  const criterionComplete = criterionResponse &&
+    [criterionResponse.cv1, criterionResponse.cv2, criterionResponse.cv3, criterionResponse.cv4, criterionResponse.cv5, criterionResponse.cv6].every((v) => v !== null);
+
+  if (!criterionComplete) {
+    redirect(`/report/${id}/criterion`);
+  }
+
+  // 리뷰 존재 여부 확인
+  const [existingReview] = await db
+    .select({ id: befeReportReviews.id })
+    .from(befeReportReviews)
+    .where(eq(befeReportReviews.report_id, report.id))
+    .limit(1);
+
   return (
     <ReportResultClient
       reportId={report.id}
-      hasChildren={report.has_children}
+      reportType={report.report_type}
+      childName={report.child_name}
       status={report.status}
       content={report.content}
+      profileId={profile.id}
+      hasReview={!!existingReview}
     />
   );
 }
