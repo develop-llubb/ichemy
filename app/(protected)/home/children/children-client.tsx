@@ -192,11 +192,11 @@ export function ChildrenClient({ coupleId, children: initialChildren }: Children
                       <img src={child.photo_url} alt={child.name} className="h-full w-full object-cover" />
                     ) : child.gender === "girl" ? "👧" : "👦"}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <div className="text-[15px] font-bold text-foreground">{child.name}</div>
-                    <div className="mt-0.5 text-xs text-muted">
-                      {child.gender === "girl" ? "♀" : "♂"} {calculateAge(child.birth_date)}
-                    </div>
+                    <p className="mt-0.5 text-xs text-muted">
+                      {child.gender === "girl" ? "여아" : "남아"} · {calculateAge(child.birth_date)}
+                    </p>
                   </div>
                   <div className="flex gap-1">
                     <button

@@ -255,8 +255,7 @@ export function ReportListClient({
                         className="rounded-full px-2 py-0.5 text-[10px] font-semibold"
                         style={{ background: typeColor.bg, color: typeColor.text }}
                       >
-                        {report.child_gender === "girl" ? "♀" : "♂"}{" "}
-                        {REPORT_TYPE_LABEL[report.report_type]}
+                        {report.child_gender === "girl" ? "여아" : "남아"} · {REPORT_TYPE_LABEL[report.report_type]}
                         {report.child_birth_date && ` (${formatChildAge(report.child_birth_date)})`}
                       </span>
                     )}

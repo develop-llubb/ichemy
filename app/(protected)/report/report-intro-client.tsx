@@ -318,7 +318,7 @@ export function ReportIntroClient({
                           )}
                         </div>
                         <div className="text-[11px] text-[#9A918A]">
-                          {hasReport ? "리포트 보기 →" : `${child.gender === "girl" ? "♀" : "♂"} ${child.birth_date}`}
+                          {hasReport ? "리포트 보기 →" : `${child.gender === "girl" ? "여아" : "남아"} · ${child.birth_date}`}
                         </div>
                       </div>
                       {!hasReport && (
