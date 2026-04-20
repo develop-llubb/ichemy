@@ -1,8 +1,7 @@
 import { redirect } from "next/navigation";
 import { db } from "@/db";
-import { befeOrders } from "@/db/schema";
-import { eq } from "drizzle-orm";
-import { requestReport } from "@/app/(protected)/report/actions";
+import { befeOrders, befeCouples, befeHeartTransactions } from "@/db/schema";
+import { eq, sql } from "drizzle-orm";
 
 const TOSS_SECRET_KEY = process.env.TOSS_SECRET_KEY!;
 
@@ -32,13 +31,13 @@ export default async function PaymentSuccessPage({
     redirect("/payment/fail?code=AMOUNT_MISMATCH&message=결제 금액이 일치하지 않습니다.");
   }
 
+  if (!order.hearts_amount || !order.package_key) {
+    redirect("/payment/fail?code=INVALID_ORDER&message=주문 정보가 올바르지 않습니다.");
+  }
+
+  // 이미 결제 완료 (중복 진입 방지)
   if (order.status === "paid") {
-    // 이미 결제 완료된 주문 → 리포트 페이지로
-    const result = await requestReport(order.couple_id, order.report_type, order.child_id ?? undefined);
-    if ("reportId" in result) {
-      redirect(`/report/${result.reportId}/criterion`);
-    }
-    redirect("/home");
+    redirect("/shop?success=1");
   }
 
   // 2. 토스 결제 승인 API 호출
@@ -68,17 +67,31 @@ export default async function PaymentSuccessPage({
     );
   }
 
-  // 3. 결제 성공 → 주문 상태 업데이트
-  await db
-    .update(befeOrders)
-    .set({ status: "paid", payment_key: paymentKey })
-    .where(eq(befeOrders.id, order.id));
+  // 3. 하트 증액 + 주문 상태 업데이트 + 트랜잭션 기록 (트랜잭션)
+  const hearts = order.hearts_amount;
+  await db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(befeCouples)
+      .set({
+        heart_balance: sql`${befeCouples.heart_balance} + ${hearts}`,
+        updated_at: new Date().toISOString(),
+      })
+      .where(eq(befeCouples.id, order.couple_id))
+      .returning({ balance: befeCouples.heart_balance });
 
-  // 4. 리포트 생성
-  const result = await requestReport(order.couple_id, order.report_type, order.child_id ?? undefined);
-  if ("reportId" in result) {
-    redirect(`/report/${result.reportId}/criterion`);
-  }
+    await tx
+      .update(befeOrders)
+      .set({ status: "paid", payment_key: paymentKey })
+      .where(eq(befeOrders.id, order.id));
 
-  redirect("/home");
+    await tx.insert(befeHeartTransactions).values({
+      couple_id: order.couple_id,
+      type: "purchase",
+      amount: hearts,
+      balance_after: updated.balance,
+      order_id: order.id,
+    });
+  });
+
+  redirect("/shop?success=1");
 }

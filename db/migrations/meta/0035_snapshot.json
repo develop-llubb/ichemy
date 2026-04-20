@@ -1,0 +1,2061 @@
+{
+  "id": "47fb6e08-e0ca-425d-8f76-963bc527513d",
+  "prevId": "b81ee930-ebbd-4c65-a9eb-f373aebe84ee",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.befe_answers": {
+      "name": "befe_answers",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "question_id": {
+          "name": "question_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "answer": {
+          "name": "answer",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "befe_answers_profile_id_befe_profiles_id_fk": {
+          "name": "befe_answers_profile_id_befe_profiles_id_fk",
+          "tableFrom": "befe_answers",
+          "tableTo": "befe_profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "befe_answers_question_id_questions_id_fk": {
+          "name": "befe_answers_question_id_questions_id_fk",
+          "tableFrom": "befe_answers",
+          "tableTo": "questions",
+          "columnsFrom": [
+            "question_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "befe_answers_profile_question_key": {
+          "name": "befe_answers_profile_question_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "profile_id",
+            "question_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.befe_children": {
+      "name": "befe_children",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "couple_id": {
+          "name": "couple_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "gender": {
+          "name": "gender",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "birth_date": {
+          "name": "birth_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "photo_url": {
+          "name": "photo_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "idx_befe_children_couple": {
+          "name": "idx_befe_children_couple",
+          "columns": [
+            {
+              "expression": "couple_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "befe_children_couple_id_befe_couples_id_fk": {
+          "name": "befe_children_couple_id_befe_couples_id_fk",
+          "tableFrom": "befe_children",
+          "tableTo": "befe_couples",
+          "columnsFrom": [
+            "couple_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.befe_couples": {
+      "name": "befe_couples",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "inviter_profile_id": {
+          "name": "inviter_profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "invitee_profile_id": {
+          "name": "invitee_profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "esb_score": {
+          "name": "esb_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "csp_score": {
+          "name": "csp_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pci_score": {
+          "name": "pci_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stb_score": {
+          "name": "stb_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "esb_grade": {
+          "name": "esb_grade",
+          "type": "befe_grade",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "csp_grade": {
+          "name": "csp_grade",
+          "type": "befe_grade",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pci_grade": {
+          "name": "pci_grade",
+          "type": "befe_grade",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stb_grade": {
+          "name": "stb_grade",
+          "type": "befe_grade",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "e_llubb": {
+          "name": "e_llubb",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "l_llubb": {
+          "name": "l_llubb",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pcq_score": {
+          "name": "pcq_score",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "has_children": {
+          "name": "has_children",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "heart_balance": {
+          "name": "heart_balance",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {
+        "idx_befe_couples_inviter": {
+          "name": "idx_befe_couples_inviter",
+          "columns": [
+            {
+              "expression": "inviter_profile_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_befe_couples_invitee": {
+          "name": "idx_befe_couples_invitee",
+          "columns": [
+            {
+              "expression": "invitee_profile_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "befe_couples_inviter_profile_id_befe_profiles_id_fk": {
+          "name": "befe_couples_inviter_profile_id_befe_profiles_id_fk",
+          "tableFrom": "befe_couples",
+          "tableTo": "befe_profiles",
+          "columnsFrom": [
+            "inviter_profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "befe_couples_invitee_profile_id_befe_profiles_id_fk": {
+          "name": "befe_couples_invitee_profile_id_befe_profiles_id_fk",
+          "tableFrom": "befe_couples",
+          "tableTo": "befe_profiles",
+          "columnsFrom": [
+            "invitee_profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "befe_couples_pair_key": {
+          "name": "befe_couples_pair_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "inviter_profile_id",
+            "invitee_profile_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.befe_coupons": {
+      "name": "befe_coupons",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "code": {
+          "name": "code",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_name": {
+          "name": "event_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "max_uses": {
+          "name": "max_uses",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "current_uses": {
+          "name": "current_uses",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "used_by_profile_ids": {
+          "name": "used_by_profile_ids",
+          "type": "uuid[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'::uuid[]"
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "befe_coupons_code_unique": {
+          "name": "befe_coupons_code_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "code"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.befe_criterion_responses": {
+      "name": "befe_criterion_responses",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "couple_id": {
+          "name": "couple_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "report_type": {
+          "name": "report_type",
+          "type": "befe_report_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cv1": {
+          "name": "cv1",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cv2": {
+          "name": "cv2",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cv3": {
+          "name": "cv3",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cv4": {
+          "name": "cv4",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cv5": {
+          "name": "cv5",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "cv6": {
+          "name": "cv6",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "befe_criterion_responses_couple_id_befe_couples_id_fk": {
+          "name": "befe_criterion_responses_couple_id_befe_couples_id_fk",
+          "tableFrom": "befe_criterion_responses",
+          "tableTo": "befe_couples",
+          "columnsFrom": [
+            "couple_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "befe_criterion_responses_profile_id_befe_profiles_id_fk": {
+          "name": "befe_criterion_responses_profile_id_befe_profiles_id_fk",
+          "tableFrom": "befe_criterion_responses",
+          "tableTo": "befe_profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "befe_criterion_responses_unique": {
+          "name": "befe_criterion_responses_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "couple_id",
+            "profile_id",
+            "report_type"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.befe_heart_transactions": {
+      "name": "befe_heart_transactions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "couple_id": {
+          "name": "couple_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "befe_heart_transaction_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "balance_after": {
+          "name": "balance_after",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "memo": {
+          "name": "memo",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_befe_heart_transactions_couple": {
+          "name": "idx_befe_heart_transactions_couple",
+          "columns": [
+            {
+              "expression": "couple_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "befe_heart_transactions_couple_id_befe_couples_id_fk": {
+          "name": "befe_heart_transactions_couple_id_befe_couples_id_fk",
+          "tableFrom": "befe_heart_transactions",
+          "tableTo": "befe_couples",
+          "columnsFrom": [
+            "couple_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "befe_heart_transactions_order_id_befe_orders_id_fk": {
+          "name": "befe_heart_transactions_order_id_befe_orders_id_fk",
+          "tableFrom": "befe_heart_transactions",
+          "tableTo": "befe_orders",
+          "columnsFrom": [
+            "order_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "befe_heart_transactions_report_id_befe_reports_id_fk": {
+          "name": "befe_heart_transactions_report_id_befe_reports_id_fk",
+          "tableFrom": "befe_heart_transactions",
+          "tableTo": "befe_reports",
+          "columnsFrom": [
+            "report_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.befe_invitations": {
+      "name": "befe_invitations",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "inviter_profile_id": {
+          "name": "inviter_profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "invitee_profile_id": {
+          "name": "invitee_profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "befe_invitation_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "idx_befe_invitations_invitee": {
+          "name": "idx_befe_invitations_invitee",
+          "columns": [
+            {
+              "expression": "invitee_profile_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "befe_invitations_inviter_profile_id_befe_profiles_id_fk": {
+          "name": "befe_invitations_inviter_profile_id_befe_profiles_id_fk",
+          "tableFrom": "befe_invitations",
+          "tableTo": "befe_profiles",
+          "columnsFrom": [
+            "inviter_profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "befe_invitations_invitee_profile_id_befe_profiles_id_fk": {
+          "name": "befe_invitations_invitee_profile_id_befe_profiles_id_fk",
+          "tableFrom": "befe_invitations",
+          "tableTo": "befe_profiles",
+          "columnsFrom": [
+            "invitee_profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "befe_invitations_pair_key": {
+          "name": "befe_invitations_pair_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "inviter_profile_id",
+            "invitee_profile_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.befe_orders": {
+      "name": "befe_orders",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "couple_id": {
+          "name": "couple_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "order_id": {
+          "name": "order_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "befe_order_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "payment_key": {
+          "name": "payment_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "report_type": {
+          "name": "report_type",
+          "type": "befe_report_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "child_id": {
+          "name": "child_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "package_key": {
+          "name": "package_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "hearts_amount": {
+          "name": "hearts_amount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "befe_orders_couple_id_befe_couples_id_fk": {
+          "name": "befe_orders_couple_id_befe_couples_id_fk",
+          "tableFrom": "befe_orders",
+          "tableTo": "befe_couples",
+          "columnsFrom": [
+            "couple_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "befe_orders_child_id_befe_children_id_fk": {
+          "name": "befe_orders_child_id_befe_children_id_fk",
+          "tableFrom": "befe_orders",
+          "tableTo": "befe_children",
+          "columnsFrom": [
+            "child_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "befe_orders_order_id_unique": {
+          "name": "befe_orders_order_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "order_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.befe_personality_reports": {
+      "name": "befe_personality_reports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "befe_report_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'generating'"
+        },
+        "content": {
+          "name": "content",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "model_version": {
+          "name": "model_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prompt_version": {
+          "name": "prompt_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "befe_personality_reports_profile_id_befe_profiles_id_fk": {
+          "name": "befe_personality_reports_profile_id_befe_profiles_id_fk",
+          "tableFrom": "befe_personality_reports",
+          "tableTo": "befe_profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "befe_personality_reports_profile_key": {
+          "name": "befe_personality_reports_profile_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "profile_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.befe_profiles": {
+      "name": "befe_profiles",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nickname": {
+          "name": "nickname",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "role": {
+          "name": "role",
+          "type": "befe_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "third_party_agreed": {
+          "name": "third_party_agreed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "parenting_status": {
+          "name": "parenting_status",
+          "type": "befe_parenting_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "pregnancy_weeks": {
+          "name": "pregnancy_weeks",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "test_index": {
+          "name": "test_index",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "test_completed": {
+          "name": "test_completed",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "openness": {
+          "name": "openness",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conscientiousness": {
+          "name": "conscientiousness",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "extraversion": {
+          "name": "extraversion",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "agreeableness": {
+          "name": "agreeableness",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "neuroticism": {
+          "name": "neuroticism",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "z_openness": {
+          "name": "z_openness",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "z_conscientiousness": {
+          "name": "z_conscientiousness",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "z_extraversion": {
+          "name": "z_extraversion",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "z_agreeableness": {
+          "name": "z_agreeableness",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "z_neuroticism": {
+          "name": "z_neuroticism",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avoidance": {
+          "name": "avoidance",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "anxiety": {
+          "name": "anxiety",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "z_avoidance": {
+          "name": "z_avoidance",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "z_anxiety": {
+          "name": "z_anxiety",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "humor": {
+          "name": "humor",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "conflict": {
+          "name": "conflict",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "z_humor": {
+          "name": "z_humor",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "z_conflict": {
+          "name": "z_conflict",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "big_5_type": {
+          "name": "big_5_type",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "attachment_type": {
+          "name": "attachment_type",
+          "type": "befe_attachment_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "aas_intensity": {
+          "name": "aas_intensity",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "flexibility_level": {
+          "name": "flexibility_level",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "flexibility_percentage": {
+          "name": "flexibility_percentage",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "coupon_id": {
+          "name": "coupon_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "befe_profiles_user_id_users_id_fk": {
+          "name": "befe_profiles_user_id_users_id_fk",
+          "tableFrom": "befe_profiles",
+          "tableTo": "users",
+          "schemaTo": "auth",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "befe_profiles_coupon_id_befe_coupons_id_fk": {
+          "name": "befe_profiles_coupon_id_befe_coupons_id_fk",
+          "tableFrom": "befe_profiles",
+          "tableTo": "befe_coupons",
+          "columnsFrom": [
+            "coupon_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.befe_report_reviews": {
+      "name": "befe_report_reviews",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "report_id": {
+          "name": "report_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "profile_id": {
+          "name": "profile_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "r1_accuracy": {
+          "name": "r1_accuracy",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "r2_usefulness": {
+          "name": "r2_usefulness",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "r3_confidence": {
+          "name": "r3_confidence",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "r4_feedback": {
+          "name": "r4_feedback",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "r5_practice": {
+          "name": "r5_practice",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "r5_answered_at": {
+          "name": "r5_answered_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "befe_report_reviews_report_id_befe_reports_id_fk": {
+          "name": "befe_report_reviews_report_id_befe_reports_id_fk",
+          "tableFrom": "befe_report_reviews",
+          "tableTo": "befe_reports",
+          "columnsFrom": [
+            "report_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "befe_report_reviews_profile_id_befe_profiles_id_fk": {
+          "name": "befe_report_reviews_profile_id_befe_profiles_id_fk",
+          "tableFrom": "befe_report_reviews",
+          "tableTo": "befe_profiles",
+          "columnsFrom": [
+            "profile_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "befe_report_reviews_report_key": {
+          "name": "befe_report_reviews_report_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "report_id"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.befe_report_templates": {
+      "name": "befe_report_templates",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "esb_grade": {
+          "name": "esb_grade",
+          "type": "befe_grade",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "csp_grade": {
+          "name": "csp_grade",
+          "type": "befe_grade",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "pci_grade": {
+          "name": "pci_grade",
+          "type": "befe_grade",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "stb_grade": {
+          "name": "stb_grade",
+          "type": "befe_grade",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "report_type": {
+          "name": "report_type",
+          "type": "befe_report_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "model_version": {
+          "name": "model_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prompt_version": {
+          "name": "prompt_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "befe_report_templates_grades_key": {
+          "name": "befe_report_templates_grades_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "esb_grade",
+            "csp_grade",
+            "pci_grade",
+            "stb_grade",
+            "report_type"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.befe_reports": {
+      "name": "befe_reports",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "couple_id": {
+          "name": "couple_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "report_type": {
+          "name": "report_type",
+          "type": "befe_report_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "child_id": {
+          "name": "child_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "child_name": {
+          "name": "child_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "child_gender": {
+          "name": "child_gender",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "child_birth_date": {
+          "name": "child_birth_date",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "child_age": {
+          "name": "child_age",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "befe_report_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'generating'"
+        },
+        "content": {
+          "name": "content",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "model_version": {
+          "name": "model_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "prompt_version": {
+          "name": "prompt_version",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "deleted_at": {
+          "name": "deleted_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "befe_reports_couple_id_befe_couples_id_fk": {
+          "name": "befe_reports_couple_id_befe_couples_id_fk",
+          "tableFrom": "befe_reports",
+          "tableTo": "befe_couples",
+          "columnsFrom": [
+            "couple_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "befe_reports_child_id_befe_children_id_fk": {
+          "name": "befe_reports_child_id_befe_children_id_fk",
+          "tableFrom": "befe_reports",
+          "tableTo": "befe_children",
+          "columnsFrom": [
+            "child_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "befe_reports_couple_child_type_key": {
+          "name": "befe_reports_couple_child_type_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "couple_id",
+            "child_id",
+            "report_type"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": true
+    },
+    "public.questions": {
+      "name": "questions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "test_id": {
+          "name": "test_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "domain": {
+          "name": "domain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "selection_count": {
+          "name": "selection_count",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 5
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "index": {
+          "name": "index",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "questions_test_id_tests_id_fk": {
+          "name": "questions_test_id_tests_id_fk",
+          "tableFrom": "questions",
+          "tableTo": "tests",
+          "columnsFrom": [
+            "test_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.report_aas": {
+      "name": "report_aas",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type_text": {
+          "name": "type_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "aas_intensity": {
+          "name": "aas_intensity",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "overall_evaluation": {
+          "name": "overall_evaluation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "detail_evaluations": {
+          "name": "detail_evaluations",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "counseling_evaluations": {
+          "name": "counseling_evaluations",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sequence": {
+          "name": "sequence",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.report_big_5": {
+      "name": "report_big_5",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "big_5_type": {
+          "name": "big_5_type",
+          "type": "bigint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sequence": {
+          "name": "sequence",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "nickname": {
+          "name": "nickname",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "overall_evaluation": {
+          "name": "overall_evaluation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "detail_evaluations": {
+          "name": "detail_evaluations",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "counseling_text": {
+          "name": "counseling_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "report_big_5_big_5_type_key": {
+          "name": "report_big_5_big_5_type_key",
+          "nullsNotDistinct": false,
+          "columns": [
+            "big_5_type"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.report_flexibility": {
+      "name": "report_flexibility",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "flexibility_level": {
+          "name": "flexibility_level",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "overall_evaluation": {
+          "name": "overall_evaluation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "detail_evaluation": {
+          "name": "detail_evaluation",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "counseling_text": {
+          "name": "counseling_text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.tests": {
+      "name": "tests",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {
+    "public.befe_attachment_type": {
+      "name": "befe_attachment_type",
+      "schema": "public",
+      "values": [
+        "secure",
+        "anxious",
+        "avoidant",
+        "disorganized"
+      ]
+    },
+    "public.befe_grade": {
+      "name": "befe_grade",
+      "schema": "public",
+      "values": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ]
+    },
+    "public.befe_heart_transaction_type": {
+      "name": "befe_heart_transaction_type",
+      "schema": "public",
+      "values": [
+        "purchase",
+        "use",
+        "refund",
+        "grant"
+      ]
+    },
+    "public.befe_invitation_status": {
+      "name": "befe_invitation_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "accepted",
+        "declined"
+      ]
+    },
+    "public.befe_order_status": {
+      "name": "befe_order_status",
+      "schema": "public",
+      "values": [
+        "pending",
+        "paid",
+        "failed"
+      ]
+    },
+    "public.befe_parenting_status": {
+      "name": "befe_parenting_status",
+      "schema": "public",
+      "values": [
+        "has_children",
+        "pregnant",
+        "none"
+      ]
+    },
+    "public.befe_report_status": {
+      "name": "befe_report_status",
+      "schema": "public",
+      "values": [
+        "generating",
+        "completed",
+        "failed"
+      ]
+    },
+    "public.befe_report_type": {
+      "name": "befe_report_type",
+      "schema": "public",
+      "values": [
+        "no_child",
+        "infant",
+        "toddler",
+        "elementary",
+        "middle_school"
+      ]
+    },
+    "public.befe_role": {
+      "name": "befe_role",
+      "schema": "public",
+      "values": [
+        "mom",
+        "dad"
+      ]
+    }
+  },
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

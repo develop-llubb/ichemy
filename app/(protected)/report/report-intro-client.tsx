@@ -2,13 +2,10 @@
 
 import { useState, useEffect, useCallback, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Image from "next/image";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { saveHasChildren, requestReport } from "./actions";
 import { addChild, updateChild, getUploadUrl } from "@/app/(protected)/home/children/actions";
-import { createOrder } from "@/app/payment/actions";
 import type { ReportType } from "@/lib/care-report";
 import { JOURNEY_STEPS } from "@/lib/steps";
 import { CouponTicket } from "@/components/coupon-ticket";
@@ -37,6 +34,7 @@ interface ReportIntroClientProps {
   hasChildren: boolean | null;
   pcqScore: number;
   hasCoupon: boolean;
+  heartBalance: number;
   lockedHasChildren?: boolean | null;
   children: ChildInfo[];
   childReportKeys: string[];
@@ -72,6 +70,7 @@ export function ReportIntroClient({
   hasChildren: initialHasChildren,
   pcqScore,
   hasCoupon,
+  heartBalance,
   lockedHasChildren = null,
   children,
   childReportKeys,
@@ -130,26 +129,6 @@ export function ReportIntroClient({
     return () => clearTimeout(t);
   }, []);
 
-  // 결제 실패/취소 시 toast 표시
-  useEffect(() => {
-    const code = searchParams.get("code");
-    const message = searchParams.get("message");
-    if (code) {
-      const cancelCodes = [
-        "PAY_PROCESS_CANCELED",
-        "USER_CANCEL",
-        "PAY_PROCESS_ABORTED",
-      ];
-      if (cancelCodes.includes(code)) {
-        toast("결제가 취소되었습니다.");
-      } else {
-        toast(message || "결제에 실패했습니다.");
-      }
-      // URL에서 쿼리 파라미터 제거
-      router.replace("/report", { scroll: false });
-    }
-  }, [searchParams, router]);
-
   const ease = (delay = 0): React.CSSProperties => ({
     opacity: ready ? 1 : 0,
     transform: ready ? "translateY(0)" : "translateY(18px)",
@@ -189,7 +168,7 @@ export function ReportIntroClient({
 
       <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
         {/* Header */}
-        <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
+        <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_auto] items-center gap-2 border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
           <button
             onClick={() => router.push(backPath)}
             className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
@@ -199,7 +178,18 @@ export function ReportIntroClient({
           <span className="text-center text-[15px] font-semibold text-foreground">
             육아 케어 리포트
           </span>
-          <div />
+          {hasCoupon ? (
+            <div />
+          ) : (
+            <button
+              onClick={() => router.push("/shop")}
+              className="flex h-8 cursor-pointer items-center gap-1 rounded-full border-[1.5px] border-[#ECE8E3] bg-white px-2.5 text-[12px] font-semibold text-primary transition-colors hover:border-primary"
+              aria-label="하트 상점"
+            >
+              <span className="text-[13px] leading-none">♥️</span>
+              <span>{heartBalance}</span>
+            </button>
+          )}
         </div>
 
         {/* Content */}
@@ -699,46 +689,15 @@ export function ReportIntroClient({
             })}
           </div>
 
-          {hasCoupon ? (
+          {hasCoupon && (
             <div className="mt-7 mb-6 w-full" style={ease(0.38)}>
               <CouponTicket
                 title="무료 쿠폰 적용 완료!"
                 description="결제 없이 바로 리포트를 받을 수 있어요"
               />
             </div>
-          ) : (
-            /* Baby fair promo */
-            <div
-              className="relative mt-7 mb-6 w-full overflow-hidden rounded-[18px] p-[22px_20px] text-white"
-              style={{
-                background: "linear-gradient(160deg, #D4735C, #C0614A)",
-                ...ease(0.38),
-              }}
-            >
-              <div className="pointer-events-none absolute -top-6 -right-6 h-20 w-20 rounded-full bg-white/[0.08]" />
-              <div className="pointer-events-none absolute -bottom-4 -left-4 h-14 w-14 rounded-full bg-white/[0.06]" />
-              <div className="relative z-10">
-                {/* <div className="inline-block rounded-lg bg-white px-2.5 py-1.5"> */}
-                <Image
-                  src="/befe-logo.png"
-                  alt="BeFe"
-                  width={56}
-                  height={24}
-                  className="h-5 w-auto"
-                />
-                {/* </div> */}
-                <div className="mt-3 mb-2.5 text-base font-extrabold leading-[1.5] tracking-[-0.3px]">
-                  BeFe 베이비페어에서
-                  <br />
-                  QR 스캔하면 무료!
-                </div>
-                <p className="text-xs leading-[1.7] opacity-85">
-                  BeFe 베이비페어 케미스트리 부스에서 QR을 스캔하시면 육아 케어
-                  리포트를 무료로 받으실 수 있어요.
-                </p>
-              </div>
-            </div>
           )}
+          {!hasCoupon && <div className="mb-6" />}
         </div>
 
         {/* Bottom CTA */}
@@ -757,45 +716,20 @@ export function ReportIntroClient({
                 ? getReportTypeFromBirthDate(selectedChild.birth_date)
                 : "no_child";
 
-              if (hasCoupon) {
-                // 쿠폰 사용자: 바로 리포트 생성
-                startRequesting(async () => {
-                  const result = await requestReport(coupleId, reportType, childId);
-                  if ("error" in result) {
-                    toast(result.error);
-                    return;
-                  }
-                  router.replace(`/report/${result.reportId}/criterion`);
-                });
-              } else {
-                // 결제 사용자: 토스 결제창 띄우기
-                startRequesting(async () => {
-                  try {
-                    const order = await createOrder(coupleId, reportType, childId);
-                    const tossPayments = await loadTossPayments(
-                      process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!,
-                    );
-                    const payment = tossPayments.payment({
-                      customerKey: coupleId,
-                    });
-                    await payment.requestPayment({
-                      method: "CARD",
-                      amount: { currency: "KRW", value: order.amount },
-                      orderId: order.order_id,
-                      orderName: "육아 케어 리포트",
-                      successUrl: `${window.location.origin}/payment/success`,
-                      failUrl: `${window.location.origin}/report`,
-                    });
-                  } catch (e: unknown) {
-                    const error = e as { code?: string; message?: string };
-                    if (error.code === "USER_CANCEL") {
-                      toast("결제가 취소되었습니다.");
-                      return;
-                    }
-                    toast(error.message || "결제 중 오류가 발생했습니다.");
-                  }
-                });
+              // 하트 부족 & 쿠폰 없음 → 상점으로 이동
+              if (!hasCoupon && heartBalance < 1) {
+                router.push("/shop");
+                return;
               }
+
+              startRequesting(async () => {
+                const result = await requestReport(coupleId, reportType, childId);
+                if ("error" in result) {
+                  toast(result.error);
+                  return;
+                }
+                router.replace(`/report/${result.reportId}/criterion`);
+              });
             }}
             className="flex h-[54px] w-full items-center justify-center rounded-2xl border-none text-base font-bold text-white transition-all duration-200"
             style={{
@@ -813,7 +747,7 @@ export function ReportIntroClient({
             ) : hasCoupon ? (
               "리포트 받기"
             ) : (
-              "19,000원 결제하고 리포트 받기"
+              "♥️ 1개로 리포트 받기"
             )}
           </button>
           <p className="mt-2.5 text-center text-[11px] text-[#B8A898]">

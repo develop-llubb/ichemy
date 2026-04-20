@@ -26,7 +26,12 @@ export default async function HomePage() {
 
   // couple
   const [couple] = await db
-    .select({ id: befeCouples.id, inviter_profile_id: befeCouples.inviter_profile_id, invitee_profile_id: befeCouples.invitee_profile_id })
+    .select({
+      id: befeCouples.id,
+      inviter_profile_id: befeCouples.inviter_profile_id,
+      invitee_profile_id: befeCouples.invitee_profile_id,
+      heart_balance: befeCouples.heart_balance,
+    })
     .from(befeCouples)
     .where(
       or(
@@ -167,6 +172,7 @@ export default async function HomePage() {
       profileId={profile.id}
       tags={tags}
       hasCouple={!!couple}
+      heartBalance={couple?.heart_balance ?? null}
       pendingInvitation={pendingInvitation}
       reportId={reportId}
       reportCount={reports.length}

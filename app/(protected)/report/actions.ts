@@ -1,8 +1,14 @@
 "use server";
 
 import { db } from "@/db";
-import { befeCouples, befeReports, befeReportTemplates } from "@/db/schema";
-import { eq, and } from "drizzle-orm";
+import {
+  befeCouples,
+  befeProfiles,
+  befeReports,
+  befeReportTemplates,
+  befeHeartTransactions,
+} from "@/db/schema";
+import { eq, and, inArray, sql } from "drizzle-orm";
 import { after } from "next/server";
 import { generateCareReport, PROMPT_VERSION } from "@/lib/generate-report";
 import type { CareReport, Grade, ReportType } from "@/lib/care-report";
@@ -71,12 +77,59 @@ async function saveTemplate(
     .onConflictDoNothing();
 }
 
+async function generateWithRetry(params: {
+  coupleId: string;
+  reportType: ReportType;
+  grades: { esb: Grade; csp: Grade; pci: Grade; stb: Grade };
+  childAge?: number;
+  reportId: string;
+}) {
+  const MAX_ATTEMPTS = 3;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const { content, modelVersion } = await generateCareReport({
+        sequence: 1,
+        coupleId: params.coupleId,
+        reportType: params.reportType,
+        grades: params.grades,
+        childAge: params.childAge,
+      });
+
+      await db
+        .update(befeReports)
+        .set({
+          status: "completed",
+          content,
+          model_version: modelVersion,
+          prompt_version: PROMPT_VERSION,
+        })
+        .where(eq(befeReports.id, params.reportId));
+
+      await saveTemplate(params.grades, params.reportType, content, modelVersion);
+      return;
+    } catch (e) {
+      console.error(
+        `Report generation attempt ${attempt}/${MAX_ATTEMPTS} failed (report ${params.reportId}):`,
+        e,
+      );
+      if (attempt === MAX_ATTEMPTS) {
+        await db
+          .update(befeReports)
+          .set({ status: "failed" })
+          .where(eq(befeReports.id, params.reportId));
+        return;
+      }
+      await new Promise((r) => setTimeout(r, 2000 * attempt));
+    }
+  }
+}
+
 export async function requestReport(
   coupleId: string,
   reportType: ReportType,
   childId?: string,
 ): Promise<{ reportId: string } | { error: string }> {
-  // 기존 리포트 확인
+  // 기존 리포트 확인 (중복 과금 방지)
   const conditions = [
     eq(befeReports.couple_id, coupleId),
     eq(befeReports.report_type, reportType),
@@ -95,9 +148,13 @@ export async function requestReport(
     return { reportId: existing.id };
   }
 
-  // couple 데이터 조회
+  // couple + 점수 조회
   const [couple] = await db
     .select({
+      id: befeCouples.id,
+      heart_balance: befeCouples.heart_balance,
+      inviter_profile_id: befeCouples.inviter_profile_id,
+      invitee_profile_id: befeCouples.invitee_profile_id,
       esb_grade: befeCouples.esb_grade,
       csp_grade: befeCouples.csp_grade,
       pci_grade: befeCouples.pci_grade,
@@ -117,6 +174,23 @@ export async function requestReport(
     return { error: "점수 데이터가 없어요." };
   }
 
+  // 쿠폰 여부 확인 (본인 또는 배우자)
+  const profilesRows = await db
+    .select({ id: befeProfiles.id, coupon_id: befeProfiles.coupon_id })
+    .from(befeProfiles)
+    .where(
+      inArray(befeProfiles.id, [
+        couple.inviter_profile_id,
+        couple.invitee_profile_id,
+      ]),
+    );
+  const hasCoupon = profilesRows.some((p) => p.coupon_id !== null);
+
+  // 하트 잔액 확인
+  if (!hasCoupon && couple.heart_balance < 1) {
+    return { error: "하트가 부족해요. 상점에서 충전해주세요." };
+  }
+
   const grades = {
     esb: couple.esb_grade,
     csp: couple.csp_grade,
@@ -124,15 +198,36 @@ export async function requestReport(
     stb: couple.stb_grade,
   };
 
-  // 자녀 스냅샷 조회
   const childInfo = childId ? await getChildInfo(childId) : null;
-
-  // 템플릿 캐시 확인
   const template = await findTemplate(grades, reportType);
+  const initialStatus = template ? "completed" : "generating";
 
-  if (template) {
-    // 템플릿이 있으면 즉시 completed 리포트 생성
-    const [report] = await db
+  // 리포트 생성 + 하트 차감 (트랜잭션)
+  const report = await db.transaction(async (tx) => {
+    // 하트 차감 (쿠폰 사용자는 스킵)
+    let balanceAfter: number | null = null;
+    if (!hasCoupon) {
+      const [updated] = await tx
+        .update(befeCouples)
+        .set({
+          heart_balance: sql`${befeCouples.heart_balance} - 1`,
+          updated_at: new Date().toISOString(),
+        })
+        .where(
+          and(
+            eq(befeCouples.id, coupleId),
+            sql`${befeCouples.heart_balance} >= 1`,
+          ),
+        )
+        .returning({ balance: befeCouples.heart_balance });
+
+      if (!updated) {
+        throw new Error("INSUFFICIENT_HEARTS");
+      }
+      balanceAfter = updated.balance;
+    }
+
+    const [created] = await tx
       .insert(befeReports)
       .values({
         couple_id: coupleId,
@@ -142,68 +237,43 @@ export async function requestReport(
         child_gender: childInfo?.gender ?? null,
         child_birth_date: childInfo?.birthDate ?? null,
         child_age: childInfo?.age ?? null,
-        status: "completed",
-        content: template.content,
-        model_version: template.model_version,
-        prompt_version: template.prompt_version,
+        status: initialStatus,
+        content: template ? template.content : null,
+        model_version: template?.model_version ?? null,
+        prompt_version: template?.prompt_version ?? null,
       })
       .returning({ id: befeReports.id });
 
-    return { reportId: report.id };
-  }
+    if (!hasCoupon && balanceAfter !== null) {
+      await tx.insert(befeHeartTransactions).values({
+        couple_id: coupleId,
+        type: "use",
+        amount: -1,
+        balance_after: balanceAfter,
+        report_id: created.id,
+      });
+    }
 
-  // 템플릿이 없으면 generating 상태로 리포트 생성
-  const [report] = await db
-    .insert(befeReports)
-    .values({
-      couple_id: coupleId,
-      report_type: reportType,
-      child_id: childId ?? null,
-      child_name: childInfo?.name ?? null,
-      child_gender: childInfo?.gender ?? null,
-      child_birth_date: childInfo?.birthDate ?? null,
-      child_age: childInfo?.age ?? null,
-      status: "generating",
-    })
-    .returning({ id: befeReports.id });
+    return created;
+  });
 
-  // 백그라운드에서 리포트 생성 + 템플릿 저장
-  after(async () => {
-    try {
-      const { content, modelVersion } = await generateCareReport({
-        sequence: 1,
+  // 템플릿이 없으면 백그라운드에서 AI 생성 (실패 시 자동 재시도)
+  if (!template) {
+    after(async () => {
+      await generateWithRetry({
         coupleId,
         reportType,
         grades,
         childAge: childInfo?.age,
+        reportId: report.id,
       });
-
-      await db
-        .update(befeReports)
-        .set({
-          status: "completed",
-          content,
-          model_version: modelVersion,
-          prompt_version: PROMPT_VERSION,
-        })
-        .where(eq(befeReports.id, report.id));
-
-      // 템플릿에도 저장
-      await saveTemplate(grades, reportType, content, modelVersion);
-    } catch (e) {
-      console.error("Report generation failed:", e);
-      await db
-        .update(befeReports)
-        .set({ status: "failed" })
-        .where(eq(befeReports.id, report.id));
-    }
-  });
+    });
+  }
 
   return { reportId: report.id };
 }
 
 export async function retryReport(reportId: string): Promise<{ error?: string }> {
-  // 리포트 조회
   const [report] = await db
     .select({
       id: befeReports.id,
@@ -220,7 +290,6 @@ export async function retryReport(reportId: string): Promise<{ error?: string }>
     return { error: "재시도할 수 없는 상태예요." };
   }
 
-  // couple 데이터 조회
   const [couple] = await db
     .select({
       esb_grade: befeCouples.esb_grade,
@@ -266,42 +335,22 @@ export async function retryReport(reportId: string): Promise<{ error?: string }>
     return {};
   }
 
-  // generating으로 상태 변경
   await db
     .update(befeReports)
     .set({ status: "generating" })
     .where(eq(befeReports.id, reportId));
 
-  // 백그라운드에서 리포트 재생성 + 템플릿 저장
   after(async () => {
-    try {
-      const retryChildInfo = report.child_id ? await getChildInfo(report.child_id) : null;
-      const { content, modelVersion } = await generateCareReport({
-        sequence: 1,
-        coupleId: report.couple_id,
-        reportType: report.report_type,
-        grades,
-        childAge: retryChildInfo?.age,
-      });
-
-      await db
-        .update(befeReports)
-        .set({
-          status: "completed",
-          content,
-          model_version: modelVersion,
-          prompt_version: PROMPT_VERSION,
-        })
-        .where(eq(befeReports.id, reportId));
-
-      await saveTemplate(grades, report.report_type, content, modelVersion);
-    } catch (e) {
-      console.error("Report generation retry failed:", e);
-      await db
-        .update(befeReports)
-        .set({ status: "failed" })
-        .where(eq(befeReports.id, reportId));
-    }
+    const retryChildInfo = report.child_id
+      ? await getChildInfo(report.child_id)
+      : null;
+    await generateWithRetry({
+      coupleId: report.couple_id,
+      reportType: report.report_type,
+      grades,
+      childAge: retryChildInfo?.age,
+      reportId,
+    });
   });
 
   return {};

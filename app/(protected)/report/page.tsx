@@ -28,6 +28,7 @@ export default async function ReportPage({
       invitee_profile_id: befeCouples.invitee_profile_id,
       pcq_score: befeCouples.pcq_score,
       has_children: befeCouples.has_children,
+      heart_balance: befeCouples.heart_balance,
       esb_score: befeCouples.esb_score,
       csp_score: befeCouples.csp_score,
       pci_score: befeCouples.pci_score,
@@ -105,6 +106,7 @@ export default async function ReportPage({
       hasChildren={lockedHasChildren ?? couple.has_children}
       pcqScore={couple.pcq_score}
       hasCoupon={hasCoupon}
+      heartBalance={couple.heart_balance}
       lockedHasChildren={lockedHasChildren}
       children={children}
       childReportKeys={childReportKeys}

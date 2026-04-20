@@ -12,7 +12,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import { Loader2, X, PencilIcon, ShieldCheck } from "lucide-react";
+import { Loader2, X, PencilIcon, ShieldCheck, Store, Phone, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -33,6 +33,7 @@ interface HomeClientProps {
   profileId: string;
   tags: Array<{ label: string; bg: string; color: string }> | null;
   hasCouple: boolean;
+  heartBalance: number | null;
   pendingInvitation: PendingInvitation | null;
   reportId: string | null;
   reportCount: number;
@@ -46,6 +47,7 @@ export function HomeClient({
   role,
   status,
   hasCouple,
+  heartBalance,
   pendingInvitation,
   reportId,
   reportCount,
@@ -141,6 +143,23 @@ export function HomeClient({
 
           {/* Menu */}
           <div className="px-2 pt-2">
+            {hasCouple && (
+              <button
+                onClick={() => {
+                  setDrawerOpen(false);
+                  router.push("/shop");
+                }}
+                className="flex h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 text-[14px] font-medium text-foreground hover:bg-[#F8F6F3] transition-colors"
+              >
+                <Store size={14} />
+                <span className="flex-1 text-left">하트 상점</span>
+                {heartBalance !== null && (
+                  <span className="flex items-center gap-1 text-[12px] font-semibold text-primary">
+                    ♥️ {heartBalance}
+                  </span>
+                )}
+              </button>
+            )}
             <button
               onClick={() => {
                 setDrawerOpen(false);
@@ -166,8 +185,29 @@ export function HomeClient({
           {/* Spacer */}
           <div className="flex-1" />
 
-          {/* Bottom: logout + footer */}
+          {/* Bottom: customer center + logout + footer */}
           <div className="border-t border-[#ECE8E3] px-5 pt-4 pb-6">
+            {/* 고객센터 */}
+            <div className="mb-4 rounded-xl bg-[#F8F6F3] px-3.5 py-3">
+              <div className="mb-2 text-[11px] font-semibold text-[#6B6360]">
+                고객센터
+              </div>
+              <a
+                href="tel:010-3082-3241"
+                className="flex items-center gap-2 py-1 text-[12px] text-[#6B6360] hover:text-primary"
+              >
+                <Phone size={12} className="shrink-0 text-[#9A918A]" />
+                010-3082-3241
+              </a>
+              <a
+                href="mailto:yskim@llubb.com"
+                className="flex items-center gap-2 py-1 text-[12px] text-[#6B6360] hover:text-primary"
+              >
+                <Mail size={12} className="shrink-0 text-[#9A918A]" />
+                yskim@llubb.com
+              </a>
+            </div>
+
             <button
               onClick={() => logout()}
               className="flex h-11 w-full cursor-pointer items-center justify-center rounded-xl border-[1.5px] border-[#ECE8E3] bg-white text-[13px] font-medium text-[#6B6360]"
@@ -218,24 +258,36 @@ export function HomeClient({
           <span className="font-display text-2xl tracking-wider text-primary">
             아이케미
           </span>
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent"
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 20 20"
-              fill="none"
-              stroke="#3A3A3A"
-              strokeWidth="1.8"
-              strokeLinecap="round"
+          <div className="flex items-center gap-1.5">
+            {heartBalance !== null && (
+              <button
+                onClick={() => router.push("/shop")}
+                className="flex h-8 cursor-pointer items-center gap-1 rounded-full border-[1.5px] border-[#ECE8E3] bg-white px-2.5 text-[12px] font-semibold text-primary transition-colors hover:border-primary"
+                aria-label="하트 상점"
+              >
+                <span className="text-[13px] leading-none">♥️</span>
+                <span>{heartBalance}</span>
+              </button>
+            )}
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg border-none bg-transparent"
             >
-              <line x1="3" y1="5" x2="17" y2="5" />
-              <line x1="3" y1="10" x2="17" y2="10" />
-              <line x1="3" y1="15" x2="17" y2="15" />
-            </svg>
-          </button>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 20 20"
+                fill="none"
+                stroke="#3A3A3A"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+              >
+                <line x1="3" y1="5" x2="17" y2="5" />
+                <line x1="3" y1="10" x2="17" y2="10" />
+                <line x1="3" y1="15" x2="17" y2="15" />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* ── Complete Page Content ── */}

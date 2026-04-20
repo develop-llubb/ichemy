@@ -58,6 +58,12 @@ export const reportTypeEnum = pgEnum("befe_report_type", [
   "elementary",
   "middle_school",
 ]);
+export const heartTransactionTypeEnum = pgEnum("befe_heart_transaction_type", [
+  "purchase",
+  "use",
+  "refund",
+  "grant",
+]);
 
 // ─── 공유 테이블 (읽기 전용, chemistry-rn과 동일) ───
 
@@ -291,6 +297,9 @@ export const befeCouples = pgTable(
 
     // 리포트 옵션
     has_children: boolean("has_children"),
+
+    // 하트 잔액
+    heart_balance: integer("heart_balance").default(0).notNull(),
   },
   (table) => [
     unique("befe_couples_pair_key").on(
@@ -468,14 +477,46 @@ export const befeOrders = pgTable("befe_orders", {
   amount: integer("amount").notNull(),
   status: orderStatusEnum("status").default("pending").notNull(),
   payment_key: text("payment_key"),
-  report_type: reportTypeEnum("report_type").notNull(),
+  // 레거시 단건 결제 필드 (신규 주문은 크레딧 충전만 사용)
+  report_type: reportTypeEnum("report_type"),
   child_id: uuid("child_id").references(() => befeChildren.id, {
     onDelete: "set null",
   }),
+  // 크레딧 충전 필드
+  package_key: text("package_key"),
+  hearts_amount: integer("hearts_amount"),
   created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),
 }).enableRLS();
+
+// ─── befe_heart_transactions (하트 충전/차감 이력) ───
+
+export const befeHeartTransactions = pgTable(
+  "befe_heart_transactions",
+  {
+    id: uuid("id").defaultRandom().primaryKey().notNull(),
+    couple_id: uuid("couple_id")
+      .notNull()
+      .references(() => befeCouples.id, { onDelete: "cascade" }),
+    type: heartTransactionTypeEnum("type").notNull(),
+    amount: integer("amount").notNull(),
+    balance_after: integer("balance_after").notNull(),
+    order_id: uuid("order_id").references(() => befeOrders.id, {
+      onDelete: "set null",
+    }),
+    report_id: uuid("report_id").references(() => befeReports.id, {
+      onDelete: "set null",
+    }),
+    memo: text("memo"),
+    created_at: timestamp("created_at", { withTimezone: true, mode: "string" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [
+    index("idx_befe_heart_transactions_couple").on(table.couple_id),
+  ],
+).enableRLS();
 
 // ─── befe_coupons ───
 
@@ -582,6 +623,9 @@ export type NewBefeReport = typeof befeReports.$inferInsert;
 
 export type BefeOrder = typeof befeOrders.$inferSelect;
 export type NewBefeOrder = typeof befeOrders.$inferInsert;
+
+export type BefeHeartTransaction = typeof befeHeartTransactions.$inferSelect;
+export type NewBefeHeartTransaction = typeof befeHeartTransactions.$inferInsert;
 
 export type BefeCoupon = typeof befeCoupons.$inferSelect;
 export type NewBefeCoupon = typeof befeCoupons.$inferInsert;
