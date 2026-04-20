@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useId, useTransition } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import { Loader2 } from "lucide-react";
 import { retryReport } from "../actions";
@@ -81,10 +81,47 @@ const INDICATOR_META: Record<string, { emoji: string; gradient: string }> = {
 
 // ── Theory box ──
 
-function RoundStar({ color }: { color: string }) {
+// 좌우 완벽 대칭인 5각성 (viewBox 중심 x=12)
+const STAR_POINTS =
+  "12,2.5 14.8,9.25 22,9.85 16.5,14.6 18.15,21.5 12,17.85 5.85,21.5 7.5,14.6 2,9.85 9.2,9.25";
+
+function RoundStar({
+  state,
+  gradientId,
+}: {
+  state: "full" | "half" | "empty";
+  gradientId: string;
+}) {
+  const fill =
+    state === "full"
+      ? "#D4735C"
+      : state === "half"
+        ? `url(#${gradientId})`
+        : "#E8E2DC";
   return (
-    <svg width="30" height="30" viewBox="0 0 24 24" fill={color}>
-      <path d="M12 2.5c.4 0 .8.3 1 .7l2.3 4.7 5.2.8c.8.1 1.1 1.1.5 1.6l-3.8 3.7.9 5.1c.1.8-.7 1.4-1.4 1l-4.7-2.5-4.7 2.5c-.7.4-1.5-.2-1.4-1l.9-5.1L3 9.3c-.6-.5-.3-1.5.5-1.6l5.2-.8L11 2.2c.2-.4.6-.7 1-.7z" />
+    <svg width="36" height="36" viewBox="0 0 24 24">
+      {state === "half" && (
+        <defs>
+          <linearGradient
+            id={gradientId}
+            x1="0"
+            x2="24"
+            y1="0"
+            y2="0"
+            gradientUnits="userSpaceOnUse"
+          >
+            <stop offset="50%" stopColor="#D4735C" />
+            <stop offset="50%" stopColor="#E8E2DC" />
+          </linearGradient>
+        </defs>
+      )}
+      <polygon
+        points={STAR_POINTS}
+        fill={fill}
+        stroke={fill}
+        strokeWidth="1"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -99,9 +136,10 @@ function ReviewStars({
   onChange: (v: number) => void;
 }) {
   const handleClick = (starIdx: number, isRight: boolean) => {
-    const v = starIdx + (isRight ? 1 : 0.5);
-    onChange(value === v ? 0 : v);
+    onChange(starIdx + (isRight ? 1 : 0.5));
   };
+
+  const reactId = useId();
 
   return (
     <div>
@@ -110,28 +148,27 @@ function ReviewStars({
         {[0, 1, 2, 3, 4].map((starIdx) => {
           const full = value >= starIdx + 1;
           const half = !full && value >= starIdx + 0.5;
+          const state: "full" | "half" | "empty" = full
+            ? "full"
+            : half
+              ? "half"
+              : "empty";
 
           return (
-            <div key={starIdx} className="relative h-10 w-10 cursor-pointer select-none">
-              {/* 빈 별 */}
+            <div
+              key={starIdx}
+              className="relative h-11 w-11 cursor-pointer select-none"
+            >
               <span className="absolute inset-0 flex items-center justify-center">
-                <RoundStar color="#E8E2DC" />
+                <RoundStar
+                  state={state}
+                  gradientId={`${reactId}-${starIdx}`}
+                />
               </span>
-              {/* 채워진 별 */}
-              {(full || half) && (
-                <span
-                  className="absolute inset-0 flex items-center justify-center overflow-hidden"
-                  style={{ clipPath: full ? undefined : "inset(0 50% 0 0)" }}
-                >
-                  <RoundStar color="#D4735C" />
-                </span>
-              )}
-              {/* 왼쪽 반 클릭 */}
               <span
                 className="absolute inset-0 w-1/2"
                 onClick={() => handleClick(starIdx, false)}
               />
-              {/* 오른쪽 반 클릭 */}
               <span
                 className="absolute right-0 top-0 h-full w-1/2"
                 onClick={() => handleClick(starIdx, true)}
@@ -687,7 +724,7 @@ export function ReportResultClient({
                   소중한 의견을 남겨 주셨어요!
                 </p>
                 <p className="text-[11px] text-[#9A918A]">
-                  두 분의 이야기가 더 나은 리포트를 만드는 데 큰 도움이 돼요
+                  두 분의 이야기가 더 나은 리포트를 만드는 데 큰 도움이 됩니다
                 </p>
               </div>
             ) : (

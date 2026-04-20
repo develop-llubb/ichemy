@@ -174,14 +174,16 @@ export function CriterionClient({
 
   const goTo = useCallback((nextIdx: number, dir: number) => {
     setDirection(dir);
+    setFlashingValue(null);
     setPhase("exit");
     setTimeout(() => {
       setIdx(nextIdx);
-      setFlashingValue(null);
       setLocked(false);
       setPhase("enter");
-      setTimeout(() => setPhase("visible"), 30);
-    }, 250);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setPhase("visible"));
+      });
+    }, 350);
   }, []);
 
   const handleSelect = useCallback(
@@ -198,13 +200,15 @@ export function CriterionClient({
       if (idx < total - 1) {
         // 중간 문항 — fire-and-forget 저장 후 다음으로
         saveCriterionAnswer(coupleId, profileId, reportType, idx, value);
-        setTimeout(() => goTo(idx + 1, 1), 600);
+        setTimeout(() => goTo(idx + 1, 1), 550);
       } else {
-        // 마지막 문항 — 저장 완료 대기 후 리포트로 이동
-        startSubmitting(async () => {
-          await saveCriterionAnswer(coupleId, profileId, reportType, idx, value);
-          router.replace(`/report/${reportId}`);
-        });
+        // 마지막 문항 — flash 피드백 후 저장 + 리포트로 이동
+        setTimeout(() => {
+          startSubmitting(async () => {
+            await saveCriterionAnswer(coupleId, profileId, reportType, idx, value);
+            router.replace(`/report/${reportId}`);
+          });
+        }, 550);
       }
     },
     [locked, idx, total, answers, goTo, coupleId, profileId, reportType, reportId, router],
@@ -302,38 +306,28 @@ export function CriterionClient({
         </p>
       </div>
 
-      {/* Question */}
-      <div className="flex flex-1 flex-col px-6 pt-5">
-        <p
-          className="text-[16px] font-bold leading-[1.6] text-foreground"
-          style={{
-            opacity: phase === "visible" ? 1 : 0,
-            transform:
-              phase === "exit"
-                ? `translateY(${direction * 40}px)`
-                : phase === "enter"
-                  ? `translateY(${-direction * 30}px)`
-                  : "translateY(0)",
-            transition: "all 0.25s cubic-bezier(0.22,1,0.36,1)",
-          }}
-        >
+      {/* Question + Options */}
+      <div
+        key={q.id}
+        className="flex flex-1 flex-col px-6 pt-5"
+        style={{
+          opacity: phase === "visible" ? 1 : 0,
+          transform:
+            phase === "exit"
+              ? `translateY(${direction * 10}px) scale(0.98)`
+              : phase === "enter"
+                ? `translateY(${-direction * 8}px)`
+                : "translateY(0) scale(1)",
+          transition: phase === "enter"
+            ? "none"
+            : "opacity 0.45s cubic-bezier(0.16,1,0.3,1), transform 0.45s cubic-bezier(0.16,1,0.3,1)",
+        }}
+      >
+        <p className="mb-6 text-[16px] font-bold leading-[1.6] text-foreground">
           {q.text}
         </p>
 
-        {/* Options */}
-        <div
-          className="mt-6 flex flex-col gap-2"
-          style={{
-            opacity: phase === "visible" ? 1 : 0,
-            transform:
-              phase === "exit"
-                ? `translateY(${direction * 40}px)`
-                : phase === "enter"
-                  ? `translateY(${-direction * 30}px)`
-                  : "translateY(0)",
-            transition: "all 0.25s cubic-bezier(0.22,1,0.36,1) 0.03s",
-          }}
-        >
+        <div className="flex flex-col gap-2">
           {OPTIONS.map((opt) => {
             const isSelected =
               answers[idx] === opt.value || flashingValue === opt.value;
