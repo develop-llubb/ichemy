@@ -7,7 +7,9 @@ import {
   befeReports,
   befeReportTemplates,
   befeHeartTransactions,
+  befeCriterionResponses,
 } from "@/db/schema";
+import { createClient } from "@/lib/supabase/server";
 import { eq, and, inArray, sql } from "drizzle-orm";
 import { after } from "next/server";
 import { generateCareReport, PROMPT_VERSION } from "@/lib/generate-report";
@@ -124,11 +126,53 @@ async function generateWithRetry(params: {
   }
 }
 
+async function checkCriterionComplete(
+  coupleId: string,
+  profileId: string,
+  reportType: ReportType,
+): Promise<boolean> {
+  const [existing] = await db
+    .select({
+      cv1: befeCriterionResponses.cv1,
+      cv2: befeCriterionResponses.cv2,
+      cv3: befeCriterionResponses.cv3,
+      cv4: befeCriterionResponses.cv4,
+      cv5: befeCriterionResponses.cv5,
+      cv6: befeCriterionResponses.cv6,
+    })
+    .from(befeCriterionResponses)
+    .where(
+      and(
+        eq(befeCriterionResponses.couple_id, coupleId),
+        eq(befeCriterionResponses.profile_id, profileId),
+        eq(befeCriterionResponses.report_type, reportType),
+      ),
+    )
+    .limit(1);
+  if (!existing) return false;
+  return [existing.cv1, existing.cv2, existing.cv3, existing.cv4, existing.cv5, existing.cv6].every(
+    (v) => v !== null,
+  );
+}
+
 export async function requestReport(
   coupleId: string,
   reportType: ReportType,
   childId?: string,
-): Promise<{ reportId: string } | { error: string }> {
+): Promise<
+  { reportId: string; criterionComplete: boolean } | { error: string }
+> {
+  // 현재 유저 프로필
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const [myProfile] = await db
+    .select({ id: befeProfiles.id })
+    .from(befeProfiles)
+    .where(eq(befeProfiles.user_id, user!.id))
+    .limit(1);
+
   // 기존 리포트 확인 (중복 과금 방지)
   const conditions = [
     eq(befeReports.couple_id, coupleId),
@@ -145,7 +189,12 @@ export async function requestReport(
     .limit(1);
 
   if (existing) {
-    return { reportId: existing.id };
+    const criterionComplete = await checkCriterionComplete(
+      coupleId,
+      myProfile.id,
+      reportType,
+    );
+    return { reportId: existing.id, criterionComplete };
   }
 
   // couple + 점수 조회
@@ -270,7 +319,13 @@ export async function requestReport(
     });
   }
 
-  return { reportId: report.id };
+  const criterionComplete = await checkCriterionComplete(
+    coupleId,
+    myProfile.id,
+    reportType,
+  );
+
+  return { reportId: report.id, criterionComplete };
 }
 
 export async function retryReport(reportId: string): Promise<{ error?: string }> {

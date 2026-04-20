@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useTransition } from "react";
 import { useRouter } from "nextjs-toploader/app";
+import { useSearchParams } from "next/navigation";
 import { logout } from "@/lib/auth-actions";
 import { acceptInvitationFromHome } from "./actions";
 import { deleteAccount } from "./delete-account-action";
@@ -54,6 +55,7 @@ export function HomeClient({
   hasPersonalityReport,
 }: HomeClientProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [acceptPending, startAcceptTransition] = useTransition();
@@ -66,6 +68,14 @@ export function HomeClient({
     const t = setTimeout(() => setReady(true), 100);
     return () => clearTimeout(t);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // 하트 충전 완료 복귀 시 토스트
+  useEffect(() => {
+    if (searchParams.get("hearts_charged") === "1") {
+      toast("하트 충전이 완료되었어요!");
+      router.replace("/home", { scroll: false });
+    }
+  }, [searchParams, router]);
 
   const ease = (delay = 0): React.CSSProperties => ({
     opacity: ready ? 1 : 0,
@@ -147,7 +157,7 @@ export function HomeClient({
               <button
                 onClick={() => {
                   setDrawerOpen(false);
-                  router.push("/shop");
+                  router.push("/shop?from=/home");
                 }}
                 className="flex h-11 w-full cursor-pointer items-center gap-2.5 rounded-xl px-3 text-[14px] font-medium text-foreground hover:bg-[#F8F6F3] transition-colors"
               >
@@ -261,7 +271,7 @@ export function HomeClient({
           <div className="flex items-center gap-1.5">
             {heartBalance !== null && (
               <button
-                onClick={() => router.push("/shop")}
+                onClick={() => router.push("/shop?from=/home")}
                 className="flex h-8 cursor-pointer items-center gap-1 rounded-full border-[1.5px] border-[#ECE8E3] bg-white px-2.5 text-[12px] font-semibold text-primary transition-colors hover:border-primary"
                 aria-label="하트 상점"
               >

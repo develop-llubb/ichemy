@@ -5,12 +5,18 @@ import { befeProfiles, befeCouples } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
 import { ShopClient } from "./shop-client";
 
+function sanitizeFrom(from?: string): string | null {
+  if (!from) return null;
+  if (!from.startsWith("/") || from.startsWith("//")) return null;
+  return from;
+}
+
 export default async function ShopPage({
   searchParams,
 }: {
-  searchParams: Promise<{ success?: string }>;
+  searchParams: Promise<{ success?: string; from?: string }>;
 }) {
-  const { success } = await searchParams;
+  const { success, from } = await searchParams;
 
   const supabase = await createClient();
   const {
@@ -46,6 +52,7 @@ export default async function ShopPage({
       coupleId={couple.id}
       heartBalance={couple.heart_balance}
       justPaid={success === "1"}
+      from={sanitizeFrom(from)}
     />
   );
 }

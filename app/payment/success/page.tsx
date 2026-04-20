@@ -5,12 +5,32 @@ import { eq, sql } from "drizzle-orm";
 
 const TOSS_SECRET_KEY = process.env.TOSS_SECRET_KEY!;
 
+function sanitizeFrom(from?: string): string | null {
+  if (!from) return null;
+  if (!from.startsWith("/") || from.startsWith("//")) return null;
+  return from;
+}
+
+function appendQuery(path: string, key: string, value: string): string {
+  const sep = path.includes("?") ? "&" : "?";
+  return `${path}${sep}${key}=${value}`;
+}
+
 export default async function PaymentSuccessPage({
   searchParams,
 }: {
-  searchParams: Promise<{ paymentKey?: string; orderId?: string; amount?: string }>;
+  searchParams: Promise<{
+    paymentKey?: string;
+    orderId?: string;
+    amount?: string;
+    from?: string;
+  }>;
 }) {
-  const { paymentKey, orderId, amount } = await searchParams;
+  const { paymentKey, orderId, amount, from } = await searchParams;
+  const safeFrom = sanitizeFrom(from);
+  const successRedirect = safeFrom
+    ? appendQuery(safeFrom, "hearts_charged", "1")
+    : "/shop?success=1";
 
   if (!paymentKey || !orderId || !amount) {
     redirect("/payment/fail?code=INVALID_PARAMS&message=결제 정보가 올바르지 않습니다.");
@@ -37,7 +57,7 @@ export default async function PaymentSuccessPage({
 
   // 이미 결제 완료 (중복 진입 방지)
   if (order.status === "paid") {
-    redirect("/shop?success=1");
+    redirect(successRedirect);
   }
 
   // 2. 토스 결제 승인 API 호출
@@ -93,5 +113,5 @@ export default async function PaymentSuccessPage({
     });
   });
 
-  redirect("/shop?success=1");
+  redirect(successRedirect);
 }

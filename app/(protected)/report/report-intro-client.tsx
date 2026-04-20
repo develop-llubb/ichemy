@@ -129,6 +129,17 @@ export function ReportIntroClient({
     return () => clearTimeout(t);
   }, []);
 
+  // 하트 충전 완료 복귀 시 토스트
+  useEffect(() => {
+    if (searchParams.get("hearts_charged") === "1") {
+      toast("하트 충전이 완료되었어요!");
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("hearts_charged");
+      const qs = params.toString();
+      router.replace(qs ? `/report?${qs}` : "/report", { scroll: false });
+    }
+  }, [searchParams, router]);
+
   const ease = (delay = 0): React.CSSProperties => ({
     opacity: ready ? 1 : 0,
     transform: ready ? "translateY(0)" : "translateY(18px)",
@@ -182,7 +193,7 @@ export function ReportIntroClient({
             <div />
           ) : (
             <button
-              onClick={() => router.push("/shop")}
+              onClick={() => router.push("/shop?from=/report")}
               className="flex h-8 cursor-pointer items-center gap-1 rounded-full border-[1.5px] border-[#ECE8E3] bg-white px-2.5 text-[12px] font-semibold text-primary transition-colors hover:border-primary"
               aria-label="하트 상점"
             >
@@ -718,7 +729,7 @@ export function ReportIntroClient({
 
               // 하트 부족 & 쿠폰 없음 → 상점으로 이동
               if (!hasCoupon && heartBalance < 1) {
-                router.push("/shop");
+                router.push("/shop?from=/report");
                 return;
               }
 
@@ -728,7 +739,12 @@ export function ReportIntroClient({
                   toast(result.error);
                   return;
                 }
-                router.replace(`/report/${result.reportId}/criterion`);
+                // 준거 설문 완료된 동일 report_type이면 바로 리포트로
+                router.replace(
+                  result.criterionComplete
+                    ? `/report/${result.reportId}`
+                    : `/report/${result.reportId}/criterion`,
+                );
               });
             }}
             className="flex h-[54px] w-full items-center justify-center rounded-2xl border-none text-base font-bold text-white transition-all duration-200"

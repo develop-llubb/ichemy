@@ -16,18 +16,23 @@ interface ShopClientProps {
   coupleId: string;
   heartBalance: number;
   justPaid: boolean;
+  from: string | null;
 }
 
 export function ShopClient({
   coupleId,
   heartBalance,
   justPaid,
+  from,
 }: ShopClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [ready, setReady] = useState(false);
   const [pending, startTransition] = useTransition();
   const [selectedKey, setSelectedKey] = useState<HeartPackageKey | null>(null);
+
+  const shopUrl = from ? `/shop?from=${encodeURIComponent(from)}` : "/shop";
+  const backPath = from ?? "/home";
 
   useEffect(() => {
     const t = setTimeout(() => setReady(true), 60);
@@ -37,9 +42,9 @@ export function ShopClient({
   useEffect(() => {
     if (justPaid) {
       toast("하트 충전이 완료되었어요!");
-      router.replace("/shop", { scroll: false });
+      router.replace(shopUrl, { scroll: false });
     }
-  }, [justPaid, router]);
+  }, [justPaid, router, shopUrl]);
 
   // 결제 실패/취소 시 toast 표시
   useEffect(() => {
@@ -56,9 +61,9 @@ export function ShopClient({
       } else {
         toast(message || "결제에 실패했습니다.");
       }
-      router.replace("/shop", { scroll: false });
+      router.replace(shopUrl, { scroll: false });
     }
-  }, [searchParams, router]);
+  }, [searchParams, router, shopUrl]);
 
   const ease = (delay = 0): React.CSSProperties => ({
     opacity: ready ? 1 : 0,
@@ -77,13 +82,16 @@ export function ShopClient({
           process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY!,
         );
         const payment = tossPayments.payment({ customerKey: coupleId });
+        const fromQuery = from
+          ? `?from=${encodeURIComponent(from)}`
+          : "";
         await payment.requestPayment({
           method: "CARD",
           amount: { currency: "KRW", value: order.amount },
           orderId: order.order_id,
           orderName: `하트 ${order.hearts}개`,
-          successUrl: `${window.location.origin}/payment/success`,
-          failUrl: `${window.location.origin}/shop`,
+          successUrl: `${window.location.origin}/payment/success${fromQuery}`,
+          failUrl: `${window.location.origin}/shop${fromQuery}`,
         });
       } catch (e: unknown) {
         const error = e as { code?: string; message?: string };
@@ -101,7 +109,7 @@ export function ShopClient({
       {/* Header */}
       <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
         <button
-          onClick={() => router.back()}
+          onClick={() => router.push(backPath)}
           className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
         >
           <ChevronLeft size={24} className="text-foreground" />
@@ -116,24 +124,75 @@ export function ShopClient({
       <div className="flex-1 overflow-y-auto px-5 pb-8">
         {/* Balance */}
         <div
-          className="mt-7 flex flex-col items-center rounded-[20px] p-[24px_20px] text-white"
+          className="relative mt-7 flex flex-col items-center overflow-hidden rounded-[24px] p-[28px_20px_26px] text-white"
           style={{
-            background: "linear-gradient(160deg, #D4735C, #C0614A)",
-            boxShadow: "0 8px 24px rgba(212,115,92,0.18)",
+            background: `
+              radial-gradient(ellipse at top right, rgba(255,255,255,0.28), transparent 55%),
+              radial-gradient(ellipse at bottom left, rgba(120,44,52,0.35), transparent 60%),
+              linear-gradient(145deg, #E89585 0%, #D4735C 42%, #A84A3E 100%)
+            `,
+            boxShadow:
+              "0 14px 36px rgba(168,74,62,0.32), 0 2px 8px rgba(168,74,62,0.18), inset 0 1px 0 rgba(255,255,255,0.28), inset 0 -1px 0 rgba(0,0,0,0.08)",
             ...ease(0),
           }}
         >
-          <span className="text-[12px] opacity-85">보유 하트</span>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-3xl">♥️</span>
-            <span className="text-[32px] font-extrabold leading-none">
-              {heartBalance}
+          {/* 장식 — 빛나는 구 */}
+          <div
+            className="pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full blur-2xl"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(255,220,200,0.45), transparent 70%)",
+            }}
+          />
+          <div
+            className="pointer-events-none absolute -bottom-14 -left-10 h-36 w-36 rounded-full blur-3xl"
+            style={{
+              background:
+                "radial-gradient(circle, rgba(255,170,140,0.25), transparent 70%)",
+            }}
+          />
+          {/* 상단 글로스 */}
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-20"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(255,255,255,0.14), transparent)",
+            }}
+          />
+
+          <div className="relative z-10 flex flex-col items-center">
+            <span className="text-[11px] font-medium tracking-[0.18em] text-white/85 uppercase">
+              Hearts
             </span>
-            <span className="text-sm font-semibold opacity-90">개</span>
+            <span className="mt-0.5 text-[11px] text-white/75">보유 하트</span>
+
+            <div className="relative mt-2.5 flex items-baseline gap-2">
+              <span
+                className="text-[28px] drop-shadow-[0_2px_4px_rgba(0,0,0,0.2)]"
+                aria-hidden
+              >
+                ♥️
+              </span>
+              <span
+                className="text-[40px] font-extrabold leading-none tracking-[-0.02em]"
+                style={{
+                  textShadow:
+                    "0 2px 10px rgba(0,0,0,0.18), 0 1px 0 rgba(255,255,255,0.08)",
+                }}
+              >
+                {heartBalance}
+              </span>
+              <span className="text-[13px] font-semibold text-white/90">
+                개
+              </span>
+            </div>
+
+            <div className="mt-3.5 h-px w-16 bg-white/25" />
+
+            <p className="mt-3 text-center text-[11px] leading-[1.6] text-white/85">
+              하트 1개로 육아 케어 리포트 1건을 받을 수 있어요
+            </p>
           </div>
-          <p className="mt-2 text-[11px] leading-[1.6] opacity-80">
-            하트 1개로 육아 케어 리포트 1건을 받을 수 있어요
-          </p>
         </div>
 
         {/* Packages */}
