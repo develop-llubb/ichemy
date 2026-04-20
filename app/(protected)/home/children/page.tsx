@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { befeProfiles, befeCouples, befeChildren } from "@/db/schema";
 import { eq, or, and, isNull } from "drizzle-orm";
 import { ChildrenClient } from "./children-client";
+import { getNavData } from "@/lib/nav-data";
 
 export default async function ChildrenPage() {
   const supabase = await createClient();
@@ -48,10 +49,13 @@ export default async function ChildrenPage() {
       : null,
   }));
 
+  const navData = await getNavData();
+
   return (
     <ChildrenClient
       coupleId={couple.id}
       children={children}
+      navData={navData}
     />
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "nextjs-toploader/app";
-import { ChevronLeft, Plus, Pencil, Trash2, Camera, X, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Camera, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { addChild, updateChild, deleteChild, getUploadUrl } from "./actions";
 import {
@@ -12,6 +12,8 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/drawer";
+import { AppBar } from "@/components/app-bar";
+import type { NavData } from "@/lib/nav-data";
 
 interface Child {
   id: string;
@@ -24,6 +26,7 @@ interface Child {
 interface ChildrenClientProps {
   coupleId: string;
   children: Child[];
+  navData: NavData;
 }
 
 function calculateAge(birthDate: string): string {
@@ -40,7 +43,7 @@ function calculateAge(birthDate: string): string {
   return `${years}세 ${remainMonths}개월`;
 }
 
-export function ChildrenClient({ coupleId, children: initialChildren }: ChildrenClientProps) {
+export function ChildrenClient({ coupleId, children: initialChildren, navData }: ChildrenClientProps) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Child | null>(null);
@@ -147,18 +150,7 @@ export function ChildrenClient({ coupleId, children: initialChildren }: Children
     <>
       <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
         {/* Header */}
-        <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
-          <button
-            onClick={() => router.back()}
-            className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
-          >
-            <ChevronLeft size={24} className="text-foreground" />
-          </button>
-          <span className="text-center text-[15px] font-semibold text-foreground">
-            우리 아이
-          </span>
-          <div />
-        </div>
+        <AppBar variant="page" title="우리 아이" {...navData} />
 
         <div className="flex-1 px-5 pt-6">
           {initialChildren.length === 0 ? (

@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { befeProfiles, befeCouples, befeReports, befeChildren, befeCriterionResponses } from "@/db/schema";
 import { eq, or, and, isNull } from "drizzle-orm";
 import { ReportListClient } from "./report-list-client";
+import { getNavData } from "@/lib/nav-data";
 
 export default async function ReportListPage() {
   const supabase = await createClient();
@@ -111,12 +112,15 @@ export default async function ReportListPage() {
     redirect("/report?from=/home");
   }
 
+  const navData = await getNavData();
+
   return (
     <ReportListClient
       nickname={profile.nickname ?? "회원"}
       partnerNickname={partner?.nickname ?? "배우자"}
       coupleId={couple.id}
       reports={reports}
+      navData={navData}
     />
   );
 }

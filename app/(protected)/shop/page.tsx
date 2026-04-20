@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { befeProfiles, befeCouples } from "@/db/schema";
 import { eq, or } from "drizzle-orm";
 import { ShopClient } from "./shop-client";
+import { getNavData } from "@/lib/nav-data";
 
 function sanitizeFrom(from?: string): string | null {
   if (!from) return null;
@@ -47,12 +48,15 @@ export default async function ShopPage({
     redirect("/home");
   }
 
+  const navData = await getNavData();
+
   return (
     <ShopClient
       coupleId={couple.id}
       heartBalance={couple.heart_balance}
       justPaid={success === "1"}
       from={sanitizeFrom(from)}
+      navData={navData}
     />
   );
 }

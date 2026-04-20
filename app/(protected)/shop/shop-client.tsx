@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { loadTossPayments } from "@tosspayments/tosspayments-sdk";
 import { createHeartOrder } from "@/app/payment/actions";
@@ -11,12 +11,15 @@ import {
   HEART_PACKAGE_LIST,
   type HeartPackageKey,
 } from "@/lib/heart-packages";
+import { AppBar } from "@/components/app-bar";
+import type { NavData } from "@/lib/nav-data";
 
 interface ShopClientProps {
   coupleId: string;
   heartBalance: number;
   justPaid: boolean;
   from: string | null;
+  navData: NavData;
 }
 
 export function ShopClient({
@@ -24,6 +27,7 @@ export function ShopClient({
   heartBalance,
   justPaid,
   from,
+  navData,
 }: ShopClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -106,19 +110,12 @@ export function ShopClient({
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
-        <button
-          onClick={() => router.push(backPath)}
-          className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
-        >
-          <ChevronLeft size={24} className="text-foreground" />
-        </button>
-        <span className="text-center text-[15px] font-semibold text-foreground">
-          하트 상점
-        </span>
-        <div />
-      </div>
+      <AppBar
+        variant="page"
+        title="하트 상점"
+        onBack={() => router.push(backPath)}
+        {...navData}
+      />
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-5 pb-8">

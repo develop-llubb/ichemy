@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { befeProfiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { InviteClient } from "./invite-client";
+import { getNavData } from "@/lib/nav-data";
 
 export default async function InvitePage() {
   const supabase = await createClient();
@@ -14,5 +15,13 @@ export default async function InvitePage() {
     .where(eq(befeProfiles.user_id, user!.id))
     .limit(1);
 
-  return <InviteClient profileId={profile.id} nickname={profile.nickname ?? "회원"} />;
+  const navData = await getNavData();
+
+  return (
+    <InviteClient
+      profileId={profile.id}
+      nickname={profile.nickname ?? "회원"}
+      navData={navData}
+    />
+  );
 }

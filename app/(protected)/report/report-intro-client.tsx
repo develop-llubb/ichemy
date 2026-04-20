@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useCallback, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { saveHasChildren, requestReport } from "./actions";
 import { addChild, updateChild, getUploadUrl } from "@/app/(protected)/home/children/actions";
 import type { ReportType } from "@/lib/care-report";
+import { AppBar } from "@/components/app-bar";
+import type { NavData } from "@/lib/nav-data";
 import { JOURNEY_STEPS } from "@/lib/steps";
 import { CouponTicket } from "@/components/coupon-ticket";
 import { Camera, X, Plus, Pencil } from "lucide-react";
@@ -39,6 +41,7 @@ interface ReportIntroClientProps {
   children: ChildInfo[];
   childReportKeys: string[];
   hasNoChildReport: boolean;
+  navData: NavData;
 }
 
 const REPORT_TYPE_LABEL: Record<ReportType, string> = {
@@ -75,6 +78,7 @@ export function ReportIntroClient({
   children,
   childReportKeys,
   hasNoChildReport,
+  navData,
 }: ReportIntroClientProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -178,30 +182,12 @@ export function ReportIntroClient({
       `}</style>
 
       <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
-        {/* Header */}
-        <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_auto] items-center gap-2 border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
-          <button
-            onClick={() => router.push(backPath)}
-            className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
-          >
-            <ChevronLeft size={24} className="text-foreground" />
-          </button>
-          <span className="text-center text-[15px] font-semibold text-foreground">
-            육아 케어 리포트
-          </span>
-          {hasCoupon ? (
-            <div />
-          ) : (
-            <button
-              onClick={() => router.push("/shop?from=/report")}
-              className="flex h-8 cursor-pointer items-center gap-1 rounded-full border-[1.5px] border-[#ECE8E3] bg-white px-2.5 text-[12px] font-semibold text-primary transition-colors hover:border-primary"
-              aria-label="하트 상점"
-            >
-              <span className="text-[13px] leading-none">♥️</span>
-              <span>{heartBalance}</span>
-            </button>
-          )}
-        </div>
+        <AppBar
+          variant="page"
+          title="육아 케어 리포트"
+          onBack={() => router.push(backPath)}
+          {...navData}
+        />
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5">

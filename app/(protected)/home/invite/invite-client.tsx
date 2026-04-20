@@ -3,14 +3,17 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import Script from "next/script";
-import { ChevronLeft } from "lucide-react";
+import { AppBar } from "@/components/app-bar";
+import type { NavData } from "@/lib/nav-data";
 
 export function InviteClient({
   profileId,
   nickname,
+  navData,
 }: {
   profileId: string;
   nickname: string;
+  navData: NavData;
 }) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -117,18 +120,7 @@ export function InviteClient({
 
       <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
         {/* ── Header (sticky, chevron back) ── */}
-        <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
-          <button
-            onClick={() => router.back()}
-            className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
-          >
-            <ChevronLeft size={24} className="text-foreground" />
-          </button>
-          <span className="text-center text-[15px] font-semibold text-foreground">
-            배우자 초대
-          </span>
-          <div />
-        </div>
+        <AppBar variant="page" title="배우자 초대" {...navData} />
 
         {/* ── Content ── */}
         <div className="flex-1 overflow-y-auto px-5">

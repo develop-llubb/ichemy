@@ -2,14 +2,17 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "nextjs-toploader/app";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { requestPersonalityReport } from "../actions";
+import { AppBar } from "@/components/app-bar";
+import type { NavData } from "@/lib/nav-data";
 
 interface PersonalityIntroClientProps {
   nickname: string;
   role: "mom" | "dad";
   profileId: string;
+  navData: NavData;
 }
 
 const FEATURES = [
@@ -39,6 +42,7 @@ export function PersonalityIntroClient({
   nickname,
   role,
   profileId,
+  navData,
 }: PersonalityIntroClientProps) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -65,19 +69,11 @@ export function PersonalityIntroClient({
       `}</style>
 
       <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
-        {/* Header */}
-        <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
-          <button
-            onClick={() => router.back()}
-            className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
-          >
-            <ChevronLeft size={24} className="text-foreground" />
-          </button>
-          <span className="text-center text-[15px] font-semibold text-foreground">
-            나의 육아 성향 리포트
-          </span>
-          <div />
-        </div>
+        <AppBar
+          variant="page"
+          title="나의 육아 성향 리포트"
+          {...navData}
+        />
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5">

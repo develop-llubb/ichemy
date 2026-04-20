@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { befeProfiles, befeCouples, questions } from "@/db/schema";
 import { eq, or, count } from "drizzle-orm";
 import { WaitingClient } from "./waiting-client";
+import { getNavData } from "@/lib/nav-data";
 
 export default async function WaitingPage() {
   const supabase = await createClient();
@@ -60,12 +61,15 @@ export default async function WaitingPage() {
     .select({ total: count() })
     .from(questions);
 
+  const navData = await getNavData();
+
   return (
     <WaitingClient
       nickname={profile.nickname ?? "회원"}
       partnerNickname={partner.nickname ?? "배우자"}
       partnerTestIndex={partner.test_index}
       totalQuestions={total}
+      navData={navData}
     />
   );
 }

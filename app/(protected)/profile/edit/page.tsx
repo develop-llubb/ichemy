@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { befeProfiles } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { EditProfileForm } from "./form";
+import { getNavData } from "@/lib/nav-data";
 
 export default async function ProfileEditPage() {
   const supabase = await createClient();
@@ -17,10 +18,13 @@ export default async function ProfileEditPage() {
     .where(eq(befeProfiles.user_id, user!.id))
     .limit(1);
 
+  const navData = await getNavData();
+
   return (
     <EditProfileForm
       currentNickname={profile.nickname ?? ""}
       currentRole={profile.role}
+      navData={navData}
     />
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "nextjs-toploader/app";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { retryReport } from "../actions";
 import { submitReportReview } from "./actions";
 import { handleDownloadPdf } from "@/lib/report-pdf";
@@ -14,6 +14,8 @@ import type {
   TheoryReference,
   IndicatorAnalysis,
 } from "@/lib/care-report";
+import { AppBar } from "@/components/app-bar";
+import type { NavData } from "@/lib/nav-data";
 
 interface ReportResultClientProps {
   reportId: string;
@@ -23,6 +25,7 @@ interface ReportResultClientProps {
   content: CareReport | null;
   profileId: string;
   hasReview: boolean;
+  navData: NavData;
 }
 
 // ── Grade config ──
@@ -302,6 +305,7 @@ export function ReportResultClient({
   content: initialContent,
   profileId,
   hasReview: initialHasReview,
+  navData,
 }: ReportResultClientProps) {
   const router = useRouter();
   const [status, setStatus] = useState(initialStatus);
@@ -353,23 +357,18 @@ export function ReportResultClient({
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
-        <button
-          onClick={() => router.push("/report/list")}
-          className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
-        >
-          <ChevronLeft size={24} className="text-foreground" />
-        </button>
-        <span className="text-center text-[15px] font-semibold text-foreground">
-          {reportType === "no_child"
+      <AppBar
+        variant="page"
+        title={
+          reportType === "no_child"
             ? "예비 부모 육아 케어 리포트"
             : childName
               ? `${childName}의 육아 케어 리포트`
-              : "자녀 양육 케어 리포트"}
-        </span>
-        <div />
-      </div>
+              : "자녀 양육 케어 리포트"
+        }
+        onBack={() => router.push("/report/list")}
+        {...navData}
+      />
 
       {/* Generating */}
       {status === "generating" && (

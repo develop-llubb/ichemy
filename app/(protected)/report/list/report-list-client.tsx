@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "nextjs-toploader/app";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { ChevronRight, Plus } from "lucide-react";
 
 import type { ReportType } from "@/lib/care-report";
+import { AppBar } from "@/components/app-bar";
+import type { NavData } from "@/lib/nav-data";
 
 const REPORT_TYPE_LABEL: Record<ReportType, string> = {
   no_child: "예비 부모",
@@ -54,6 +56,7 @@ interface ReportListClientProps {
   partnerNickname: string;
   coupleId: string;
   reports: Report[];
+  navData: NavData;
 }
 
 export function ReportListClient({
@@ -61,6 +64,7 @@ export function ReportListClient({
   partnerNickname,
   coupleId,
   reports: initialReports,
+  navData,
 }: ReportListClientProps) {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -112,19 +116,12 @@ export function ReportListClient({
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
-        <button
-          onClick={() => router.push("/home")}
-          className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
-        >
-          <ChevronLeft size={24} className="text-foreground" />
-        </button>
-        <span className="text-center text-[15px] font-semibold text-foreground">
-          육아 케어 리포트
-        </span>
-        <div />
-      </div>
+      <AppBar
+        variant="page"
+        title="육아 케어 리포트"
+        onBack={() => router.push("/home")}
+        {...navData}
+      />
 
       <div className="flex-1 px-5">
         {/* Couple info */}

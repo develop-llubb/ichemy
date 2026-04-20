@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { befeProfiles, befePersonalityReports } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { ReportClient } from "./report-client";
+import { getNavData } from "@/lib/nav-data";
 
 export default async function MyReportPage() {
   const supabase = await createClient();
@@ -24,12 +25,15 @@ export default async function MyReportPage() {
     .where(eq(befePersonalityReports.profile_id, profile.id))
     .limit(1);
 
+  const navData = await getNavData();
+
   return (
     <ReportClient
       profileId={profile.id}
       reportId={report?.id ?? null}
       status={report?.status ?? null}
       content={report?.content ?? null}
+      navData={navData}
     />
   );
 }

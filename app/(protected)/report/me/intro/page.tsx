@@ -4,6 +4,7 @@ import { db } from "@/db";
 import { befeProfiles, befePersonalityReports } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { PersonalityIntroClient } from "./personality-intro-client";
+import { getNavData } from "@/lib/nav-data";
 
 export default async function PersonalityIntroPage() {
   const supabase = await createClient();
@@ -30,11 +31,14 @@ export default async function PersonalityIntroPage() {
     redirect("/report/me");
   }
 
+  const navData = await getNavData();
+
   return (
     <PersonalityIntroClient
       nickname={profile.nickname ?? "회원"}
       role={profile.role}
       profileId={profile.id}
+      navData={navData}
     />
   );
 }

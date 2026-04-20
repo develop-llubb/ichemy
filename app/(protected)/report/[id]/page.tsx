@@ -5,6 +5,7 @@ import { befeProfiles, befeCouples, befeReports, befeReportReviews, befeCriterio
 import { eq, or, and } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { ReportResultClient } from "./report-result-client";
+import { getNavData } from "@/lib/nav-data";
 
 export default async function ReportResultPage({
   params,
@@ -94,6 +95,8 @@ export default async function ReportResultPage({
     .where(eq(befeReportReviews.report_id, report.id))
     .limit(1);
 
+  const navData = await getNavData();
+
   return (
     <ReportResultClient
       reportId={report.id}
@@ -103,6 +106,7 @@ export default async function ReportResultPage({
       content={report.content}
       profileId={profile.id}
       hasReview={!!existingReview}
+      navData={navData}
     />
   );
 }

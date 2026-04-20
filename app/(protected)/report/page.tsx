@@ -111,6 +111,12 @@ export default async function ReportPage({
       children={children}
       childReportKeys={childReportKeys}
       hasNoChildReport={hasNoChildReport}
+      navData={{
+        nickname: profile.nickname ?? "회원",
+        role: profile.role,
+        hasCouple: true,
+        heartBalance: couple.heart_balance,
+      }}
     />
   );
 }

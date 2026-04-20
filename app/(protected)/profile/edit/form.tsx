@@ -2,15 +2,19 @@
 
 import { useActionState, useState } from "react";
 import { useRouter } from "nextjs-toploader/app";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { editProfile, type EditProfileState } from "./action";
+import { AppBar } from "@/components/app-bar";
+import type { NavData } from "@/lib/nav-data";
 
 export function EditProfileForm({
   currentNickname,
   currentRole,
+  navData,
 }: {
   currentNickname: string;
   currentRole: "mom" | "dad";
+  navData: NavData;
 }) {
   const router = useRouter();
   const [role, setRole] = useState<"mom" | "dad">(currentRole);
@@ -22,19 +26,7 @@ export function EditProfileForm({
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-[430px] flex-col bg-background">
-      {/* Header */}
-      <div className="sticky top-0 z-40 grid shrink-0 grid-cols-[40px_1fr_40px] items-center border-b border-black/[0.03] bg-background/95 px-5 py-3 backdrop-blur-sm">
-        <button
-          onClick={() => router.back()}
-          className="-ml-1.5 flex h-10 w-10 cursor-pointer items-center justify-start rounded-lg border-none bg-transparent"
-        >
-          <ChevronLeft size={24} className="text-foreground" />
-        </button>
-        <span className="text-center text-[15px] font-semibold text-foreground">
-          내 정보 수정
-        </span>
-        <div />
-      </div>
+      <AppBar variant="page" title="내 정보 수정" {...navData} />
 
       <main className="flex flex-1 flex-col px-6 pt-6">
         <form action={formAction} className="space-y-6">
